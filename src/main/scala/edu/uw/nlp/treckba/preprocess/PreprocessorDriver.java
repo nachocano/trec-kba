@@ -21,8 +21,6 @@ public class PreprocessorDriver extends Configured implements Tool {
         conf.setJobName("treckba-preprocess");
 
         conf.setJarByClass(PreprocessorDriver.class);
-        conf.setMapOutputKeyClass(Text.class);
-        conf.setMapOutputValueClass(Text.class);
         conf.setOutputKeyClass(Text.class);
         conf.setOutputValueClass(Text.class);
 

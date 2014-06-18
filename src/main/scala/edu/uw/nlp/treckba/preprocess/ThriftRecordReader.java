@@ -33,6 +33,7 @@ public class ThriftRecordReader implements RecordReader<Text, StreamItemWritable
         FileSystem fs = path.getFileSystem(conf);
         in = fs.open(path);
         tp = new TBinaryProtocol.Factory().getProtocol(new TIOStreamTransport(in));
+        System.out.println("No exception thrown");
     }
 
 
@@ -49,7 +50,7 @@ public class ThriftRecordReader implements RecordReader<Text, StreamItemWritable
                 return true;
             } catch (Exception e) {
                 System.err.println("Error getting next " + e.getMessage());
-                throw new IOException(e);
+                return false;
             }
         }
         return false;
@@ -72,8 +73,12 @@ public class ThriftRecordReader implements RecordReader<Text, StreamItemWritable
 
     @Override
     public void close() throws IOException {
-        if (in != null) {
-            in.close();
+        try {
+            if (in != null) {
+                in.close();
+            }
+        } catch (IOException exc) {
+            System.err.println("IOException closing record " + exc.getMessage());
         }
     }
 

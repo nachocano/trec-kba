@@ -7,19 +7,19 @@ import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 public class PreprocessorReducer extends MapReduceBase implements Reducer<Text, Text, Text, Text> {
 
     public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
-        System.out.println("key in reducer " + key.toString());
-        StringBuilder sb = new StringBuilder();
+        Set<String> docs = new HashSet<String>();
         while (values.hasNext()) {
-            sb.append(values.next().toString()).append(",");
+            docs.add(values.next().toString());
         }
-        sb.deleteCharAt(sb.length()-1);
-        System.out.println("sb in reducer " + sb.toString());
-        output.collect(key, key);
+        output.collect(key, new Text(Arrays.toString(docs.toArray())));
     }
 }
 
