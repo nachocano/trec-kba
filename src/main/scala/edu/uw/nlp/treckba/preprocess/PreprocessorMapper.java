@@ -2,7 +2,6 @@ package edu.uw.nlp.treckba.preprocess;
 
 
 import edu.uw.nlp.treckba.gen.ContentItem;
-import org.apache.commons.lang.Validate;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -31,7 +30,7 @@ public class PreprocessorMapper extends MapReduceBase implements Mapper<Text, St
                 String filename = file.toString();
                 if (filename.contains("entities")) {
                     addTargetEntities(filename);
-                } else if (filename.endsWith(".txt")){
+                } else if (filename.endsWith(".txt")) {
                     //addDecryptionKey(filename);
                 }
             }
@@ -69,19 +68,18 @@ public class PreprocessorMapper extends MapReduceBase implements Mapper<Text, St
     }
 
     private void addDecryptionKey(String filename) throws Exception {
-        String[] cmd = new String[] {"gpg", "--import", filename};
+        String[] cmd = new String[]{"gpg", "--import", filename};
         Runtime.getRuntime().exec(cmd);
     }
 
     private Text entity = new Text();
 
     public void map(Text key, StreamItemWritable value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
-        ContentItem content = value.getBody();
-        if (content != null) {
-            String cleanVisible = content.getClean_visible();
-            if (cleanVisible != null) {
-                cleanVisible = cleanVisible.toLowerCase();
-                for (String targetEntity: targetEntities) {
+        if (value.isSetBody()) {
+            ContentItem content = value.getBody();
+            if (content.isSetClean_visible()) {
+                String cleanVisible = content.getClean_visible().toLowerCase();
+                for (String targetEntity : targetEntities) {
                     if (cleanVisible.indexOf(targetEntity) != -1) {
                         entity.set(targetEntity);
                         output.collect(entity, key);
