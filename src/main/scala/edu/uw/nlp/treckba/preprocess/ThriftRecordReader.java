@@ -2,6 +2,7 @@ package edu.uw.nlp.treckba.preprocess;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileSplit;
@@ -23,7 +24,6 @@ public class ThriftRecordReader implements RecordReader<Text, StreamItemWritable
     private FSDataInputStream in;
     private FileSplit fileSplit;
     private Path uncompressedPath;
-    private Path decryptedPath;
     private TProtocol tp;
     private long start;
     private long length;
@@ -36,26 +36,16 @@ public class ThriftRecordReader implements RecordReader<Text, StreamItemWritable
         length = fileSplit.getLength();
         position = 0;
         Path path = fileSplit.getPath();
-        FileSystem fs = path.getFileSystem(jobConf);
-        decryptedPath = getDecryptedPath(path, fs, jobConf);
-        uncompressedPath = getUnxzPath(decryptedPath, fs);
-        in = fs.open(uncompressedPath);
+
+        FileSystem lfs = LocalFileSystem.getLocal(jobConf);
+        Path decryptedPath = FileUtils.decrypt(path, jobConf);
+        uncompressedPath = FileUtils.decompress(decryptedPath, lfs);
+        in = lfs.open(uncompressedPath);
         tp = new TBinaryProtocol.Factory().getProtocol(new TIOStreamTransport(in));
     }
 
-    private Path getDecryptedPath(Path path, FileSystem fs, JobConf conf) throws IOException {
-        String dir = conf.get(FileUtils.GPG_DIR);
-        return FileUtils.decrypt(dir, path, fs);
-    }
-
-    private Path getUnxzPath(Path path, FileSystem fs) throws IOException {
-        return FileUtils.decompress(path, fs);
-    }
-
-
     @Override
     public boolean next(Text key, StreamItemWritable value) throws IOException {
-
         key.set(fileSplit.getPath().toString());
 
         if (in.available() > 0) {
@@ -96,17 +86,25 @@ public class ThriftRecordReader implements RecordReader<Text, StreamItemWritable
         } catch (IOException exc) {
             System.err.println("IOException closing record " + exc.getMessage());
         }
+        FileSystem fs = LocalFileSystem.getLocal(conf);
+        Path compressedPath = new Path(uncompressedPath.toUri().toString() + ".xz");
+        Path encryptedPath = new Path(compressedPath.toString() + ".gpg");
+
         try {
-            FileSystem fs = FileSystem.get(conf);
+            fs.delete(encryptedPath, true);
+        } catch(IOException exc) {
+            System.err.println("IOException removing encrypted file " + exc.getMessage());
+        }
+        try {
+            fs.delete(compressedPath, true);
+        } catch(IOException exc) {
+            System.err.println("IOException removing compressed file " + exc.getMessage());
+        }
+
+        try {
             fs.delete(uncompressedPath, true);
         } catch(IOException exc) {
             System.err.println("IOException removing uncompressed file " + exc.getMessage());
-        }
-        try {
-            FileSystem fs = FileSystem.get(conf);
-            fs.delete(decryptedPath, true);
-        } catch(IOException exc) {
-            System.err.println("IOException removing decrypted file " + exc.getMessage());
         }
 
     }

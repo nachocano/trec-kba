@@ -1,10 +1,9 @@
 package edu.uw.nlp.treckba.preprocess;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.mapred.JobConf;
 import org.tukaani.xz.XZInputStream;
 
 import java.io.IOException;
@@ -13,26 +12,64 @@ import java.util.Arrays;
 public class FileUtils {
 
     public static final String GPG_DIR = "GPG_DIR";
+    public static final String TMP_DIR = "TMP_DIR";
+    private static final String KEY_FILENAME = "trec-kba-rsa.txt";
+    private static final String PATTERN = "/(.*\\.[xX][zZ]\\.[gG][pP][gG])$";
 
     private FileUtils() {
     }
 
-    public static Path decrypt(String dir, Path path, FileSystem fs)  throws IOException {
-        Path decryptedPath = removeExtension(path);
+    public static Path decrypt(Path path, JobConf conf) throws IOException {
+        String dir = conf.get(FileUtils.GPG_DIR);
         if (!dir.endsWith("/")) {
             dir += "/";
         }
-        String[] cmd = new String[]{dir + "gpg", "--decrypt", path.toUri().toString()};
+        String gpg = dir + "gpg";
+
+        FileSystem fs = FileSystem.get(conf);
+        LocalFileSystem lfs = LocalFileSystem.getLocal(conf);
+        Path tmp = new Path(conf.get(FileUtils.TMP_DIR));
+        Path key = getFileFromCache(conf, KEY_FILENAME);
+        if (!lfs.exists(tmp)) {
+            if (lfs.mkdirs(tmp)) {
+                executeImport(gpg, tmp, key);
+            } else {
+                throw new IOException("Could not create local tmp folder");
+            }
+        }
+
+        fs.copyToLocalFile(path, tmp);
+        String gpgName = path.getName().split(PATTERN)[0];
+        String xzName = FilenameUtils.removeExtension(gpgName);
+        Path decryptedPath = new Path(tmp, xzName);
+        executeDecryption(gpg, tmp, decryptedPath, new Path(tmp, gpgName));
+        return decryptedPath;
+    }
+
+    private static void executeDecryption(String gpg, Path home, Path output, Path encrypted) throws IOException {
+        String[] cmd = new String[]{gpg, "--no-permission-warning", "--homedir", home.toUri().toString(),
+                "--trust-model", "always", "--output", output.toUri().toString(), "--decrypt", encrypted.toUri().toString()};
         System.out.println(Arrays.toString(cmd));
+        run(cmd);
+    }
+
+    private static void executeImport(String gpg, Path home, Path key) throws IOException {
+        String[] cmd = new String[]{gpg, "--no-permission-warning", "--homedir", home.toUri().toString(),
+                "--import", key.toUri().toString()};
+        System.out.println(Arrays.toString(cmd));
+        run(cmd);
+    }
+
+    private static void run(String[] cmd) throws IOException {
         try {
             Runtime.getRuntime().exec(cmd).waitFor();
         } catch (InterruptedException exc) {
-            System.err.println("Interrupted exc decrypting file " + Arrays.toString(cmd) + ". Exc " + exc.getMessage());
+            System.err.println("Interrupted exc running " + Arrays.toString(cmd) + ". Exc " + exc.getMessage());
+            throw new IOException(exc);
         } catch (IOException exc) {
-            System.err.println("Error decrypting file " + Arrays.toString(cmd) + ". Exc " + exc.getMessage());
+            System.err.println("IOException running " + Arrays.toString(cmd) + ". Exc " + exc.getMessage());
             throw exc;
         }
-        return decryptedPath;
     }
 
     public static Path decompress(Path path, FileSystem fs) throws IOException {
@@ -71,4 +108,13 @@ public class FileUtils {
         return new Path(newFilename);
     }
 
+    public static final Path getFileFromCache(JobConf conf, String filename) throws IOException {
+        Path[] files = DistributedCache.getLocalCacheFiles(conf);
+        for (Path file : files) {
+            if (file.getName().endsWith(filename)) {
+                return file;
+            }
+        }
+        return null;
+    }
 }
