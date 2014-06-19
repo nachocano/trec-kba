@@ -25,7 +25,6 @@ public class PreprocessorMapper extends MapReduceBase implements Mapper<Text, St
         super.configure(conf);
         try {
             Path[] files = DistributedCache.getLocalCacheFiles(conf);
-            //Validate.isTrue(files.length == 3);
             for (Path file : files) {
                 String filename = file.toString();
                 if (filename.contains("entities")) {
@@ -37,19 +36,7 @@ public class PreprocessorMapper extends MapReduceBase implements Mapper<Text, St
         } catch (Exception exc) {
             System.err.println("Caught exception while getting cached files. Exc " + exc.getMessage());
         }
-
-        try {
-            Path[] files = DistributedCache.getLocalCacheFiles(conf);
-            for (Path file : files) {
-                if (file.toString().endsWith("gpg")) {
-                    //FileUtils.decryptAndDecompress(file.toString());
-                }
-            }
-
-        } catch (Exception exc) {
-            System.err.println("Caught exception while trying to decrypt file. Exc " + exc.getMessage());
-        }
-    }
+     }
 
     private void addTargetEntities(String filename) throws Exception {
         BufferedReader bf = null;

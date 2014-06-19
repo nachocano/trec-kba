@@ -1,9 +1,13 @@
 package edu.uw.nlp.treckba.preprocess;
 
-import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.tukaani.xz.XZInputStream;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class FileUtils {
@@ -11,58 +15,55 @@ public class FileUtils {
     private FileUtils() {
     }
 
-    public static String decrypt(String filename) throws IOException {
-        String output = FilenameUtils.removeExtension(filename);
-        System.out.println(output);
-        String[] cmd = new String[]{"gpg", "-o", output, "-d", filename};
+    public static Path decrypt(Path path, FileSystem fs) throws IOException {
+        Path decryptedPath = removeExtension(path);
+        String[] cmd = new String[]{"gpg", "--output", decryptedPath.toUri().toString(), "--decrypt", path.toUri().toString()};
+        System.out.println(Arrays.toString(cmd));
         try {
-            Runtime.getRuntime().exec(cmd);
+            Runtime.getRuntime().exec(cmd).waitFor();
+        } catch (InterruptedException exc) {
+            System.err.println("Interrupted exc decrypting file " + Arrays.toString(cmd) + ". Exc " + exc.getMessage());
         } catch (IOException exc) {
             System.err.println("Error decrypting file " + Arrays.toString(cmd) + ". Exc " + exc.getMessage());
             throw exc;
         }
-        return output;
+        return decryptedPath;
     }
 
-    public static String decompress(String filename) throws Exception {
-        FileOutputStream out = null;
-        XZCompressorInputStream xzIn = null;
-        String output = FilenameUtils.removeExtension(filename);
+    public static Path decompress(Path path, FileSystem fs) throws IOException {
+        XZInputStream xzIn = null;
+        FSDataOutputStream out = null;
+        FSDataInputStream in = null;
+        Path uncompressedPath = removeExtension(path);
         try {
-            FileInputStream fin = new FileInputStream(filename);
-            BufferedInputStream in = new BufferedInputStream(fin);
-            xzIn = new XZCompressorInputStream(in);
-            out = new FileOutputStream(output);
+            in = fs.open(path);
+            xzIn = new XZInputStream(in);
+            out = fs.create(uncompressedPath);
             final byte[] buffer = new byte[8 * 1024];
-            int n = 0;
-            while (-1 != (n = xzIn.read(buffer))) {
+            int n;
+            while ((n = xzIn.read(buffer)) != -1) {
                 out.write(buffer, 0, n);
             }
-        } catch (Exception exc) {
-            System.err.println("Error decompressing file " + filename + ". Exc " + exc.getMessage());
+        } catch (IOException exc) {
+            System.err.println("Exception unxz-ing file " + path.toUri().toString() + ". Exc " + exc.getMessage());
             throw exc;
         } finally {
             if (xzIn != null) {
-                try {
-                    xzIn.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                xzIn.close();
+            }
+            if (in != null) {
+                in.close();
             }
             if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                out.close();
             }
         }
-        return output;
+        return uncompressedPath;
     }
 
-    public static void decryptAndDecompress(String filename) throws Exception {
-        String output = decrypt(filename);
-        decompress(output);
+    private static Path removeExtension(Path path) {
+        String newFilename = FilenameUtils.removeExtension(path.toUri().toString());
+        return new Path(newFilename);
     }
 
 }
