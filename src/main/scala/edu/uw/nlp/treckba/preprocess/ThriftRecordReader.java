@@ -37,14 +37,15 @@ public class ThriftRecordReader implements RecordReader<Text, StreamItemWritable
         position = 0;
         Path path = fileSplit.getPath();
         FileSystem fs = path.getFileSystem(jobConf);
-        //decryptedPath = getDecryptedPath(path, fs);
-        uncompressedPath = getUnxzPath(path, fs);
+        decryptedPath = getDecryptedPath(path, fs, jobConf);
+        uncompressedPath = getUnxzPath(decryptedPath, fs);
         in = fs.open(uncompressedPath);
         tp = new TBinaryProtocol.Factory().getProtocol(new TIOStreamTransport(in));
     }
 
-    private Path getDecryptedPath(Path path, FileSystem fs) throws IOException {
-        return FileUtils.decrypt(path, fs);
+    private Path getDecryptedPath(Path path, FileSystem fs, JobConf conf) throws IOException {
+        String dir = conf.get(FileUtils.GPG_DIR);
+        return FileUtils.decrypt(dir, path, fs);
     }
 
     private Path getUnxzPath(Path path, FileSystem fs) throws IOException {
@@ -103,7 +104,7 @@ public class ThriftRecordReader implements RecordReader<Text, StreamItemWritable
         }
         try {
             FileSystem fs = FileSystem.get(conf);
-            //fs.delete(decryptedPath, true);
+            fs.delete(decryptedPath, true);
         } catch(IOException exc) {
             System.err.println("IOException removing decrypted file " + exc.getMessage());
         }

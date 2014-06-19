@@ -40,6 +40,7 @@ public class PreprocessorDriver extends Configured implements Tool {
         for (final FileStatus s : status) {
             DistributedCache.addCacheFile(s.getPath().toUri(), conf);
         }
+        conf.set(FileUtils.GPG_DIR, args[3]);
 
         JobClient.runJob(conf);
         return 0;

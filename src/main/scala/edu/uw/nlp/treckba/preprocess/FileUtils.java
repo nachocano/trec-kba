@@ -12,12 +12,17 @@ import java.util.Arrays;
 
 public class FileUtils {
 
+    public static final String GPG_DIR = "GPG_DIR";
+
     private FileUtils() {
     }
 
-    public static Path decrypt(Path path, FileSystem fs) throws IOException {
+    public static Path decrypt(String dir, Path path, FileSystem fs)  throws IOException {
         Path decryptedPath = removeExtension(path);
-        String[] cmd = new String[]{"gpg", "--output", decryptedPath.toUri().toString(), "--decrypt", path.toUri().toString()};
+        if (!dir.endsWith("/")) {
+            dir += "/";
+        }
+        String[] cmd = new String[]{dir + "gpg", "--decrypt", path.toUri().toString()};
         System.out.println(Arrays.toString(cmd));
         try {
             Runtime.getRuntime().exec(cmd).waitFor();
