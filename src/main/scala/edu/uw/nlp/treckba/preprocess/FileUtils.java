@@ -1,7 +1,6 @@
 package edu.uw.nlp.treckba.preprocess;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.mapred.JobConf;
 import org.tukaani.xz.XZInputStream;
@@ -9,6 +8,13 @@ import org.tukaani.xz.XZInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+/**
+ * Decompression, decryption utils.
+ * Decryption must be done in a local file in order to call gpg os process.
+ * Decompression don't, but did it there anyway.
+ * If performance is not good, we should copy back the decrypted file to hdfs
+ * and continue from there.
+ */
 public class FileUtils {
 
     public static final String GPG_DIR = "GPG_DIR";
@@ -29,7 +35,8 @@ public class FileUtils {
         FileSystem fs = FileSystem.get(conf);
         LocalFileSystem lfs = LocalFileSystem.getLocal(conf);
         Path tmp = new Path(conf.get(FileUtils.TMP_DIR));
-        Path key = getFileFromCache(conf, KEY_FILENAME);
+        //in distributed cache
+        Path key = new Path(KEY_FILENAME);
         if (!lfs.exists(tmp)) {
             if (lfs.mkdirs(tmp)) {
                 executeImport(gpg, tmp, key);
@@ -108,7 +115,7 @@ public class FileUtils {
         return new Path(newFilename);
     }
 
-    public static final Path getFileFromCache(JobConf conf, String filename) throws IOException {
+  /*  public static final Path getFileFromCache(JobConf conf, String filename) throws IOException {
         Path[] files = DistributedCache.getLocalCacheFiles(conf);
         for (Path file : files) {
             if (file.getName().endsWith(filename)) {
@@ -117,4 +124,5 @@ public class FileUtils {
         }
         return null;
     }
+    */
 }

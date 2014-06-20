@@ -16,7 +16,7 @@ import org.apache.thrift.transport.TIOStreamTransport;
 import java.io.IOException;
 
 /** Based on https://github.com/trec-kba/kba-2012-hadoop-job/blob/master/src/ilps/hadoop/ThriftRecordReader.java
- *  Added decompression and implemented a newer interface
+ *  Added decompression, decryption and implemented a newer interface
  */
 public class ThriftRecordReader implements RecordReader<Text, StreamItemWritable> {
 

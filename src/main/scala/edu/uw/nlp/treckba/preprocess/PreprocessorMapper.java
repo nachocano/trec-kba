@@ -2,7 +2,6 @@ package edu.uw.nlp.treckba.preprocess;
 
 
 import edu.uw.nlp.treckba.gen.ContentItem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
 
@@ -23,12 +22,9 @@ public class PreprocessorMapper extends MapReduceBase implements Mapper<Text, St
     public void configure(JobConf conf) {
         super.configure(conf);
         try {
-            Path file = FileUtils.getFileFromCache(conf, "entities");
-            if (file != null) {
-                addTargetEntities(file.toUri().toString());
-            }
+            addTargetEntities("entities");
         } catch (IOException exc) {
-            System.err.println("Caught exception while getting entities files. Exc " + exc.getMessage());
+            throw new RuntimeException("Exception while getting entities files. Exc " + exc.getMessage());
         }
     }
 

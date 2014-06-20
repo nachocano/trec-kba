@@ -35,13 +35,6 @@ public class PreprocessorDriver extends Configured implements Tool {
         FileSystem.get(conf).delete(new Path(args[1]), true);
         FileOutputFormat.setOutputPath(conf, new Path(args[1]));
 
-        final FileSystem fs = FileSystem.get(conf);
-        final FileStatus[] status = fs.listStatus(new Path(args[2]));
-        for (final FileStatus s : status) {
-            DistributedCache.addCacheFile(s.getPath().toUri(), conf);
-        }
-        conf.set(FileUtils.GPG_DIR, args[3]);
-        conf.set(FileUtils.TMP_DIR, args[4]);
 
         JobClient.runJob(conf);
         return 0;
@@ -50,6 +43,7 @@ public class PreprocessorDriver extends Configured implements Tool {
 
     public static void main(String args[]) throws Exception {
         Configuration conf = new Configuration();
-        ToolRunner.run(conf, new PreprocessorDriver(), args);
+        int exitCode = ToolRunner.run(conf, new PreprocessorDriver(), args);
+        System.exit(exitCode);
     }
 }
