@@ -2,8 +2,6 @@ package edu.uw.nlp.treckba.preprocess;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.filecache.DistributedCache;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -26,7 +24,7 @@ public class PreprocessorDriver extends Configured implements Tool {
 
         conf.setMapperClass(PreprocessorMapper.class);
         conf.setReducerClass(PreprocessorReducer.class);
-        //conf.setCombinerClass(PreprocessorReducer.class);
+        conf.setCombinerClass(PreprocessorReducer.class);
 
         conf.setInputFormat(ThriftFileInputFormat.class);
         conf.setOutputFormat(TextOutputFormat.class);
@@ -35,6 +33,7 @@ public class PreprocessorDriver extends Configured implements Tool {
         FileSystem.get(conf).delete(new Path(args[1]), true);
         FileOutputFormat.setOutputPath(conf, new Path(args[1]));
 
+        FileSystem.getLocal(conf).delete(new Path(conf.get(FileUtils.TMP_DIR)), true);
 
         JobClient.runJob(conf);
         return 0;

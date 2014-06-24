@@ -1,6 +1,5 @@
 package edu.uw.nlp.treckba.preprocess;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.mapred.JobConf;
 import org.tukaani.xz.XZInputStream;
@@ -47,7 +46,7 @@ public class FileUtils {
 
         fs.copyToLocalFile(path, tmp);
         String gpgName = path.getName().split(PATTERN)[0];
-        String xzName = FilenameUtils.removeExtension(gpgName);
+        String xzName = gpgName.substring(0, gpgName.lastIndexOf("."));
         Path decryptedPath = new Path(tmp, xzName);
         executeDecryption(gpg, tmp, decryptedPath, new Path(tmp, gpgName));
         return decryptedPath;
@@ -111,7 +110,8 @@ public class FileUtils {
     }
 
     private static Path removeExtension(Path path) {
-        String newFilename = FilenameUtils.removeExtension(path.toUri().toString());
+        String original = path.toUri().toString();
+        String newFilename = original.substring(0, original.lastIndexOf("."));
         return new Path(newFilename);
     }
 

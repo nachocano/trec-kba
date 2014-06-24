@@ -106,7 +106,6 @@ public class ThriftRecordReader implements RecordReader<Text, StreamItemWritable
         } catch(IOException exc) {
             System.err.println("IOException removing uncompressed file " + exc.getMessage());
         }
-
     }
 
     @Override
