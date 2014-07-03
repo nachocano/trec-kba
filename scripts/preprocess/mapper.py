@@ -5,6 +5,7 @@ import subprocess
 import urllib
 import traceback
 import zipimport
+import re
 from cStringIO import StringIO
 from collections import defaultdict
 
@@ -21,18 +22,34 @@ from streamcorpus.ttypes import StreamItem
 PATH = "http://s3.amazonaws.com/aws-publicdatasets/trec/kba/kba-streamcorpus-2014-v0_3_0-serif-only/"
 
 def log_err(msg):
-    sys.stderr.write('%s' % msg)
+    sys.stderr.write('%s\n' % msg)
     sys.stderr.flush()
     
+def get_pattern(data):
+  data_splitted = data.split()
+  if len(data_splitted) > 1:
+    result = '\\b' + data_splitted[0]
+    for i in xrange(1,len(data_splitted)):
+      result += '\\s+' + data_splitted[i]
+    result += '\\b'
+    return result
+  else:
+    return '\\b' + data + '\\b'
+
 def read_entities(filename):
-    target_entities = defaultdict(list)
-    with open(filename,'r') as f:
-        for line in f.read().splitlines():
-            data = line.split('|')
-            target_entities[data[0]].append(data[0])
-            if len(data) == 2:
-                [target_entities[data[0]].append(e) for e in data[1].split(',')]    
-    return target_entities
+  target_entities = defaultdict(list)
+  with open(filename,'r') as f:
+    for line in f.read().splitlines():
+      data = line.split('|')
+      if data[0]:
+        target_entities[data[0]].append(get_pattern(data[0]))
+        if len(data) == 2:
+          [target_entities[data[0]].append(get_pattern(e)) for e in data[1].split(',')]
+    target_regex_entities = {}
+    for target in target_entities:
+      as_string = "|".join(target_entities[target])
+      target_regex_entities[target] = re.compile(as_string)
+    return target_regex_entities
 
 def key_import(gpg_private=None, gpg_dir='gnupg-dir'):
     if gpg_private is not None:
@@ -81,7 +98,7 @@ def get_stream_items(thrift_data):
 
 def mapper(argv):
     key_import('trec-kba-rsa.txt')
-    target_entities = read_entities('entities.txt')
+    target_regex_entities = read_entities('entities.txt')
     for filename in sys.stdin:
         file_url = PATH + filename
         try:
@@ -91,14 +108,13 @@ def mapper(argv):
                 has_match = False
                 if stream_item.body.clean_visible:
                     scv = stream_item.body.clean_visible.strip().lower()
-                    for key in target_entities:
-                        for target_value in target_entities[key]:
-                            if scv.find(target_value) != -1:
-                                has_match = True
-                                print '%s\t%s' % (key, filename)
-                                break
+                    for key in target_regex_entities:
+                        searchObj = target_regex_entities[key].search(scv)
+                        if searchObj:
+                          has_match = True
+                          print '%s\t%s' % (key, filename)
                 if has_match:
-                    break    
+                    break
         except:
             log_err("file: %s" % filename)
             log_err(traceback.format_exc())
