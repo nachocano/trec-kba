@@ -4,6 +4,7 @@
 .project
 .manager
 .scala_dependencies
+.cache
 
 # idea
 .idea
