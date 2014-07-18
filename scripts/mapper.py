@@ -19,8 +19,6 @@ streamcorpus_importer = zipimport.zipimporter('streamcorpus.mod')
 streamcorpus = streamcorpus_importer.load_module('streamcorpus')
 from streamcorpus.ttypes import StreamItem
 
-PATH = "http://s3.amazonaws.com/aws-publicdatasets/trec/kba/kba-streamcorpus-2014-v0_3_0-serif-only/"
-
 def log_err(msg):
     sys.stderr.write('%s\n' % msg)
     sys.stderr.flush()
@@ -28,23 +26,20 @@ def log_err(msg):
 def get_pattern(data):
   data_splitted = data.split()
   if len(data_splitted) > 1:
-    result = '\\b' + data_splitted[0]
+    result = '\\b' + data_splitted[0].strip()
     for i in xrange(1,len(data_splitted)):
-      result += '\\s+' + data_splitted[i]
+      result += '\\s+' + data_splitted[i].strip()
     result += '\\b'
     return result
   else:
-    return '\\b' + data + '\\b'
+    return '\\b' + data.strip() + '\\b'
 
 def read_entities(filename):
   target_entities = defaultdict(list)
   with open(filename,'r') as f:
     for line in f.read().splitlines():
       data = line.split('|')
-      if data[0]:
-        target_entities[data[0]].append(get_pattern(data[0]))
-        if len(data) == 2:
-          [target_entities[data[0]].append(get_pattern(e)) for e in data[1].split(',')]
+      [target_entities[data[0]].append(get_pattern(e)) for e in data[1].split(',')]
     target_regex_entities = {}
     for target in target_entities:
       as_string = "|".join(target_entities[target])
@@ -93,31 +88,28 @@ def get_stream_items(thrift_data):
         except EOFError:
             break
         except:
-            log_err("unexpected exception %s" % traceback.format_exc())
+            #log_err("err: %s" % traceback.format_exc())
             pass
+
+folder_regex = re.compile(r'/(20\d{2}-\d{2}-\d{2}-\d{2})/')
 
 def mapper(argv):
     key_import('trec-kba-rsa.txt')
     target_regex_entities = read_entities('entities.txt')
-    for filename in sys.stdin:
-        file_url = PATH + filename
+    for file_url in sys.stdin:
         try:
             data = urllib.urlopen(file_url.strip()).read()
             thrift_data = decrypt_and_uncompress(data)
             for stream_item in get_stream_items(thrift_data):
-                has_match = False
                 if stream_item.body.clean_visible:
                     scv = stream_item.body.clean_visible.strip().lower()
                     for key in target_regex_entities:
-                        searchObj = target_regex_entities[key].search(scv)
-                        if searchObj:
-                          has_match = True
-                          print '%s\t%s' % (key, filename)
-                if has_match:
-                    break
+                        match = target_regex_entities[key].search(scv)
+                        if match:
+                          folder = folder_regex.search(file_url).group(1)
+                          print '%s\t%s\t%s\t%s' % (stream_item.stream_id, key, folder, file_url)
         except:
-            log_err("file: %s" % filename)
-            log_err(traceback.format_exc())
+            log_err("err: %s, %s" % (file_url, traceback.format_exc()))
             
 if __name__ == '__main__':
     mapper(sys.argv)
