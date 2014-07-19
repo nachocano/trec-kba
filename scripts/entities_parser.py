@@ -20,29 +20,35 @@ def extract_name(name):
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('input')
+  parser.add_argument('yaml')
+  parser.add_argument('entities_filtered')
   args = parser.parse_args()
 
-  profiles = yaml.load(open(args.input))
+  target_entities = {}
+  for target_entity in open(args.entities_filtered).read().splitlines():
+    target_entities[target_entity] = True
+
+  profiles = yaml.load(open(args.yaml))
   total_canonical = 0
   total_surface = 0
 
   for label, entity in profiles['entities'].items():
-    has_surface = False
-    canonical = ''
-    surface = ''
-    for slot_name, slot_value in entity['slots'].items():
-      if slot_name == 'canonical_name':
-        total_canonical += 1
-        canonical = slot_value.strip().lower()
-      if slot_name == 'PER_NAME' or slot_name == 'ORG_NAME' or slot_name == 'FAC_NAME':
-        total_surface += 1
-        has_surface = True
-        surface = extract_name(slot_value)
-    if has_surface:
-      print '%s|%s,%s' % (label, canonical, surface)
-    else:
-      print '%s|%s' % (label,canonical)
+    if target_entities.has_key(label):
+      has_surface = False
+      canonical = ''
+      surface = ''
+      for slot_name, slot_value in entity['slots'].items():
+        if slot_name == 'canonical_name':
+          total_canonical += 1
+          canonical = slot_value.strip().lower()
+        if slot_name == 'PER_NAME' or slot_name == 'ORG_NAME' or slot_name == 'FAC_NAME':
+          total_surface += 1
+          has_surface = True
+          surface = extract_name(slot_value)
+      if has_surface:
+        print '%s|%s,%s' % (label, canonical, surface)
+      else:
+        print '%s|%s' % (label,canonical)
 
   #print '\nstats: canonical=%d, surface=%d' % (total_canonical, total_surface)
 
