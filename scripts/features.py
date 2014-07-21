@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import division
 import os
 import sys
 import subprocess
@@ -87,15 +88,31 @@ white_space_re = re.compile("(\s|\n|\r)+")
 def strip_string(s):
   return white_space_re.sub(" ", s.translate(strip_punctuation).lower())
 
+def get_pattern(data):
+  data_splitted = data.split()
+  if len(data_splitted) > 1:
+    result = '\\b' + data_splitted[0].strip()
+    for i in xrange(1,len(data_splitted)):
+      result += '\\s+' + data_splitted[i].strip()
+    result += '\\b'
+    return result
+  else:
+    return '\\b' + data.strip() + '\\b'
+
+
 def main():
   parser = argparse.ArgumentParser(description='TODO')
   parser.add_argument('-d', '--directory', required=True)
   parser.add_argument('-t', '--truth_file', required=True)
   parser.add_argument('-m', '--mapping_file', required=True)
   parser.add_argument('-k', '--treckba_key_file', required=True)
+  parser.add_argument('-e', '--entities_file', required=True)
   args = parser.parse_args()
   key_import(args.treckba_key_file, args.directory)
+  
+  # read truth data file
   truth = {}
+  position = 1
   for line in open(args.truth_file).read().splitlines():
     instance = line.split()
     annotator = instance[1]
@@ -103,35 +120,63 @@ def main():
     targetid = instance[3]
     relevance = instance[5]
     offsets = instance[10]
-    truth[(streamid, targetid, offsets, annotator)] = relevance
+    truth[(streamid, targetid, offsets, annotator)] = (relevance, position) 
 
+  # patterns to compute features
+  target_entities = defaultdict(list)
+  target_regex_entities = {}
+  for line in open(args.entities_file).read().splitlines():
+    data = line.split('|')
+    [target_entities[data[0]].append(get_pattern(e)) for e in data[1].split(',')]
+    target_regex_entities = {}
+    for target in target_entities:
+      as_string = "|".join(target_entities[target])
+      target_regex_entities[target] = re.compile(as_string)
+
+  # streamid - filename mapping
   mappings = defaultdict(set)
   for line in open(args.mapping_file).read().splitlines():
     streamid, filename = line.split()
     filename = '%s/%s' % (args.directory, filename.split('/')[1])
     mappings[streamid].add(filename)
 
-  for (streamid, targetid, offsets, _), label in truth.iteritems():
+  for (streamid, targetid, offsets, annotator), (label, _) in sorted(truth.iteritems(), key=lambda (k,v) : (v[1],k)):
     assert mappings.has_key(streamid)
     filenames = mappings[streamid]
+    has_match = False
     for filename in filenames:
-      if "news-9-53162abdb5a96e7b4df6be63293b9381-95e71c51e81de0a369716b1832728004-7fb816409c5925f7ad125c72a17a70da-7385982fc6e63052fba2d32eeec244c5.sc.xz.gpg" in filename:
-        data = open(filename).read()
+      with open(filename) as f:
+        data = f.read()
         thrift_data = decrypt_and_uncompress(data, args.directory)
         for stream_item in get_stream_items(thrift_data):
           if stream_item.stream_id == streamid:
-            text = strip_string(stream_item.body.clean_visible.decode('utf8'))
+            clean_visible = stream_item.body.clean_visible
+            text = strip_string(clean_visible.decode('utf8'))
+
             # doc features
-            doc_length = log(len(text))
+            doc_length = len(text)
+            log_doc_length = log(doc_length)
             source = get_source(stream_item.source)
             
             # doc-entity features
-
-            for sentence in stream_item.body.sentences['serif']:
-              print sentence
-
-
-            print doc_length, source
+            results = list(target_regex_entities[targetid].finditer(text))
+            ocurrences = len(results)
+            if ocurrences > 0:
+              has_match = True
+              first_pos = results[0].start()
+              first_pos_norm = first_pos / doc_length
+              last_pos = results[ocurrences-1].start()
+              last_pos_norm = last_pos / doc_length
+              spread = last_pos - first_pos
+              spread_norm = spread / doc_length
+              #for sentence in stream_item.body.sentences['serif']:
+              #for token in sentence.tokens:
+              #print sentence
+              sys.stdout.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (label, log_doc_length, source, ocurrences, first_pos, first_pos_norm, last_pos, last_pos_norm, spread, spread_norm, annotator, streamid, targetid))
+        if has_match:
+          break
+    if not has_match:
+      sys.stdout.write('no_match=%s\t%s\t%s\t%s\n' % (annotator, streamid, targetid, str(filenames)))
 
 if __name__ == '__main__':
   main()
