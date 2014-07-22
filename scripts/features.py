@@ -9,6 +9,7 @@ import re
 import argparse
 import fileinput
 import string
+import time
 from math import log, ceil
 from cStringIO import StringIO
 from collections import defaultdict
@@ -123,13 +124,19 @@ def main():
     partial_as_string = "|".join(target_partial_str_entities[target])
     target_partial_regex_entities[target] = re.compile(partial_as_string)
 
-  targetids = [targetids[0]]
   train_out = open(os.path.join(args.output_dir, "train.tsv"), 'w')
   test_out = open(os.path.join(args.output_dir, "test.tsv"), 'w')
+  total_ids = len(targetids)
   for targetid in targetids:
+    total_ids -=1
+    start = time.time()
+    print 'processing targetid %s. remaining %d' % (targetid, total_ids)
     info = defaultdict(dict)
     filename = '%s.bin' % targetid[targetid.rfind('/')+1:]
     filepath = os.path.join(args.input_dir, filename)
+    if not os.path.isfile(filepath):
+      print 'missing file %s. continue with next one' % filepath
+      continue
     count = 0
     with open(filepath) as f:
       thrift_data = f.read()
@@ -222,6 +229,7 @@ def main():
       else:
         test_out.write('%s %s %s %s %s %s\n' % (key[0], key[1], key[2], label, sources, rest))
 
+    print 'finished processing targetid %s, elapsed time %s' % (targetid, time.time() - start)
 
 
 if __name__ == '__main__':
