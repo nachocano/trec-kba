@@ -73,11 +73,12 @@ def get_partial_pattern(data):
 
 def main():
   parser = argparse.ArgumentParser(description='TODO')
-  parser.add_argument('-d', '--input_dir', required=True)
+  parser.add_argument('-i', '--input_dir', required=True)
   parser.add_argument('-t', '--truth_file', required=True)
   parser.add_argument('-e', '--entities_file', required=True)
   parser.add_argument('-fe', '--full_entities_file', required=True)
-  parser.add_argument('-tp', '--train_percentage', required=False, type=float)
+  parser.add_argument('-sp', '--split_percentage', required=True, type=float)
+  parser.add_argument('-o', '--output_dir', required=True)
   args = parser.parse_args()
 
   # truth data file
@@ -123,7 +124,8 @@ def main():
     target_partial_regex_entities[target] = re.compile(partial_as_string)
 
   targetids = [targetids[0]]
-
+  train_out = open(os.path.join(args.output_dir, "train.tsv"), 'w')
+  test_out = open(os.path.join(args.output_dir, "test.tsv"), 'w')
   for targetid in targetids:
     info = defaultdict(dict)
     filename = '%s.bin' % targetid[targetid.rfind('/')+1:]
@@ -209,14 +211,17 @@ def main():
 
           info[newkey]['label'] = relevance
 
-    if args.train_percentage:
-      training_examples = int(args.train_percentage * count)
-      test_examples = count - training_examples
-      for key, value in sorted(info.iteritems(), key=lambda (k,v) : (k[2],v)):
-        sources = ' '.join(str(s) for s in value['features'][0])
-        rest = ' '.join(str(f) for f in value['features'][1:15])
-        label = value['label']
-        print '%s %s %s %s %s %s' % (key[0], key[1], key[2], label, sources, rest)
+    left = int(args.split_percentage * count)
+    for key, value in sorted(info.iteritems(), key=lambda (k,v) : (k[2],v)):
+      sources = ' '.join(str(s) for s in value['features'][0])
+      rest = ' '.join(str(f) for f in value['features'][1:15])
+      label = value['label']
+      if left:
+        train_out.write('%s %s %s %s %s %s\n' % (key[0], key[1], key[2], label, sources, rest))
+        left -= 1
+      else:
+        test_out.write('%s %s %s %s %s %s\n' % (key[0], key[1], key[2], label, sources, rest))
+
 
 
 if __name__ == '__main__':
