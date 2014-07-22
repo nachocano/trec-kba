@@ -9,7 +9,7 @@ import re
 import argparse
 import fileinput
 import string
-from math import log
+from math import log, ceil
 from cStringIO import StringIO
 from collections import defaultdict
 
@@ -38,20 +38,12 @@ def get_stream_items(thrift_data):
         except:
             pass
 
-source_map = defaultdict(int)
-source_map['arxiv'] = 1
-source_map['classified'] = 2
-source_map['forum'] = 3
-source_map['linking'] = 4
-source_map['mainstream_news'] = 5
-source_map['memetracker'] = 6
-source_map['news'] = 7
-source_map['review'] = 8
-source_map['social'] = 9
-source_map['weblog'] = 10
+source_map = {'arxiv': 0, 'classified': 1, 'forum': 2, 'linking': 3, 'mainstream_news': 4, 'memetracker': 5, 'news': 6, 'review': 7, 'social': 8, 'weblog': 9}
 
-def get_source(source):
-  return source_map[source.lower()]
+def get_sources(source):
+  sources = [0] * 10
+  sources[source_map[source.lower()]] = 1
+  return sources
 
 strip_punctuation = dict((ord(char), u" ") for char in string.punctuation)
 white_space_re = re.compile("(\s|\n|\r)+")
@@ -59,7 +51,8 @@ white_space_re = re.compile("(\s|\n|\r)+")
 def strip_string(s):
   return white_space_re.sub(" ", s.translate(strip_punctuation).lower())
 
-def get_pattern(data):
+# ugly stuff
+def get_full_pattern(data):
   data_splitted = data.split()
   if len(data_splitted) > 1:
     result = '\\b' + data_splitted[0].strip()
@@ -70,6 +63,13 @@ def get_pattern(data):
   else:
     return '\\b' + data.strip() + '\\b'
 
+def get_partial_pattern(data):
+  result = '\\b' + data[0].strip() + '\\b'
+  for i in xrange(1,len(data)):
+    result += '|\\b' + data[i].strip() + '\\b'
+  return result
+
+
 
 def main():
   parser = argparse.ArgumentParser(description='TODO')
@@ -77,6 +77,7 @@ def main():
   parser.add_argument('-t', '--truth_file', required=True)
   parser.add_argument('-e', '--entities_file', required=True)
   parser.add_argument('-fe', '--full_entities_file', required=True)
+  parser.add_argument('-tp', '--train_percentage', required=False, type=float)
   args = parser.parse_args()
 
   # truth data file
@@ -100,59 +101,122 @@ def main():
   for line in open(args.entities_file).read().splitlines():
     targetids.append(line.strip())
 
-  # full target entities, with surface form names, to compute features
-  target_entities = defaultdict(list)
-  target_regex_entities = {}
+  # target entities, with surface form names, to compute features
+  target_full_str_entities = defaultdict(list)
+  target_partial_str_entities = defaultdict(list)
+  target_full_regex_entities = {}
+  target_partial_regex_entities = {}
   for line in open(args.full_entities_file).read().splitlines():
     data = line.split('|')
-    [target_entities[data[0]].append(get_pattern(e)) for e in data[1].split(',')]
-    target_regex_entities = {}
-    for target in target_entities:
-      as_string = "|".join(target_entities[target])
-      target_regex_entities[target] = re.compile(as_string)
-
-  assert(len(target_regex_entities) == len(targetids))
+    for e in data[1].split(','):
+      full = get_full_pattern(e)
+      target_full_str_entities[data[0]].append(full)
+      s = e.split()
+      if len(s) > 1:
+        partial = get_partial_pattern(s)
+        target_partial_str_entities[data[0]].append(partial)
+  for target in target_full_str_entities:
+    full_as_string = "|".join(target_full_str_entities[target])
+    target_full_regex_entities[target] = re.compile(full_as_string)
+  for target in target_partial_str_entities:
+    partial_as_string = "|".join(target_partial_str_entities[target])
+    target_partial_regex_entities[target] = re.compile(partial_as_string)
 
   targetids = [targetids[0]]
+
   for targetid in targetids:
+    info = defaultdict(dict)
     filename = '%s.bin' % targetid[targetid.rfind('/')+1:]
     filepath = os.path.join(args.input_dir, filename)
+    count = 0
     with open(filepath) as f:
       thrift_data = f.read()
       for stream_item in get_stream_items(thrift_data):
-        print stream_item
-        #clean_visible = stream_item.body.clean_visible
-        #print clean_visible
-        # doc features
-        #doc_length = len(text)
-        #log_doc_length = log(doc_length)
-        #source = get_source(stream_item.source)
-        
-        # doc-entity features
-        #results = list(target_regex_entities[targetid].finditer(text))
-        #ocurrences = len(results)
-        #if ocurrences > 0:
-        #  has_match = True
-        #  first_pos = results[0].start()
-        #  first_pos_norm = first_pos / doc_length
-        #  last_pos = results[ocurrences-1].start()
-        #  last_pos_norm = last_pos / doc_length
-        #  spread = last_pos - first_pos
-        #  spread_norm = spread / doc_length
+        key = (stream_item.stream_id, targetid)
+        if truth.has_key(key):
+          relevance, date_hour = truth[key]
+
+          clean_visible = stream_item.body.clean_visible.lower()
+
+          # doc features
+          doc_length = len(clean_visible)
+          log_doc_length = log(doc_length)
+          sources = get_sources(stream_item.source)
+          
+          # doc-entity features
+          results_full = list(target_full_regex_entities[targetid].finditer(clean_visible))
+          ocurrences_full = len(results_full)
+          first_pos_full = -1
+          first_pos_norm_full = -1
+          last_pos_full = -1
+          last_pos_norm_full = -1
+          spread_full = -1
+          spread_norm_full = -1
+          if ocurrences_full > 0:
+            first_pos_full = results_full[0].start()
+            first_pos_norm_full = first_pos_full / doc_length
+            last_pos_full = results_full[ocurrences_full-1].start()
+            last_pos_norm_full = last_pos_full / doc_length
+            spread_full = last_pos_full - first_pos_full
+            spread_norm_full = spread_full / doc_length
+
+          # partial stuff
+          first_pos_partial = -1
+          first_pos_norm_partial = -1
+          last_pos_partial = -1
+          last_pos_norm_partial = -1
+          spread_partial = -1
+          spread_norm_partial = -1
+          if target_partial_regex_entities.has_key(targetid):
+            results_partial = list(target_partial_regex_entities[targetid].finditer(clean_visible))
+            ocurrences_partial = len(results_partial)
+            if ocurrences_partial > 0:
+              first_pos_partial = results_partial[0].start()
+              first_pos_norm_partial = first_pos_partial / doc_length
+              last_pos_partial = results_partial[ocurrences_partial-1].start()
+              last_pos_norm_partial = last_pos_partial / doc_length
+              spread_partial = last_pos_partial - first_pos_partial
+              spread_norm_partial = spread_partial / doc_length
+
+          # TODO add serif features
+          #for sentence in stream_item.body.sentences['serif']:
+          #for token in sentence.tokens:
+          #print sentence
 
 
+          count += 1
 
+          newkey = (stream_item.stream_id, targetid, date_hour)
+          info[newkey]['features'] = []
+          info[newkey]['features'].append(sources)
+          info[newkey]['features'].append(log_doc_length)
 
-          #if stream_item.stream_id == streamid:
-            
-            #text = strip_string(clean_visible.decode('utf8'))
+          info[newkey]['features'].append(ocurrences_full)
+          info[newkey]['features'].append(first_pos_full)
+          info[newkey]['features'].append(first_pos_norm_full)
+          info[newkey]['features'].append(last_pos_full)
+          info[newkey]['features'].append(last_pos_norm_full)
+          info[newkey]['features'].append(spread_full)
+          info[newkey]['features'].append(spread_norm_full)
 
-              #for sentence in stream_item.body.sentences['serif']:
-              #for token in sentence.tokens:
-              #print sentence
-              #sys.stdout.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (label, log_doc_length, source, ocurrences, first_pos, first_pos_norm, last_pos, last_pos_norm, spread, spread_norm, annotator, streamid, targetid))
-        #if has_match:
-        #  break
+          info[newkey]['features'].append(ocurrences_partial)
+          info[newkey]['features'].append(first_pos_partial)
+          info[newkey]['features'].append(first_pos_norm_partial)
+          info[newkey]['features'].append(last_pos_partial)
+          info[newkey]['features'].append(last_pos_norm_partial)
+          info[newkey]['features'].append(spread_partial)
+          info[newkey]['features'].append(spread_norm_partial)
+
+          info[newkey]['label'] = relevance
+
+    if args.train_percentage:
+      training_examples = int(args.train_percentage * count)
+      test_examples = count - training_examples
+      for key, value in sorted(info.iteritems(), key=lambda (k,v) : (k[2],v)):
+        sources = ' '.join(str(s) for s in value['features'][0])
+        rest = ' '.join(str(f) for f in value['features'][1:15])
+        label = value['label']
+        print '%s %s %s %s %s %s' % (key[0], key[1], key[2], label, sources, rest)
 
 
 if __name__ == '__main__':
