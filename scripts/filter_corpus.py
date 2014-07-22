@@ -91,7 +91,6 @@ def main():
   targetids = []
   for line in open(args.entities_file).read().splitlines():
     targetids.append(line.strip())
-  targetids = [targetids[0]]
 
   # streamid - filename mapping
   mappings = defaultdict(set)
