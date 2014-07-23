@@ -13,6 +13,7 @@ import time
 from math import log, ceil
 from cStringIO import StringIO
 from collections import defaultdict
+from collections import Counter
 
 
 # hack to import thrift and streamcorpus
@@ -82,21 +83,29 @@ def main():
   parser.add_argument('-o', '--output_dir', required=True)
   args = parser.parse_args()
 
-  # truth data file
-  truth = {}
+  truth_counts = defaultdict(list)
   for line in open(args.truth_file).read().splitlines():
     instance = line.split()
     streamid = instance[2]
     targetid = instance[3]
     relevance = instance[5]
-    date = instance[7]
-    # the entry may be repeated, keep the one with highest relevance
     key = (streamid, targetid)
-    if truth.has_key(key):
-      if truth[key][0] < relevance:
-        truth[key] = (relevance, date)
-    else:
-        truth[key] = (relevance, date)
+    truth_counts[key].append(relevance)
+
+  majority_relevance = {}
+  for key in truth_counts:
+    counter = Counter(truth_counts[key])
+    majority_relevance[key] = counter.most_common()[0][0]
+
+  # truth data file, keeping the truth relevance as the majority element or the minimum one, in case of match
+  truth = {}
+  for line in open(args.truth_file).read().splitlines():
+    instance = line.split()
+    streamid = instance[2]
+    targetid = instance[3]
+    date = instance[7]
+    key = (streamid, targetid)
+    truth[key] = (majority_relevance[key], date)
 
   # target entities
   targetids = []
