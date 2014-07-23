@@ -127,6 +127,7 @@ def main():
   train_out = open(os.path.join(args.output_dir, "train.tsv"), 'w')
   test_out = open(os.path.join(args.output_dir, "test.tsv"), 'w')
   total_ids = len(targetids)
+  total_time = 0
   for targetid in targetids:
     total_ids -=1
     start = time.time()
@@ -229,7 +230,10 @@ def main():
       else:
         test_out.write('%s %s %s %s %s %s\n' % (key[0], key[1], key[2], label, sources, rest))
 
-    print 'finished processing targetid %s, elapsed time %s' % (targetid, time.time() - start)
+    elapsed = time.time() - start
+    print 'finished processing targetid %s, elapsed time %s' % (targetid, elapsed)
+    total_time += elapsed
+  print 'total time %s' % total_time
 
 
 if __name__ == '__main__':

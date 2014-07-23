@@ -31,16 +31,14 @@ def to_uv(x,y):
         y_uv[i] = y[v]
     return (x_uv, y_uv)
 
-def to_uv_given_pred(x,y, pred_rnr):
-# for the ones that I predicted 1, I should get the truth value
-# if the truth is -1 or 0, I put them as useful? Or shouldn't I consider them
+def to_uv_given_pred(x, y, pred_rnr):
     idxs = np.where(pred_rnr == 1)[0]
     count = len(idxs)
     x_uv = np.zeros([count,x.shape[1]])
     y_uv = np.zeros([count])
     for i, v in enumerate(idxs):
         x_uv[i] = x[v]
-        y_uv[i] = y[v] if (y[v] == 1 or y[v] == 2) else 1
+        y_uv[i] = y[v]
     return (x_uv, y_uv, idxs)
 
 def build_record(idx, context, relevance):
@@ -125,7 +123,7 @@ def main():
     assert y_test_uv.shape[0] == len(idxs_context)
 
     clf_uv = ensemble.GradientBoostingClassifier()
-    clf_uv = clf_rnr.fit(x_train_uv, y_train_uv)
+    clf_uv = clf_uv.fit(x_train_uv, y_train_uv)
 
     pred_uv = clf_uv.predict(x_test_uv)
     for i, relevance in enumerate(pred_uv):
@@ -136,22 +134,11 @@ def main():
     assert y_test_uv.shape == pred_uv.shape
 
     # some metrics
+    print 'macro %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="macro"))
+    print 'micro %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="micro"))
+    print 'weighted %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="weighted"))
 
-    p_rnr_micro, r_rnr_micro, f1_rnr_micro, _ = metrics.precision_recall_fscore_support(y_test_rnr, pred_rnr,
-                                                         average="micro")
-    print 'RNR Micro:'
-    print ' Precision %f' % p_rnr_micro
-    print ' Recall %f' % r_rnr_micro
-    print ' F1 %f' % f1_rnr_micro
-
-    p_uv_micro, r_uv_micro, f1_uv_micro, _ = metrics.precision_recall_fscore_support(y_test_uv, pred_uv,
-                                                         average="micro")
-    print 'UV Micro:'
-    print ' Precision %f' % p_uv_micro
-    print ' Recall %f' % r_uv_micro
-    print ' F1 %f' % f1_uv_micro
-
-
+    
     output = open(args.output_file, "w")
     for rec in recs:
         output.write("\t".join(map(str, rec)) + "\n")
