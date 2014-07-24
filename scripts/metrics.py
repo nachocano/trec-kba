@@ -89,11 +89,11 @@ def vital_only(targetid, truth, prediction):
         counts_v[targetid]['FN'] += 1
 
 def vital_plus_useful(targetid, truth, prediction):
-    if (prediction == 1 and truth == 1) or (prediction == 2 and truth == 2):
+    if (prediction == 1 or prediction == 2) and (truth == 1 or truth == 2):
         counts_vu[targetid]['TP'] += 1
-    elif (prediction == 1 and truth != 1) or (prediction == 2 and truth != 2):
+    elif (prediction == 1 or prediction == 2) and (truth != 1 and truth != 2):
         counts_vu[targetid]['FP'] += 1
-    elif (prediction != 1 and truth == 1) or (prediction != 2 and truth == 2):
+    elif (prediction != 1 and prediction != 2) and (truth == 1 or truth == 2):
         counts_vu[targetid]['FN'] += 1
 
 def precision(TP, FP):
