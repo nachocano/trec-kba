@@ -111,6 +111,9 @@ def main():
         if mappings.has_key(streamid):
           filenames = mappings[streamid]
           for filename in filenames:
+            if not os.path.isfile(filename):
+              print 'missing file %s. continue with next one' % filename
+              continue
             with open(filename) as f:
               data = f.read()
               thrift_data = decrypt_and_uncompress(data, args.directory)

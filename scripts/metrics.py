@@ -10,6 +10,7 @@ counts_vu = defaultdict(lambda: defaultdict(int))
 def main():
  
     parser = argparse.ArgumentParser(description=__doc__)
+    # test.tsv
     parser.add_argument('-t', '--truth', required=True)
     parser.add_argument('-r', '--run', required=True)
     args = parser.parse_args()
@@ -46,7 +47,6 @@ def main():
         vital_only(targetid, truth_relevance, run_relevance)
         vital_plus_useful(targetid, truth_relevance, run_relevance)
 
-    assert len(counts_v) == len(counts_vu)
     print 'micro v   %s' % str(micro_stats(counts_v))
     print 'micro v+u %s' % str(micro_stats(counts_vu))
     print 'macro v   %s' % str(macro_stats(counts_v))
