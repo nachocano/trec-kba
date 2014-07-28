@@ -50,7 +50,8 @@ def decrypt_and_uncompress(data, gpg_dir='gnupg-dir'):
         stderr=subprocess.PIPE)
 
     data, errors = xz_child.communicate(data)
-    assert not errors, errors
+    if errors:
+      return None
     return data
 
 def get_stream_items(thrift_data):
@@ -95,7 +96,7 @@ def main():
   # streamid - filename mapping
   mappings = defaultdict(set)
   for line in open(args.mapping_file).read().splitlines():
-    streamid, filename = line.split()
+    streamid, targetid, filename = line.split()
     filepath = '%s/%s' % (args.directory, filename.split('/')[1])
     mappings[streamid].add(filepath)
 
@@ -112,11 +113,15 @@ def main():
           filenames = mappings[streamid]
           for filename in filenames:
             if not os.path.isfile(filename):
-              print 'missing file %s. continue with next one' % filename
+              print 'missing file %s for streamid %s targetid %s. continue with next one\n' % (filename, streamid, targetid)
               continue
             with open(filename) as f:
               data = f.read()
               thrift_data = decrypt_and_uncompress(data, args.directory)
+              if not thrift_data:
+                sys.stdout.write('cannot decrypt uncompress file %s for streamid %s targetid %s\n' % (filename, streamid, targetid))
+                sys.stdout.flush()
+                continue
               for stream_item in get_stream_items(thrift_data):
                 if stream_item.stream_id == streamid:
                   sys.stdout.write('matched streamid %s for targetid %s\n' % (streamid, targetid))
