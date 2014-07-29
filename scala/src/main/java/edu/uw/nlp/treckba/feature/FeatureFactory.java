@@ -56,7 +56,6 @@ public class FeatureFactory {
 			}
 			PrintWriter pw = null;
 			try {
-				System.out.println(features.size());
 				pw = new PrintWriter(new File(output));
 				for (final String feature : features) {
 					pw.println(feature);
