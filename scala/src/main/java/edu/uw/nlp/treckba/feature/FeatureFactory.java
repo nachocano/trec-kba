@@ -68,6 +68,7 @@ public class FeatureFactory {
 				if (pw != null) {
 					pw.close();
 				}
+				executor.shutdown();
 			}
 		}
 	}

@@ -168,8 +168,9 @@ public class Utils {
 		for (final String entityName : entityNames) {
 			sb.append(partialMatch(entityName));
 		}
-		if (sb.lastIndexOf("|") == (sb.length() - 1)) {
-			sb.replace(sb.lastIndexOf("|"), sb.length(), "");
+		final int index = sb.lastIndexOf("|");
+		if ((index != -1) && (index == (sb.length() - 1))) {
+			return sb.substring(0, index);
 		}
 		return sb.toString();
 	}

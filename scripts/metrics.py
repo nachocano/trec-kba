@@ -11,12 +11,32 @@ def main():
  
     parser = argparse.ArgumentParser(description=__doc__)
     # test.tsv
-    parser.add_argument('-t', '--truth', required=True)
-    parser.add_argument('-r', '--run', required=True)
+    parser.add_argument('-t', '--test_file', required=True)
+    parser.add_argument('-r', '--run_file', required=True)
+    parser.add_argument('-gt', '--ground_truth_file', required=True)
+    parser.add_argument('-e', '--entities_ccr', required=True)
     args = parser.parse_args()
 
+    targetids = {}
+    for line in open(args.entities_ccr).read().splitlines():
+        targetids[line.strip()] = True
+
+    ground_truth = {}
+    with open(args.ground_truth_file) as f:
+        for line in f.read().splitlines():
+            l = line.strip()
+            if l.startswith('#'):
+                continue
+            l = l.split('\t')
+            targetid = l[3]
+            if targetids.has_key(targetid):
+                streamid = l[2]
+                relevance = l[5]
+                date_hour = l[7]
+                ground_truth[(streamid, targetid, date_hour)] = True
+
     run = {}
-    with open(args.run) as f:
+    with open(args.run_file) as f:
         for line in f.read().splitlines():
             l = line.strip()
             if l.startswith('#'):
@@ -28,24 +48,29 @@ def main():
             date_hour = l[7]
             run[(streamid, targetid, date_hour)] = int(relevance)
 
-    truth = {}
-    with open(args.truth) as f:
+    test_data = {}
+    with open(args.test_file) as f:
         for line in f.read().splitlines():
             l = line.strip().split()
             streamid = l[0]
             targetid = l[1]
             date_hour = l[2]
             relevance = l[3]
-            truth[(streamid, targetid, date_hour)] = int(relevance)
+            test_data[(streamid, targetid, date_hour)] = int(relevance)
 
-    assert len(truth) == len(run)
+    assert len(test_data) == len(run)
 
-    for key in truth:
-        truth_relevance = truth[key]
-        run_relevance = run[key]
+    for key in ground_truth:
         targetid = key[1]
-        vital_only(targetid, truth_relevance, run_relevance)
-        vital_plus_useful(targetid, truth_relevance, run_relevance)
+        if test_data.has_key(key):
+            truth_relevance = test_data[key]
+            run_relevance = run[key]
+            vital_only(targetid, truth_relevance, run_relevance)
+            vital_plus_useful(targetid, truth_relevance, run_relevance)
+        else:
+            # increase the FN
+            vital_only(targetid, 2, 0)
+            vital_plus_useful(targetid, 2, 0)
 
     print 'micro v   %s' % str(micro_stats(counts_v))
     print 'micro v+u %s' % str(micro_stats(counts_vu))
