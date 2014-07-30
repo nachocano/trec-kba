@@ -133,8 +133,7 @@ def main():
         distance = euclidean(x_test[i][25:], aggregates_rnr[targetid])
         instance_to_predict = np.hstack((x_test[i][:25], np.array([distance])))
         pred_rnr[i] = clf_rnr.predict(instance_to_predict)
-        aggregates_rnr[targetid] += x_test[i][25:]
-        aggregates_updates[targetid].append(np.copy(aggregates_rnr[targetid]))
+        aggregates_updates[targetid].append(x_test[i][25:])
         aggregates_rnr[targetid] = np.mean(aggregates_updates[targetid], axis=0)
     elapsed = time.time() - start
     print 'finished testing on rnr classifier, took %s' % elapsed
@@ -171,8 +170,7 @@ def main():
         distance = euclidean(x_test_uv[i][25:], aggregates_uv[targetid])
         instance_to_predict = np.hstack((x_test_uv[i][:25], np.array([distance])))
         pred_uv[i] = clf_uv.predict(instance_to_predict)
-        aggregates_uv[targetid] += x_test_uv[i][25:]
-        aggregates_updates[targetid].append(np.copy(aggregates_uv[targetid]))
+        aggregates_updates[targetid].append(x_test_uv[i][25:])
         aggregates_uv[targetid] = np.mean(aggregates_updates[targetid], axis=0)
     elapsed = time.time() - start
     print 'finished testing on uv classifier, took %s' % elapsed
