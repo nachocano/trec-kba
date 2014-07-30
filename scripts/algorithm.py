@@ -41,10 +41,11 @@ def to_uv_given_pred(x, y, pred_rnr):
         y_uv[i] = y[v]
     return (x_uv, y_uv, idxs)
 
-def build_record(idx, context, relevance):
+def build_record(idx, context, relevance, prob):
+    confidence = int(prob * 1000)
     stream_id, target_id, date_hour = context[idx].split()
     return [filter_run["team_id"], filter_run["system_id"], 
-            stream_id, target_id, 1000, int(relevance), 1, date_hour, "NULL", -1, "0-0"]
+            stream_id, target_id, confidence, int(relevance), 1, date_hour, "NULL", -1, "0-0"]
 
 def feature_importance(importances, classifier):
     indices = np.argsort(importances)[::-1]
@@ -117,11 +118,12 @@ def main():
     clf_rnr = clf_rnr.fit(x_train, y_train_rnr)
     feature_importance(clf_rnr.feature_importances_, 'R-NR')
     
-    pred_rnr = clf_rnr.predict(x_test)
+    pred_rnr_prob = clf_rnr.predict_proba(x_test)
+    pred_rnr = np.array(map(np.argmax, pred_rnr_prob))
 
-    neutrals = np.where(pred_rnr == 0)[0]
-    for i, idx in enumerate(neutrals):
-        recs.append(build_record(idx, context, 0))
+    for i, prob in enumerate(pred_rnr_prob):
+        if prob[0] >= prob[1]:
+            recs.append(build_record(i, context, 0, prob[0]))
 
     assert y_test_rnr.shape == pred_rnr.shape
 
@@ -135,10 +137,12 @@ def main():
     clf_uv = clf_uv.fit(x_train_uv, y_train_uv)
     feature_importance(clf_uv.feature_importances_, 'U-V')
 
-    pred_uv = clf_uv.predict(x_test_uv)
+    pred_uv_prob = clf_uv.predict_proba(x_test_uv)
+    pred_uv = np.array(map(np.argmax, pred_uv_prob))
+    pred_uv += 1
     for i, relevance in enumerate(pred_uv):
-        recs.append(build_record(idxs_context[i], context, relevance))
-
+        prob = max(pred_uv_prob[i])
+        recs.append(build_record(idxs_context[i], context, relevance, prob))
 
     assert len(recs) == y_test.shape[0]
     assert y_test_uv.shape == pred_uv.shape
