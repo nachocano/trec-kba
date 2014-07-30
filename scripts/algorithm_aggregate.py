@@ -138,7 +138,7 @@ def main():
     for i, test_cxt in enumerate(context):
         targetid = test_cxt.split()[1]
         distance = euclidean(x_test[i][25:], aggregates_rnr[targetid])
-        instance_to_predict = np.hstack((x_test[i][:25], np.array([distance])))
+        instance_to_predict = np.hstack((x_test[i], np.array([distance])))
         pred_rnr[i] = clf_rnr.predict(instance_to_predict)
         aggregates_updates[targetid].append(x_test[i][25:])
         aggregates_rnr[targetid] = np.mean(aggregates_updates[targetid], axis=0)
@@ -177,7 +177,7 @@ def main():
         idx = idxs_context[i]
         targetid = context[idx].split()[1]
         distance = euclidean(x_test_uv[i][25:], aggregates_uv[targetid])
-        instance_to_predict = np.hstack((x_test_uv[i][:25], np.array([distance])))
+        instance_to_predict = np.hstack((x_test_uv[i], np.array([distance])))
         pred_uv[i] = clf_uv.predict(instance_to_predict)
         aggregates_updates[targetid].append(x_test_uv[i][25:])
         aggregates_uv[targetid] = np.mean(aggregates_updates[targetid], axis=0)

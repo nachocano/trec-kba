@@ -21,9 +21,9 @@ def main():
     targetid = line[1]
     embeddings = np.array(line[29:]).astype(float)
     distance = euclidean(aggregates[targetid], embeddings)
-    first_part = ' '.join(str(e) for e in line[:29])
+    first_part = ' '.join(str(e) for e in line)
     print '%s %s' % (first_part, distance)
-
+    
 if __name__ == '__main__':
   main()
 
