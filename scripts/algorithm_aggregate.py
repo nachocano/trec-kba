@@ -183,6 +183,10 @@ def main():
     assert y_test_uv.shape == pred_uv.shape
 
     # some metrics
+    print 'macro %s' % str(metrics.precision_recall_fscore_support(y_test_rnr, pred_rnr, average="macro"))
+    print 'micro %s' % str(metrics.precision_recall_fscore_support(y_test_rnr, pred_rnr, average="micro"))
+    print 'weighted %s' % str(metrics.precision_recall_fscore_support(y_test_rnr, pred_rnr, average="weighted"))
+
     print 'macro %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="macro"))
     print 'micro %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="micro"))
     print 'weighted %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="weighted"))
