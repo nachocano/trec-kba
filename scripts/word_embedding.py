@@ -4,6 +4,7 @@ import argparse
 from gensim.models import word2vec
 import time
 import numpy as np
+from collections import defaultdict
 
 
 def main():
@@ -31,6 +32,7 @@ def main():
     delimiter = line.rfind('[')
     lemmas = line[delimiter+1:-1].split(',')
     fixed = line[:delimiter-1]
+    targetid = fixed.split()[1]
     embeddings = np.zeros(args.embeddings_dimension)
     count = 0
     for lemma in lemmas:
