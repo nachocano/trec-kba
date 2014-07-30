@@ -62,6 +62,12 @@ filter_run = {
     "system_description_short": "doc and doc-entity features, plus distance from aggregate vectors",
     }
 
+def feature_importance(importances, classifier):
+    indices = np.argsort(importances)[::-1]
+    print 'Feature ranking for %s:' % classifier
+    for f in xrange(len(importances)):
+        print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
+
 def main():
  
     parser = argparse.ArgumentParser(description=__doc__)
@@ -117,7 +123,8 @@ def main():
 
     clf_rnr = ensemble.GradientBoostingClassifier()
     clf_rnr = clf_rnr.fit(x_train, y_train_rnr)
-    #print clf_rnr.feature_importances_
+    
+    feature_importance(clf_rnr.feature_importances_, 'R-NR')
 
     aggregates_updates = defaultdict(list)
     for line in context:
@@ -153,6 +160,8 @@ def main():
     clf_uv = ensemble.GradientBoostingClassifier()
     clf_uv = clf_uv.fit(x_train_uv, y_train_uv)
 
+    feature_importance(clf_uv.feature_importances_, 'U-V')
+    
     aggregates_updates.clear()
     aggregates_updates = defaultdict(list)
     for i in xrange(y_test_uv.shape[0]):

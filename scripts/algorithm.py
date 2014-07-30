@@ -46,6 +46,11 @@ def build_record(idx, context, relevance):
     return [filter_run["team_id"], filter_run["system_id"], 
             stream_id, target_id, 1000, int(relevance), 1, date_hour, "NULL", -1, "0-0"]
 
+def feature_importance(importances, classifier):
+    indices = np.argsort(importances)[::-1]
+    print 'Feature ranking for %s:' % classifier
+    for f in xrange(len(importances)):
+        print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
 
 filter_run = {
     "$schema": "http://trec-kba.org/schemas/v1.1/filter-run.json",
@@ -110,9 +115,8 @@ def main():
 
     clf_rnr = ensemble.GradientBoostingClassifier()
     clf_rnr = clf_rnr.fit(x_train, y_train_rnr)
-    #print clf_rnr.feature_importances_
-    #print clf_rnr.coef_
-
+    feature_importance(clf_rnr.feature_importances_, 'R-NR')
+    
     pred_rnr = clf_rnr.predict(x_test)
 
     neutrals = np.where(pred_rnr == 0)[0]
@@ -129,8 +133,7 @@ def main():
 
     clf_uv = ensemble.GradientBoostingClassifier()
     clf_uv = clf_uv.fit(x_train_uv, y_train_uv)
-    #print clf_uv.feature_importances_
-    #print clf_uv.decision_function(x_train_uv)
+    feature_importance(clf_uv.feature_importances_, 'U-V')
 
     pred_uv = clf_uv.predict(x_test_uv)
     for i, relevance in enumerate(pred_uv):
@@ -141,6 +144,10 @@ def main():
     assert y_test_uv.shape == pred_uv.shape
 
     # some metrics
+    print 'macro %s' % str(metrics.precision_recall_fscore_support(y_test_rnr, pred_rnr, average="macro"))
+    print 'micro %s' % str(metrics.precision_recall_fscore_support(y_test_rnr, pred_rnr, average="micro"))
+    print 'weighted %s' % str(metrics.precision_recall_fscore_support(y_test_rnr, pred_rnr, average="weighted"))
+
     print 'macro %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="macro"))
     print 'micro %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="micro"))
     print 'weighted %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="weighted"))
