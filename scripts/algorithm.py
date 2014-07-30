@@ -70,6 +70,7 @@ def main():
     parser.add_argument('-tr', '--training_file', required=True)
     parser.add_argument('-t', '--test_file', required=True)
     parser.add_argument('-c', '--context_test_file', required=True)
+    parser.add_argument('-i', '--system_id', required=True)
     parser.add_argument('-s', '--ssf', required=False)
     args = parser.parse_args()
 
@@ -81,6 +82,7 @@ def main():
     filter_run["run_info"] = {
         "num_entities": len(entities),
     }
+    filter_run["system_id"] = args.system_id
     
     recs = []
 
@@ -108,6 +110,9 @@ def main():
 
     clf_rnr = ensemble.GradientBoostingClassifier()
     clf_rnr = clf_rnr.fit(x_train, y_train_rnr)
+    #print clf_rnr.feature_importances_
+    #print clf_rnr.coef_
+
     pred_rnr = clf_rnr.predict(x_test)
 
     neutrals = np.where(pred_rnr == 0)[0]
@@ -124,6 +129,8 @@ def main():
 
     clf_uv = ensemble.GradientBoostingClassifier()
     clf_uv = clf_uv.fit(x_train_uv, y_train_uv)
+    #print clf_uv.feature_importances_
+    #print clf_uv.decision_function(x_train_uv)
 
     pred_uv = clf_uv.predict(x_test_uv)
     for i, relevance in enumerate(pred_uv):

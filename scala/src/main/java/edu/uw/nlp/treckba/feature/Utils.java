@@ -24,6 +24,14 @@ public class Utils {
 		return sb.toString();
 	}
 
+	public static String toString(final List<String> entityNames) {
+		final StringBuilder sb = new StringBuilder();
+		for (final String entityName : entityNames) {
+			sb.append(entityName).append(" ");
+		}
+		return sb.toString().trim();
+	}
+
 	public static Map<String, List<String>> readFile(final String filename)
 			throws Exception {
 		final Map<String, List<String>> lines = new HashMap<>();
@@ -140,9 +148,8 @@ public class Utils {
 		Integer argmax = null;
 		for (final Integer key : counts.keySet()) {
 			final int count = counts.get(key);
-			if ((argmax == null)
-					|| (count > max)
-					|| ((count == max) && (tieBreaker.compare(key, argmax) < 0))) {
+			if (argmax == null || count > max || count == max
+					&& tieBreaker.compare(key, argmax) < 0) {
 				max = count;
 				argmax = key;
 			}
@@ -169,7 +176,7 @@ public class Utils {
 			sb.append(partialMatch(entityName));
 		}
 		final int index = sb.lastIndexOf("|");
-		if ((index != -1) && (index == (sb.length() - 1))) {
+		if (index != -1 && index == sb.length() - 1) {
 			return sb.substring(0, index);
 		}
 		return sb.toString();
@@ -202,4 +209,5 @@ public class Utils {
 		}
 		return sb.toString();
 	}
+
 }
