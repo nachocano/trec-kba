@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.externals import joblib
 
 filter_run = {
     "$schema": "http://trec-kba.org/schemas/v1.1/filter-run.json",
@@ -55,3 +56,15 @@ def feature_importance(importances, classifier):
     print 'Feature ranking for %s:' % classifier
     for f in xrange(len(importances)):
         print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
+
+def save_model(filename, model):
+    if filename:
+        print 'saving model to %s' % filename
+        joblib.dump(model, filename)
+        print 'model saved to %s' % filename
+
+def load_model(filename):
+    print 'loading model from %s' % filename
+    clf = joblib.load(filename)
+    print 'model loaded from %s' % filename
+    return clf

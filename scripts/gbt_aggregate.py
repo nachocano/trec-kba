@@ -21,7 +21,7 @@ def main():
     parser.add_argument('-t', '--test_file', required=True)
     parser.add_argument('-c', '--context_test_file', required=True)
     parser.add_argument('-a', '--aggregate_vector_file', required=True)
-    parser.add_argument('i', '--system_id', required=True)
+    parser.add_argument('-i', '--system_id', required=True)
     parser.add_argument('-rnr', '--rnr_save_model_file', required=False)
     parser.add_argument('-uv', '--uv_save_model_file', required=False)
     parser.add_argument('-s', '--ssf', required=False)
