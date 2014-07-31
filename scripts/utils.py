@@ -68,3 +68,50 @@ def load_model(filename):
     clf = joblib.load(filename)
     print 'model loaded from %s' % filename
     return clf
+
+def create_data(filename, minimum=-1):
+    x_list = defaultdict(list)
+    y_list = defaultdict(list)
+    context = defaultdict(list)
+    with open(filename) as f:
+        for line in f.read().splitlines():
+            instance = line.split()
+            streamid = instance[0]
+            targetid = instance[1]
+            date_hour = instance[2]
+            label = instance[3]
+            features = instance[4:]
+            x_list[targetid].append(features)
+            y_list[targetid].append(label)
+            context[targetid].append('%s %s %s' % (streamid, targetid, date_hour))
+
+    x = {}
+    y = {}
+    for targetid in y_list:
+            x[targetid] = np.array(x_list[targetid]).astype(float)
+            y[targetid] = np.array(y_list[targetid]).astype(int)
+    return x, y, context
+
+def get_prob_and_pred(prob_global, prob_entity):
+    prob_tmp_array = []
+    pred_tmp_array = []
+    mismatches = 0
+    predictions_with_global = 0
+    predictions_with_entity = 0
+    for i in xrange(prob_global.shape[0]):
+        pg = prob_global[i]
+        pe = prob_entity[i]
+        max_pe_idx = np.argmax(pe)
+        max_pg_idx = np.argmax(pg)
+        if max_pe_idx != max_pg_idx:
+            mismatches += 1
+        # take the one with highest prob to compute the confidence
+        if pe[max_pe_idx] >= pg[max_pg_idx]:
+            prob_tmp_array.append(pe)
+            pred_tmp_array.append(max_pe_idx)
+            predictions_with_entity += 1
+        else:
+            prob_tmp_array.append(pg)
+            pred_tmp_array.append(max_pg_idx)
+            predictions_with_global += 1
+    return np.array(prob_tmp_array), np.array(pred_tmp_array), mismatches, predictions_with_global, predictions_with_entity

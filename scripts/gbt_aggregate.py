@@ -37,12 +37,10 @@ def main():
     }
     filter_run["system_id"] = args.system_id
     
-    aggregates_rnr = {}
     aggregates_uv = {}
     for line in open(args.aggregate_vector_file).read().splitlines():
         targetid, aggregate = line.split(',')
         aggregate = np.array(aggregate.split()).astype(float)
-        aggregates_rnr[targetid] = aggregate
         aggregates_uv[targetid] = np.copy(aggregate)
 
     recs = []
@@ -59,6 +57,7 @@ def main():
     x_test = data_test[:,1:]
     y_test = data_test[:,0]
 
+    x_train_rnr = x_train[:,:-1]
     y_train_rnr = to_rnr(y_train)
     y_test_rnr = to_rnr(y_test)
 
@@ -70,32 +69,15 @@ def main():
     assert len(y_test_rnr[y_test_rnr == 2]) == 0
 
     clf_rnr = ensemble.GradientBoostingClassifier()
-    clf_rnr = clf_rnr.fit(x_train, y_train_rnr)
+    clf_rnr = clf_rnr.fit(x_train_rnr, y_train_rnr)
     
     feature_importance(clf_rnr.feature_importances_, 'R-NR')
 
     save_model(args.rnr_save_model_file, clf_rnr)
 
-    aggregates_updates = defaultdict(list)
-    for line in context:
-        targetid = line.split()[1]
-        if not aggregates_updates.has_key(targetid):
-            aggregates_updates[targetid].append(np.copy(aggregates_rnr[targetid]))
-    
-    start = time.time()
-    pred_rnr_prob = []
-    print 'testing on rnr classifier...'
-    for i, test_cxt in enumerate(context):
-        targetid = test_cxt.split()[1]
-        distance = euclidean(x_test[i][25:], aggregates_rnr[targetid])
-        instance_to_predict = np.hstack((x_test[i], np.array([distance])))
-        pred_rnr_prob.append(clf_rnr.predict_proba(instance_to_predict)[0])
-        aggregates_updates[targetid].append(x_test[i][25:])
-        aggregates_rnr[targetid] = np.mean(aggregates_updates[targetid], axis=0)
-    elapsed = time.time() - start
-    print 'finished testing on rnr classifier, took %s' % elapsed
-
+    pred_rnr_prob = clf_rnr.predict_proba(x_test)
     pred_rnr = np.array(map(np.argmax, pred_rnr_prob))
+    
     for i, prob in enumerate(pred_rnr_prob):
         if prob[0] >= prob[1]:
             recs.append(build_record(i, context, 0, prob[0]))
@@ -109,13 +91,13 @@ def main():
     assert y_test_uv.shape[0] == len(idxs_context)
 
     clf_uv = ensemble.GradientBoostingClassifier()
+    # train it with the distance field
     clf_uv = clf_uv.fit(x_train_uv, y_train_uv)
 
     feature_importance(clf_uv.feature_importances_, 'U-V')
     
     save_model(args.uv_save_model_file, clf_uv)
 
-    aggregates_updates.clear()
     aggregates_updates = defaultdict(list)
     for i in xrange(y_test_uv.shape[0]):
         idx = idxs_context[i]
