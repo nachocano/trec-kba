@@ -98,7 +98,6 @@ def main():
     print 'micro %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="micro"))
     print 'weighted %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="weighted"))
 
-    exit()
     output = open(args.output_file, "w")
     for rec in recs:
         output.write("\t".join(map(str, rec)) + "\n")
