@@ -41,10 +41,11 @@ def to_uv_given_pred(x, y, pred_rnr):
         y_uv[i] = y[v]
     return (x_uv, y_uv, idxs)
 
-def build_record(idx, context, relevance):
+def build_record(idx, context, relevance, prob):
+    confidence = int(prob * 1000)
     stream_id, target_id, date_hour = context[idx].split()
     return [filter_run["team_id"], filter_run["system_id"], 
-            stream_id, target_id, 1000, int(relevance), 1, date_hour, "NULL", -1, "0-0"]
+            stream_id, target_id, confidence, int(relevance), 1, date_hour, "NULL", -1, "0-0"]
 
 
 filter_run = {
@@ -58,8 +59,8 @@ filter_run = {
     "poc_email": "icano@cs.washington.edu",
     "system_id": "aggregate",
     "run_type": "automatic",
-    "system_description": "RF classifier using aggregate vectors distances",
-    "system_description_short": "doc and doc-entity features, plus distance from aggregate vectors",
+    "system_description": "GBT classifier using aggregate vectors distances of word embeddings per entity",
+    "system_description_short": "GBT with aggregate vectors per entity",
     }
 
 def feature_importance(importances, classifier):
@@ -133,21 +134,22 @@ def main():
             aggregates_updates[targetid].append(np.copy(aggregates_rnr[targetid]))
     
     start = time.time()
+    pred_rnr_prob = []
     print 'testing on rnr classifier...'
-    pred_rnr = np.zeros(y_test_rnr.shape)
     for i, test_cxt in enumerate(context):
         targetid = test_cxt.split()[1]
         distance = euclidean(x_test[i][25:], aggregates_rnr[targetid])
         instance_to_predict = np.hstack((x_test[i], np.array([distance])))
-        pred_rnr[i] = clf_rnr.predict(instance_to_predict)
+        pred_rnr_prob.append(clf_rnr.predict_proba(instance_to_predict)[0])
         aggregates_updates[targetid].append(x_test[i][25:])
         aggregates_rnr[targetid] = np.mean(aggregates_updates[targetid], axis=0)
     elapsed = time.time() - start
     print 'finished testing on rnr classifier, took %s' % elapsed
 
-    neutrals = np.where(pred_rnr == 0)[0]
-    for i, idx in enumerate(neutrals):
-        recs.append(build_record(idx, context, 0))
+    pred_rnr = np.array(map(np.argmax, pred_rnr_prob))
+    for i, prob in enumerate(pred_rnr_prob):
+        if prob[0] >= prob[1]:
+            recs.append(build_record(i, context, 0, prob[0]))
 
     assert y_test_rnr.shape == pred_rnr.shape
 
@@ -172,21 +174,23 @@ def main():
 
     start = time.time()
     print 'testing on uv classifier...'
-    pred_uv = np.zeros(y_test_uv.shape)
-    for i in xrange(pred_uv.shape[0]):
+    pred_uv_prob = []
+    for i in xrange(y_test_uv.shape[0]):
         idx = idxs_context[i]
         targetid = context[idx].split()[1]
         distance = euclidean(x_test_uv[i][25:], aggregates_uv[targetid])
         instance_to_predict = np.hstack((x_test_uv[i], np.array([distance])))
-        pred_uv[i] = clf_uv.predict(instance_to_predict)
+        pred_uv_prob.append(clf_uv.predict_proba(instance_to_predict)[0])
         aggregates_updates[targetid].append(x_test_uv[i][25:])
         aggregates_uv[targetid] = np.mean(aggregates_updates[targetid], axis=0)
     elapsed = time.time() - start
     print 'finished testing on uv classifier, took %s' % elapsed
 
+    pred_uv = np.array(map(np.argmax, pred_uv_prob))
+    pred_uv += 1
     for i, relevance in enumerate(pred_uv):
-        recs.append(build_record(idxs_context[i], context, relevance))
-
+        prob = max(pred_uv_prob[i])
+        recs.append(build_record(idxs_context[i], context, relevance, prob))
 
     assert len(recs) == y_test.shape[0]
     assert y_test_uv.shape == pred_uv.shape
