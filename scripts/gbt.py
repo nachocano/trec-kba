@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from utils import to_rnr, to_uv, to_uv_given_pred, feature_importance, filter_run, build_record
+from utils import to_rnr, to_uv, to_uv_given_pred, feature_importance, filter_run, build_record, save_model
 import re
 import os
 import sys
@@ -19,6 +19,8 @@ def main():
     parser.add_argument('-t', '--test_file', required=True)
     parser.add_argument('-c', '--context_test_file', required=True)
     parser.add_argument('-i', '--system_id', required=True)
+    parser.add_argument('-rnr', '--rnr_save_model_file', required=False)
+    parser.add_argument('-uv', '--uv_save_model_file', required=False)
     parser.add_argument('-s', '--ssf', required=False)
     args = parser.parse_args()
 
@@ -59,6 +61,8 @@ def main():
     clf_rnr = ensemble.GradientBoostingClassifier()
     clf_rnr = clf_rnr.fit(x_train, y_train_rnr)
     feature_importance(clf_rnr.feature_importances_, 'R-NR')
+
+    save_model(args.rnr_save_model_file, clf_rnr)
     
     pred_rnr_prob = clf_rnr.predict_proba(x_test)
     pred_rnr = np.array(map(np.argmax, pred_rnr_prob))
@@ -78,6 +82,8 @@ def main():
     clf_uv = ensemble.GradientBoostingClassifier()
     clf_uv = clf_uv.fit(x_train_uv, y_train_uv)
     feature_importance(clf_uv.feature_importances_, 'U-V')
+
+    save_model(args.uv_save_model_file, clf_uv)
 
     pred_uv_prob = clf_uv.predict_proba(x_test_uv)
     pred_uv = np.array(map(np.argmax, pred_uv_prob))

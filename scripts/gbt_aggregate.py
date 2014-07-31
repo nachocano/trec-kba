@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from utils import to_rnr, to_uv, to_uv_given_pred, feature_importance, filter_run, build_record
+from utils import to_rnr, to_uv, to_uv_given_pred, feature_importance, filter_run, build_record, save_model
 import re
 import os
 import sys
@@ -22,6 +22,8 @@ def main():
     parser.add_argument('-c', '--context_test_file', required=True)
     parser.add_argument('-a', '--aggregate_vector_file', required=True)
     parser.add_argument('i', '--system_id', required=True)
+    parser.add_argument('-rnr', '--rnr_save_model_file', required=False)
+    parser.add_argument('-uv', '--uv_save_model_file', required=False)
     parser.add_argument('-s', '--ssf', required=False)
     args = parser.parse_args()
 
@@ -72,6 +74,8 @@ def main():
     
     feature_importance(clf_rnr.feature_importances_, 'R-NR')
 
+    save_model(args.rnr_save_model_file, clf_rnr)
+
     aggregates_updates = defaultdict(list)
     for line in context:
         targetid = line.split()[1]
@@ -109,6 +113,8 @@ def main():
 
     feature_importance(clf_uv.feature_importances_, 'U-V')
     
+    save_model(args.uv_save_model_file, clf_uv)
+
     aggregates_updates.clear()
     aggregates_updates = defaultdict(list)
     for i in xrange(y_test_uv.shape[0]):
