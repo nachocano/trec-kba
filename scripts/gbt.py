@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+from utils import to_rnr, to_uv, to_uv_given_pred, feature_importance, filter_run, build_record
 import re
 import os
 import sys
@@ -9,64 +9,6 @@ import argparse
 import numpy as np
 from sklearn import ensemble
 from sklearn import metrics
-#import graphlab as gl
-
-
-def to_rnr(y):
-    y_rnr = np.array(y)
-    for i, value in enumerate(y):
-        if value == -1:
-            y_rnr[i] = 0
-        elif value == 2:
-            y_rnr[i] = 1
-    return y_rnr
-
-def to_uv(x,y):
-    idxs = np.where(y > 0)[0]
-    count = len(idxs)
-    x_uv = np.zeros([count,x.shape[1]])
-    y_uv = np.zeros([count])
-    for i, v in enumerate(idxs):
-        x_uv[i] = x[v]
-        y_uv[i] = y[v]
-    return (x_uv, y_uv)
-
-def to_uv_given_pred(x, y, pred_rnr):
-    idxs = np.where(pred_rnr == 1)[0]
-    count = len(idxs)
-    x_uv = np.zeros([count,x.shape[1]])
-    y_uv = np.zeros([count])
-    for i, v in enumerate(idxs):
-        x_uv[i] = x[v]
-        y_uv[i] = y[v]
-    return (x_uv, y_uv, idxs)
-
-def build_record(idx, context, relevance, prob):
-    confidence = int(prob * 1000)
-    stream_id, target_id, date_hour = context[idx].split()
-    return [filter_run["team_id"], filter_run["system_id"], 
-            stream_id, target_id, confidence, int(relevance), 1, date_hour, "NULL", -1, "0-0"]
-
-def feature_importance(importances, classifier):
-    indices = np.argsort(importances)[::-1]
-    print 'Feature ranking for %s:' % classifier
-    for f in xrange(len(importances)):
-        print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
-
-filter_run = {
-    "$schema": "http://trec-kba.org/schemas/v1.1/filter-run.json",
-    "task_id": "kba-ccr-2014",
-    "topic_set_id": "kba-2014-ccr-and-ssf",
-    "corpus_id": "kba-streamcorpus-2014-v0_3_0-kba-filtered",
-    "team_id": "UW",
-    "team_name": "University of Washington",
-    "poc_name": "UW Baseline", 
-    "poc_email": "icano@cs.washington.edu",
-    "system_id": "baseline",
-    "run_type": "automatic",
-    "system_description": "Baseline with RF classifier using docs in train dataset.",
-    "system_description_short": "doc and doc-entity features",
-    }
 
 def main():
  
@@ -156,7 +98,7 @@ def main():
     print 'micro %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="micro"))
     print 'weighted %s' % str(metrics.precision_recall_fscore_support(y_test_uv, pred_uv, average="weighted"))
 
-    
+    exit()
     output = open(args.output_file, "w")
     for rec in recs:
         output.write("\t".join(map(str, rec)) + "\n")

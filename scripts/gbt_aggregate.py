@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+from utils import to_rnr, to_uv, to_uv_given_pred, feature_importance, filter_run, build_record
 import re
 import os
 import sys
@@ -12,63 +12,6 @@ from sklearn import metrics
 from scipy.spatial.distance import euclidean
 from collections import defaultdict
 
-def to_rnr(y):
-    y_rnr = np.array(y)
-    for i, value in enumerate(y):
-        if value == -1:
-            y_rnr[i] = 0
-        elif value == 2:
-            y_rnr[i] = 1
-    return y_rnr
-
-def to_uv(x,y):
-    idxs = np.where(y > 0)[0]
-    count = len(idxs)
-    x_uv = np.zeros([count,x.shape[1]])
-    y_uv = np.zeros([count])
-    for i, v in enumerate(idxs):
-        x_uv[i] = x[v]
-        y_uv[i] = y[v]
-    return (x_uv, y_uv)
-
-def to_uv_given_pred(x, y, pred_rnr):
-    idxs = np.where(pred_rnr == 1)[0]
-    count = len(idxs)
-    x_uv = np.zeros([count,x.shape[1]])
-    y_uv = np.zeros([count])
-    for i, v in enumerate(idxs):
-        x_uv[i] = x[v]
-        y_uv[i] = y[v]
-    return (x_uv, y_uv, idxs)
-
-def build_record(idx, context, relevance, prob):
-    confidence = int(prob * 1000)
-    stream_id, target_id, date_hour = context[idx].split()
-    return [filter_run["team_id"], filter_run["system_id"], 
-            stream_id, target_id, confidence, int(relevance), 1, date_hour, "NULL", -1, "0-0"]
-
-
-filter_run = {
-    "$schema": "http://trec-kba.org/schemas/v1.1/filter-run.json",
-    "task_id": "kba-ccr-2014",
-    "topic_set_id": "kba-2014-ccr-and-ssf",
-    "corpus_id": "kba-streamcorpus-2014-v0_3_0-kba-filtered",
-    "team_id": "UW",
-    "team_name": "University of Washington",
-    "poc_name": "UW Aggregate Embedding", 
-    "poc_email": "icano@cs.washington.edu",
-    "system_id": "aggregate",
-    "run_type": "automatic",
-    "system_description": "GBT classifier using aggregate vectors distances of word embeddings per entity",
-    "system_description_short": "GBT with aggregate vectors per entity",
-    }
-
-def feature_importance(importances, classifier):
-    indices = np.argsort(importances)[::-1]
-    print 'Feature ranking for %s:' % classifier
-    for f in xrange(len(importances)):
-        print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
-
 def main():
  
     parser = argparse.ArgumentParser(description=__doc__)
@@ -78,6 +21,7 @@ def main():
     parser.add_argument('-t', '--test_file', required=True)
     parser.add_argument('-c', '--context_test_file', required=True)
     parser.add_argument('-a', '--aggregate_vector_file', required=True)
+    parser.add_argument('i', '--system_id', required=True)
     parser.add_argument('-s', '--ssf', required=False)
     args = parser.parse_args()
 
@@ -89,6 +33,7 @@ def main():
     filter_run["run_info"] = {
         "num_entities": len(entities),
     }
+    filter_run["system_id"] = args.system_id
     
     aggregates_rnr = {}
     aggregates_uv = {}
