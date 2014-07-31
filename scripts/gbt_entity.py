@@ -131,19 +131,19 @@ def main():
     global_rnr_pred_no_entity = 0
     entity_rnr_pred = 0
     for targetid in x_test:
-        prob_entity = None
-        if clf_rnrs.has_key(targetid):
-            prob_entity = clf_rnrs[targetid].predict_proba(x_test[targetid])
+#        prob_entity = None
+#        if clf_rnrs.has_key(targetid):
+#            prob_entity = clf_rnrs[targetid].predict_proba(x_test[targetid])
         prob_global = clf_rnr_global.predict_proba(x_test[targetid])
-        if prob_entity == None:
-            pred_rnr_prob[targetid] = prob_global
-            pred_rnr[targetid] = np.array(map(np.argmax, prob_global))
-            global_rnr_pred_no_entity += 1
-        else:
-            pred_rnr_prob[targetid], pred_rnr[targetid], mismatches, pred_global, pred_entity = get_prob_and_pred(prob_global, prob_entity)
-            mismatch_predictions_rnr += mismatches
-            global_rnr_pred += pred_global
-            entity_rnr_pred += pred_entity
+#        if prob_entity == None:
+        pred_rnr_prob[targetid] = prob_global
+        pred_rnr[targetid] = np.array(map(np.argmax, prob_global))
+        global_rnr_pred_no_entity += 1
+#        else:
+#            pred_rnr_prob[targetid], pred_rnr[targetid], mismatches, pred_global, pred_entity = get_prob_and_pred(prob_global, prob_entity)
+#            mismatch_predictions_rnr += mismatches
+#            global_rnr_pred += pred_global
+#            entity_rnr_pred += pred_entity
 
     for targetid in y_test:
         for i, prob in enumerate(pred_rnr_prob[targetid]):
@@ -200,7 +200,7 @@ def main():
             pred_uv[targetid] = np.array(map(np.argmax, prob_global))
             global_uv_pred_no_entity += 1
         else:
-            pred_uv_prob[targetid], pred_uv[targetid], mismatchesm, global_pred, entity_pred = get_prob_and_pred(prob_global, prob_entity)
+            pred_uv_prob[targetid], pred_uv[targetid], mismatches, global_pred, entity_pred = get_prob_and_pred(prob_global, prob_entity)
             mismatch_predictions_uv += mismatches
             global_uv_pred += global_pred
             entity_uv_pred += entity_pred
@@ -229,7 +229,6 @@ def main():
     print 'pred global uv %d' % global_uv_pred
     print 'pred global uv no entity %d' % global_uv_pred_no_entity
     print 'pred entity uv %d' % entity_uv_pred
-    exit()
 
     output = open(args.output_file, "w")
     for rec in recs:
