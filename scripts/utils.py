@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.externals import joblib
+from collections import defaultdict
 
 filter_run = {
     "$schema": "http://trec-kba.org/schemas/v1.1/filter-run.json",
@@ -115,3 +116,12 @@ def get_prob_and_pred(prob_global, prob_entity):
             pred_tmp_array.append(max_pg_idx)
             predictions_with_global += 1
     return np.array(prob_tmp_array), np.array(pred_tmp_array), mismatches, predictions_with_global, predictions_with_entity
+
+def get_prob_and_pred_single(pg, pe):
+    max_pe_idx = np.argmax(pe)
+    max_pg_idx = np.argmax(pg)
+    # take the one with highest prob to compute the confidence
+    if pe[max_pe_idx] >= pg[max_pg_idx]:
+        return pe, max_pe_idx
+    else:
+        return pg, max_pg_idx
