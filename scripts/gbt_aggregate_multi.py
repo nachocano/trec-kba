@@ -62,7 +62,8 @@ def main():
     
     #feature_importance(clf.feature_importances_, 'Aggregate MultiClass')
 
-    save_model(args.save_model_file, clf)
+    if args.save_model_file:
+        save_model(args.save_model_file, clf)
 
     aggregates_updates = defaultdict(list)
     for i in xrange(y_test.shape[0]):
@@ -87,7 +88,7 @@ def main():
         truth = int(y_test[i])
         prob_truth = prob[truth+1]
         recs.append(build_record(i, context, prediction, probability))
-        print '%s %s' % (prob_truth, truth)
+        print '%s %s %s %s %s %s' % (prob[0], prob[1], prob[2], prob[3], prediction, truth)
 
     assert len(recs) == y_test.shape[0]
 

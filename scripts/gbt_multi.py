@@ -52,7 +52,8 @@ def main():
     clf = clf.fit(x_train, y_train)
     #feature_importance(clf.feature_importances_, 'GBT MultiClass')
 
-    save_model(args.save_model, clf)
+    if args.save_model:
+        save_model(args.save_model, clf)
     
     pred_prob = clf.predict_proba(x_test)
     pred = np.array(map(np.argmax, pred_prob))
@@ -66,14 +67,9 @@ def main():
         truth = int(y_test[i])
         prob_truth = prob[truth+1]
         recs.append(build_record(i, context, prediction, probability))
-        print '%s %s' % (prob_truth, truth)
+        print '%s %s %s %s %s %s' % (prob[0], prob[1], prob[2], prob[3], prediction, truth)
 
     assert len(recs) == y_test.shape[0]
-
-    # some metrics
-    #print 'macro %s' % str(metrics.precision_recall_fscore_support(y_test, pred, average="macro"))
-    #print 'micro %s' % str(metrics.precision_recall_fscore_support(y_test, pred, average="micro"))
-    #print 'weighted %s' % str(metrics.precision_recall_fscore_support(y_test, pred, average="weighted"))
 
     output = open(args.output_file, "w")
     for rec in recs:

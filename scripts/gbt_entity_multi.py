@@ -74,7 +74,7 @@ def main():
             truth = int(y_test[targetid][i])
             prob_truth = prob[truth+1]
             recs.append(build_record(i, test_context[targetid], prediction, probability))
-            print '%s %s' % (prob_truth, truth)
+            print '%s %s %s %s %s %s' % (prob[0], prob[1], prob[2], prob[3], prediction, truth)
 
     for targetid in y_test:
         assert y_test[targetid].shape == pred[targetid].shape

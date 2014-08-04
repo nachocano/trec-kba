@@ -51,7 +51,7 @@ object PrecisionRecall {
     val curve = new PrecRecallCurve(list)
     val chart = curve.prChart("Precision-Recall")
     val plotter = new GnuplotPlotter(chart)
-    plotter.pdf(outputDir, outFilename)
+    plotter.png(outputDir, outFilename)
 
   }
 }
