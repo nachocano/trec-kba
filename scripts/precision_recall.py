@@ -48,15 +48,22 @@ def main():
             l = l.split('\t')
             streamid = l[2]
             targetid = l[3]
-            relevance = int(l[5])
+            candidate_relevance = int(l[5])
             date_hour = l[7]
             probability = int(l[4]) / 1000
+            if args.mode == 'rnr':
+                relevance = 1 if (candidate_relevance == 1 or candidate_relevance == 2) else 0
+            else:
+                relevance = 1 if candidate_relevance == 2 else 0
             run[(streamid, targetid, date_hour)] = (relevance, probability)
 
     for key in ground_truth:
         targetid = key[1]
         if run.has_key(key):
-            print '%s %s' % (run[key][1], ground_truth[key])
+            probability = run[key][1]
+            if ground_truth[key] != run[key][0]:
+                probability = 1 - probability
+            print '%s %s' % (probability, ground_truth[key])
 
 
 if __name__ == '__main__':
