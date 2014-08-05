@@ -1,6 +1,7 @@
 package edu.uw.nlp.treckba.plot
 
 import org.apache.commons.cli._
+import org.sameersingh.scalaplot.Style
 import org.sameersingh.scalaplot.gnuplot.GnuplotPlotter
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
@@ -50,6 +51,15 @@ object PrecisionRecall {
 
     val curve = new PrecRecallCurve(list)
     val chart = curve.prChart("Precision-Recall")
+    //val curveBase = new PrecRecallCurve(list)
+    //val chartBase = curve.prChart("Precision-Recall")
+
+    //chart.data += chartBase.data.serieses.head
+
+    chart.data.serieses.foreach(_.pointType= Some(Style.PointType.Dot))
+
+    //chart.showLegend = true
+
     val plotter = new GnuplotPlotter(chart)
     plotter.png(outputDir, outFilename)
 
