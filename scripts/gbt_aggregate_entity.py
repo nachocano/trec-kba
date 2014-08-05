@@ -23,6 +23,7 @@ def main():
     parser.add_argument('-i', '--system_id', required=True)
     parser.add_argument('-rnr', '--rnr_load_model_file', required=True)
     parser.add_argument('-uv', '--uv_load_model_file', required=True)
+    parser.add_argument('-d', '--distances_file', required=False)
     args = parser.parse_args()
 
     filter_topics = json.load(open(args.entities_json))
@@ -103,10 +104,12 @@ def main():
     start = time.time()
     print 'testing on uv classifier...'
     pred_uv_prob = defaultdict(list)
+    distances = defaultdict(list)
     for targetid in x_test_uv:
         prob_entity = None
         for i in xrange(y_test_uv[targetid].shape[0]):
             distance = euclidean(x_test_uv[targetid][i][25:], aggregates[targetid])
+            distances[targetid].append(distance)
             instance_to_predict = np.hstack((x_test_uv[targetid][i], np.array([distance])))
             if clf_uvs.has_key(targetid):
                 prob_entity = clf_uvs[targetid].predict_proba(instance_to_predict)[0]
@@ -121,12 +124,21 @@ def main():
     elapsed = time.time() - start
     print 'finished testing on uv classifier, took %s' % elapsed
 
+    if args.distances_file:
+        dist_file = open(args.distances_file, "w")
+
     for targetid in y_test_uv:
         pred_uv = np.array(map(np.argmax, pred_uv_prob[targetid]))
         pred_uv += 1
         for i, relevance in enumerate(pred_uv):
             prob = max(pred_uv_prob[targetid][i])
             recs.append(build_record(idxs_context[targetid][i], test_context[targetid], relevance, prob))
+            if args.distances_file:
+                stream_id, target_id, date_hour = test_context[targetid][idxs_context[targetid][i]].split()
+                dist_file.write('%s %s %s %s\n' % (stream_id, targetid, date_hour, distances[targetid][i]))
+
+    if args.distances_file:
+        dist_file.close()
 
     len_predictions = 0
     for targetid in y_test:
