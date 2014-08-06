@@ -1,4 +1,4 @@
-package edu.uw.nlp.treckba.preprocess;
+package edu.uw.nlp.treckba.preprocess.hadoop;
 
 import java.io.IOException;
 import java.util.Arrays;

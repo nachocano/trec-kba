@@ -2,13 +2,16 @@ package edu.uw.nlp.treckba.feature;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 public class Utils {
@@ -210,4 +213,30 @@ public class Utils {
 		return sb.toString();
 	}
 
+	public static Queue<String> readFilePaths(final String pathsFile) {
+		final Queue<String> paths = new LinkedList<>();
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(new File(pathsFile)));
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				paths.add(line.replace(".gpg", ""));
+			}
+		} catch (final FileNotFoundException e) {
+			System.err.println("file not found exception " + pathsFile);
+		} catch (final IOException e) {
+			System.err.println("io exception " + pathsFile);
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (final IOException e) {
+					System.err
+							.println("unexpected io exception while closing br "
+									+ pathsFile);
+				}
+			}
+		}
+		return paths;
+	}
 }

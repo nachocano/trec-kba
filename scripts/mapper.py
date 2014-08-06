@@ -22,7 +22,11 @@ from streamcorpus.ttypes import StreamItem
 def log_err(msg):
     sys.stderr.write('%s\n' % msg)
     sys.stderr.flush()
-    
+
+def log(msg):
+    sys.stdout.write('%s\n' % msg)
+    sys.stdout.flush()
+
 def get_pattern(data):
   data_splitted = data.split()
   if len(data_splitted) > 1:
@@ -72,7 +76,9 @@ def decrypt_and_uncompress(data, gpg_dir='gnupg-dir'):
         stderr=subprocess.PIPE)
 
     data, errors = xz_child.communicate(data)
-    assert not errors, errors
+    if errors:
+        log_err('err %s' % errors)
+        return None
     return data
 
 def get_stream_items(thrift_data):
@@ -91,7 +97,7 @@ def get_stream_items(thrift_data):
             #log_err("err: %s" % traceback.format_exc())
             pass
 
-folder_regex = re.compile(r'/(20\d{2}-\d{2}-\d{2}-\d{2})/')
+#folder_regex = re.compile(r'/(20\d{2}-\d{2}-\d{2}-\d{2})/')
 
 def mapper(argv):
     key_import('trec-kba-rsa.txt')
@@ -100,14 +106,16 @@ def mapper(argv):
         try:
             data = urllib.urlopen(file_url.strip()).read()
             thrift_data = decrypt_and_uncompress(data)
+            if not thrift_data:
+                continue
             for stream_item in get_stream_items(thrift_data):
                 if stream_item.body.clean_visible:
                     scv = stream_item.body.clean_visible.strip().lower()
                     for key in target_regex_entities:
                         match = target_regex_entities[key].search(scv)
                         if match:
-                          folder = folder_regex.search(file_url).group(1)
-                          print '%s\t%s\t%s\t%s' % (stream_item.stream_id, key, folder, file_url)
+                          #folder = folder_regex.search(file_url).group(1)
+                          log('%s\t%s\t%s' % (stream_item.stream_id, key, file_url))
         except:
             log_err("err: %s, %s" % (file_url, traceback.format_exc()))
             

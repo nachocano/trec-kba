@@ -1,4 +1,4 @@
-package edu.uw.nlp.treckba.preprocess;
+package edu.uw.nlp.treckba.preprocess.hadoop;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
