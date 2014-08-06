@@ -34,8 +34,6 @@ def main():
                 if args.mode == 'rnr':
                     relevance = 1 if (candidate_relevance == 1 or candidate_relevance == 2) else 0
                 else:
-                    #if candidate_relevance == 0 or candidate_relevance == -1:
-                    #    continue
                     relevance = 1 if candidate_relevance == 2 else 0
                 ground_truth[(streamid, targetid, date_hour)] = relevance
 
@@ -54,8 +52,6 @@ def main():
             if args.mode == 'rnr':
                 relevance = 1 if (candidate_relevance == 1 or candidate_relevance == 2) else 0
             else:
-                #if candidate_relevance == 0 or candidate_relevance == -1:
-                #    continue
                 relevance = 1 if candidate_relevance == 2 else 0
             run[(streamid, targetid, date_hour)] = (relevance, probability)
 
@@ -63,7 +59,8 @@ def main():
         targetid = key[1]
         if run.has_key(key):
             probability = run[key][1]
-            if ground_truth[key] != run[key][0]:
+            prediction = run[key][0]
+            if prediction == 0:
                 probability = 1 - probability
             print '%s %s' % (probability, ground_truth[key])
 
