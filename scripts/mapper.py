@@ -23,6 +23,14 @@ def log_err(msg):
     sys.stderr.write('%s\n' % msg)
     sys.stderr.flush()
 
+def report_status(msg):
+    sys.stderr.write('reporter:status:%s\n' % msg)
+    sys.stderr.flush()
+
+def report_counter(group, counter, amount):
+    sys.stderr.write('reporter:counter:%s,%s,%s\n' % (group, counter, amount))
+    sys.stderr.flush()
+
 def log(msg):
     sys.stdout.write('%s\n' % msg)
     sys.stdout.flush()
@@ -101,21 +109,32 @@ def get_stream_items(thrift_data):
 
 def mapper(argv):
     key_import('trec-kba-rsa.txt')
+    report_status('key imported')
     target_regex_entities = read_entities('entities.txt')
+    report_status('regex computed')
+    files_processed = 0
+    matches = 0
     for file_url in sys.stdin:
+        files_processed += 1
+        report_counter('Files', 'PROCESSED', files_processed)
         try:
+            report_status('downloading %s' % file_url)
             data = urllib.urlopen(file_url.strip()).read()
+            report_status('decrypt and uncompressing %s' % file_url)
             thrift_data = decrypt_and_uncompress(data)
             if not thrift_data:
+                report_status('invalid thrift data %s, continue' % file_url)
                 continue
             for stream_item in get_stream_items(thrift_data):
+                report_status('looking at %s' % stream_item.stream_id)
                 if stream_item.body.clean_visible:
                     scv = stream_item.body.clean_visible.strip().lower()
                     for key in target_regex_entities:
                         match = target_regex_entities[key].search(scv)
                         if match:
-                          #folder = folder_regex.search(file_url).group(1)
-                          log('%s\t%s\t%s' % (stream_item.stream_id, key, file_url))
+                            matches += 1
+                            report_counter('Files', 'MATCHES', matches)
+                            log('%s\t%s\t%s' % (stream_item.stream_id, key, file_url))
         except:
             log_err("err: %s, %s" % (file_url, traceback.format_exc()))
             
