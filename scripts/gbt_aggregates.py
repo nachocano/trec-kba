@@ -165,7 +165,7 @@ def main():
     clusters_file = open(args.clusters_file, "w")
     for targetid in centroids:
         for cluster in centroids[targetid]:
-            clusters_file.write('%s\t%s\t%s\t%s\n' % (targetid, cluster, centroids[targetid][cluster], cluster_streamids[cluster]))
+            clusters_file.write('%s\t%s\t%s\t%s\n' % (targetid, cluster, list(centroids[targetid][cluster]), cluster_streamids[cluster]))
     clusters_file.close()
 
 if __name__ == '__main__':
