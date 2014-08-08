@@ -13,7 +13,7 @@ from scipy.spatial.distance import euclidean
 from collections import defaultdict
 
 
-def update_clusters(targetid, streamid, centroids, cluster_elements, cluster_streamids, example, cluster_name, alpha):
+def update_clusters(targetid, streamid, date_hour, centroids, cluster_elements, cluster_elements_info, example, cluster_name, alpha):
     min_distance = 0
     avg_distance = 0
     tmp_centroids = centroids[targetid]
@@ -22,7 +22,7 @@ def update_clusters(targetid, streamid, centroids, cluster_elements, cluster_str
         #update the cluster_name counter
         tmp_centroids[cluster_name] = example
         cluster_elements[cluster_name].append(example)
-        cluster_streamids[cluster_name].append(streamid)
+        cluster_elements_info[cluster_name].append((streamid, date_hour, list(example)))
         cluster_name += 1
     else:
         # already have a cluster for the entity, compute the distance to its centroid
@@ -41,14 +41,14 @@ def update_clusters(targetid, streamid, centroids, cluster_elements, cluster_str
         if min_distance < alpha:
             # put in an already existent cluster
             cluster_elements[candidate_cluster_name].append(example)
-            cluster_streamids[cluster_name].append(streamid)
+            cluster_elements_info[candidate_cluster_name].append((streamid, date_hour, list(example)))
             #update the centroid for that cluster
             tmp_centroids[candidate_cluster_name] = np.mean(cluster_elements[candidate_cluster_name], axis=0)
         else:
             # create a new cluster, add the example as the centroid
             tmp_centroids[cluster_name] = example
             cluster_elements[cluster_name].append(example)
-            cluster_streamids[cluster_name].append(streamid)
+            cluster_elements_info[cluster_name].append((streamid, date_hour, list(example)))
             cluster_name += 1
     return (min_distance, avg_distance, cluster_name)
 
@@ -103,7 +103,6 @@ def main():
     x_train_uv, y_train_uv, train_uv_idxs_context = to_uv(x_train, y_train, True)
     x_test_uv, y_test_uv, test_uv_idxs_context = to_uv_given_pred(x_test, y_test, pred_rnr)
 
-
     assert x_train_uv.shape[0] == y_train_uv.shape[0]
     assert y_train_uv.shape[0] == len(train_uv_idxs_context)
     assert x_test_uv.shape[0] == x_test.shape[0] - len(recs)
@@ -113,15 +112,15 @@ def main():
     # build the aggregate vectors for training data, and then they will be used for testing as well
     centroids = defaultdict(defaultdict)
     cluster_elements = defaultdict(list)
-    cluster_streamids = defaultdict(list)
+    cluster_elements_info = defaultdict(list)
     cluster_name = 0
 
     x_train_uv_extra_features = np.zeros([x_train_uv.shape[0], x_train_uv.shape[1]+2])
     for i in xrange(x_train_uv.shape[0]):
         idx = train_uv_idxs_context[i]
-        streamid, targetid, _ = train_context[idx].split()
+        streamid, targetid, date_hour = train_context[idx].split()
         example = x_train_uv[i][25:]
-        min_distance, avg_distance, cluster_name = update_clusters(targetid, streamid, centroids, cluster_elements, cluster_streamids, example, cluster_name, args.alpha)
+        min_distance, avg_distance, cluster_name = update_clusters(targetid, streamid, date_hour, centroids, cluster_elements, cluster_elements_info, example, cluster_name, args.alpha)
         x_train_uv_extra_features[i] = np.hstack((x_train_uv[i], np.array([min_distance, avg_distance])))
 
     clf_uv = ensemble.GradientBoostingClassifier()
@@ -134,11 +133,11 @@ def main():
     start = time.time()
     print 'testing on uv classifier...'
     pred_uv_prob = []
-    for i in xrange(y_test_uv.shape[0]):
+    for i in xrange(x_test_uv.shape[0]):
         idx = test_uv_idxs_context[i]
-        streamid, targetid, _ = test_context[idx].split()
+        streamid, targetid, date_hour = test_context[idx].split()
         example = x_test_uv[i][25:]
-        min_distance, avg_distance, cluster_name = update_clusters(targetid, streamid, centroids, cluster_elements, cluster_streamids, example, cluster_name, args.alpha)
+        min_distance, avg_distance, cluster_name = update_clusters(targetid, streamid, date_hour, centroids, cluster_elements, cluster_elements_info, example, cluster_name, args.alpha)
         instance_to_predict = np.hstack((x_test_uv[i], np.array([min_distance, avg_distance])))
         pred_uv_prob.append(clf_uv.predict_proba(instance_to_predict)[0])
     elapsed = time.time() - start
@@ -165,7 +164,7 @@ def main():
     clusters_file = open(args.clusters_file, "w")
     for targetid in centroids:
         for cluster in centroids[targetid]:
-            clusters_file.write('%s\t%s\t%s\t%s\n' % (targetid, cluster, list(centroids[targetid][cluster]), cluster_streamids[cluster]))
+            clusters_file.write('%s\t%s\t%s\t%s\n' % (targetid, cluster, list(centroids[targetid][cluster]), cluster_elements_info[cluster]))
     clusters_file.close()
 
 if __name__ == '__main__':
