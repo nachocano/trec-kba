@@ -32,7 +32,7 @@ def to_rnr(y):
             y_rnr[i] = 1
     return y_rnr
 
-def to_uv(x,y):
+def to_uv(x,y, context=False):
     idxs = np.where(y > 0)[0]
     count = len(idxs)
     x_uv = np.zeros([count,x.shape[1]])
@@ -40,6 +40,8 @@ def to_uv(x,y):
     for i, v in enumerate(idxs):
         x_uv[i] = x[v]
         y_uv[i] = y[v]
+    if context:
+        return (x_uv, y_uv, idxs)
     return (x_uv, y_uv)
 
 def to_uv_given_pred(x, y, pred_rnr):
@@ -70,7 +72,7 @@ def load_model(filename):
     print 'model loaded from %s' % filename
     return clf
 
-def create_data(filename, minimum=-1):
+def create_data(filename):
     x_list = defaultdict(list)
     y_list = defaultdict(list)
     context = defaultdict(list)
@@ -91,6 +93,26 @@ def create_data(filename, minimum=-1):
     for targetid in y_list:
             x[targetid] = np.array(x_list[targetid]).astype(float)
             y[targetid] = np.array(y_list[targetid]).astype(int)
+    return x, y, context
+
+def create_global_data(filename):
+    x_list = []
+    y_list = []
+    context = []
+    with open(filename) as f:
+        for line in f.read().splitlines():
+            instance = line.split()
+            streamid = instance[0]
+            targetid = instance[1]
+            date_hour = instance[2]
+            label = instance[3]
+            features = instance[4:]
+            x_list.append(features)
+            y_list.append(label)
+            context.append('%s %s %s' % (streamid, targetid, date_hour))
+
+    x = np.array(x_list).astype(float)
+    y = np.array(y_list).astype(int)
     return x, y, context
 
 def get_prob_and_pred(prob_global, prob_entity):
