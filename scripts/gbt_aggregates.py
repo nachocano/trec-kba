@@ -11,12 +11,14 @@ from sklearn import ensemble
 from sklearn import metrics
 from scipy.spatial.distance import euclidean
 from collections import defaultdict
+from gensim import matutils
 
 
 def update_clusters(targetid, streamid, date_hour, centroids, cluster_elements, cluster_elements_info, example, cluster_name, alpha):
     min_distance = 0
     avg_distance = 0
     tmp_centroids = centroids[targetid]
+    example = matutils.unitvec(example)
     if len(tmp_centroids) == 0:
         # new cluster, add it as a centroid and as an element
         #update the cluster_name counter
@@ -61,7 +63,7 @@ def main():
     parser.add_argument('-t', '--test_with_vectors_sorted_tsv_file', required=True)
     parser.add_argument('-i', '--system_id', required=True)
     parser.add_argument('-a', '--alpha', required=True, type=float)
-    parser.add_argument('-c', '--clusters_file', required=True)
+    parser.add_argument('-c', '--clusters_folder', required=True)
     parser.add_argument('-rnr', '--rnr_load_model_file', required=False)
     parser.add_argument('-uv', '--uv_save_model_file', required=False)
     
@@ -161,7 +163,8 @@ def main():
     output.write("#%s\n" % filter_run_json_string)
     output.close()
 
-    clusters_file = open(args.clusters_file, "w")
+                        
+    clusters_file = open(os.path.join(args.clusters_folder, 'clusters_%s' % args.alpha), 'w')
     for targetid in centroids:
         for cluster in centroids[targetid]:
             clusters_file.write('%s\t%s\t%s\t%s\n' % (targetid, cluster, list(centroids[targetid][cluster]), cluster_elements_info[cluster]))

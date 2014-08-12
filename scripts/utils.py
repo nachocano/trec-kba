@@ -44,6 +44,31 @@ def to_uv(x,y, context=False):
         return (x_uv, y_uv, idxs)
     return (x_uv, y_uv)
 
+def to_uv_multitask(x,y, cxt, entities_idxs):
+    idxs = np.where(y > 0)[0]
+    count = len(idxs)
+    x_uv = np.zeros([count,x.shape[1]])
+    y_uv = np.zeros([count])
+    for i, v in enumerate(idxs):
+        x_uv[i] = x[v]
+        y_uv[i] = y[v]
+
+    indexes = []
+    for i, index in enumerate(idxs):
+        targetid = cxt[index].split()[1]
+        indexes.append(entities_idxs[targetid])
+
+    entity_number = len(entities_idxs)
+    added_columns = x.shape[1] * entity_number
+    rest = np.zeros([count, added_columns])
+    for i, row in enumerate(x_uv):
+        start = entity_number * (indexes[i]+1)
+        for j in xrange(row.shape[0]):
+            rest[i,start] = row[j]
+            start+=1
+    new_x_uv = np.hstack((x_uv, rest))
+    return (new_x_uv, y_uv)
+
 def to_uv_given_pred(x, y, pred_rnr):
     idxs = np.where(pred_rnr == 1)[0]
     count = len(idxs)
@@ -53,6 +78,32 @@ def to_uv_given_pred(x, y, pred_rnr):
         x_uv[i] = x[v]
         y_uv[i] = y[v]
     return (x_uv, y_uv, idxs)
+
+def to_uv_given_pred_multitask(x, y, pred_rnr, cxt, entities_idxs):
+    idxs = np.where(pred_rnr == 1)[0]
+    count = len(idxs)
+    x_uv = np.zeros([count,x.shape[1]])
+    y_uv = np.zeros([count])
+    indexes = []
+    for i, index in enumerate(idxs):
+        targetid = cxt[index].split()[1]
+        indexes.append(entities_idxs[targetid])
+
+    for i, v in enumerate(idxs):
+        x_uv[i] = x[v]
+        y_uv[i] = y[v]
+
+    entity_number = len(entities_idxs)
+    added_columns = x.shape[1] * entity_number
+    rest = np.zeros([count, added_columns])
+    for i, row in enumerate(x_uv):
+        start = entity_number * (indexes[i]+1)
+        for j in xrange(row.shape[0]):
+            rest[i,start] = row[j]
+            start+=1
+    new_x_uv = np.hstack((x_uv, rest))
+    return (new_x_uv, y_uv, idxs)
+
 
 def feature_importance(importances, classifier):
     indices = np.argsort(importances)[::-1]

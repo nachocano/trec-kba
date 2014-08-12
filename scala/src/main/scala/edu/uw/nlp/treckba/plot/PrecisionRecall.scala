@@ -50,14 +50,13 @@ object PrecisionRecall {
     }
 
     val curve = new PrecRecallCurve(list)
-    val chart = curve.prChart("Precision-Recall")
+    val chart = curve.prChart("PR")
+    val threshold = curve.prThreshChart("Threshold")
     //val curveBase = new PrecRecallCurve(list)
     //val chartBase = curve.prChart("Precision-Recall")
 
-    //chart.data += chartBase.data.serieses.head
-
+    chart.data += threshold.data.serieses.head
     chart.data.serieses.foreach(_.pointType= Some(Style.PointType.Dot))
-
     //chart.showLegend = true
 
     val plotter = new GnuplotPlotter(chart)
