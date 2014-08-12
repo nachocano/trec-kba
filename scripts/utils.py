@@ -1,6 +1,9 @@
 import numpy as np
 from sklearn.externals import joblib
 from collections import defaultdict
+from gensim import matutils
+from scipy.spatial.distance import euclidean
+import time
 
 filter_run = {
     "$schema": "http://trec-kba.org/schemas/v1.1/filter-run.json",
@@ -198,3 +201,24 @@ def get_prob_and_pred_single(pg, pe):
         return pe, max_pe_idx
     else:
         return pg, max_pg_idx
+
+def similar_words(model, target_vector):
+    min_distance = 100000.0
+    most_similar_words = []
+    left = len(model.vocab)
+    start = time.time()
+    print 'looking for most similars'
+    for word in model.vocab:
+        left -= 1
+        vector = matutils.unitvec(model.syn0[model.vocab[word].index])
+        centroid = target_vector
+        d = euclidean(centroid, vector)
+        if d < min_distance:
+            min_distance = d
+            most_similar_words.append((word, min_distance))
+        print 'most similar so far %s with distance %f' % (word, min_distance)
+        print '%d left to check' % left
+    elapsed = time.time() - start
+    print 'search took %s' % elapsed
+    return most_similar_words.reverse()
+

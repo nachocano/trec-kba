@@ -9,7 +9,7 @@ import re
 from collections import defaultdict
 from scipy.spatial.distance import euclidean
 import random
-
+from utils import similar_words
 
 def complete_truth(train_test, filename):
   with open(filename) as f:
@@ -62,13 +62,6 @@ def main():
   complete_truth(train_test_truth, args.truth_test_file)
   complete_truth(train_test_truth, args.truth_train_file)
 
-#  i = 0
-#  for targetid in train_test_truth:
-#    for k in train_test_truth[targetid]:
-#      i+=1
-#  print 'total %d' % i
-
-
   centroids = defaultdict(defaultdict)
   cluster_elements = defaultdict(lambda: defaultdict(list))
   with open(args.clusters_file) as f:
@@ -102,7 +95,7 @@ def main():
   print 'loaded in %s' % elapsed
   model.init_sims(replace=True)
   
-  close_words_to_centroids = defaultdict(lambda: defaultdict(list))
+  
   for targetid in centroids:
     if args.filter_targetid not in targetid:
       continue
@@ -111,34 +104,10 @@ def main():
     for clusterid in centroids[targetid]:
       if clusterid not in clusterids:
         continue
-      min_distance = 100000.0
-      most_similar_words = []
-      left = len(model.vocab)
-      start = time.time()
-      print 'looking for most similars for clusterid %d of targetid %s' % (clusterid, targetid)
-      for word in model.vocab:
-        left -= 1
-        vector = matutils.unitvec(model.syn0[model.vocab[word].index])
-        centroid = centroids[targetid][clusterid]
-        d = euclidean(centroid, vector)
-        if d < min_distance:
-          min_distance = d
-          close_words_to_centroids[targetid][clusterid].append(word)
-          print 'most similar so far %s with distance %f' % (word, min_distance)
-          print '%d left to check for clusterid %d' % (left, clusterid)
-    elapsed = time.time() - start
-    print 'search took %s' % elapsed
-
-  for targetid in close_words_to_centroids:
-    for clusterid in close_words_to_centroids[targetid]:
-      closest = close_words_to_centroids[targetid][clusterid]
-      closest.reverse()
-      print 'closest %s' % closest
+      closest = similar_words(model, centroids[targetid][clusterid])
       if len(closest) > args.most_similars:
         closest = closest[:args.most_similars]
-      print 'closest after filter %s' % closest
-      print 'closest to centroid of clusterid %d for targetid %s' % (clusterid, targetid)
-      print model.most_similar(positive=closest, topn=20)
+      print 'closest to centroid of clusterid %d for targetid %s:\n%s' % (clusterid, targetid, closest)
 
 if __name__ == '__main__':
   main()
