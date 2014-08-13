@@ -56,8 +56,10 @@ public class CreateFeaturesTask implements Callable<Void> {
 		}
 		TTransport transport = null;
 		try {
-			transport = new TIOStreamTransport(new BufferedInputStream(
-					new FileInputStream(file)));
+			final FileInputStream inStream = new FileInputStream(file);
+			final BufferedInputStream bInStream = new BufferedInputStream(
+					inStream);
+			transport = new TIOStreamTransport(bInStream);
 			final TBinaryProtocol protocol = new TBinaryProtocol(transport);
 			transport.open();
 			while (true) {
@@ -132,10 +134,12 @@ public class CreateFeaturesTask implements Callable<Void> {
 
 					final List<Sentence> sentences = body.getSentences().get(
 							"serif");
-					final Set<String> lemmas = new HashSet<>();
+					final Set<String> nounLemmas = new HashSet<>();
+					final Set<String> verbLemmas = new HashSet<>();
 					for (final Sentence sentence : sentences) {
 						boolean containsMatch = false;
-						final Set<String> candidateLemmas = new HashSet<>();
+						final Set<String> nounCandidateLemmas = new HashSet<>();
+						final Set<String> verbCandidateLemmas = new HashSet<>();
 						final List<Token> tokens = sentence.getTokens();
 						for (final Token token : tokens) {
 							final String lemma = token.getLemma();
@@ -151,20 +155,26 @@ public class CreateFeaturesTask implements Callable<Void> {
 								}
 							}
 							final String pos = token.getPos();
-							// take the verbs and nouns
-							if (pos != null
-									&& !pos.startsWith("NNP")
-									&& (pos.startsWith("N") || pos
-											.startsWith("V"))) {
+							// take the verbs
+							if (pos != null && pos.startsWith("V")) {
 								final String removedNonWords = lemma
 										.replaceAll("[^a-zA-Z ]", "");
 								if (removedNonWords.length() > 1) {
-									candidateLemmas.add(removedNonWords);
+									verbCandidateLemmas.add(removedNonWords);
+								}
+							} else if (pos != null && !pos.startsWith("NNP")
+									&& pos.startsWith("N")) {
+								// take the nouns
+								final String nonWords = lemma.replaceAll(
+										"[^a-zA-Z ]", "");
+								if (nonWords.length() > 1) {
+									nounCandidateLemmas.add(nonWords);
 								}
 							}
 						}
 						if (containsMatch) {
-							lemmas.addAll(candidateLemmas);
+							nounLemmas.addAll(nounCandidateLemmas);
+							verbLemmas.addAll(verbCandidateLemmas);
 						}
 					}
 
@@ -182,11 +192,13 @@ public class CreateFeaturesTask implements Callable<Void> {
 					final TruthValue truthValue = truthsMap.get(tk);
 
 					final String features = String.format(
-							"%s %s %s %s %s %s %s %s %s", item.getStream_id(),
-							targetId, truthValue.getDateHour(),
+							"%s %s %s %s %s %s %s %s %s %s",
+							item.getStream_id(), targetId,
+							truthValue.getDateHour(),
 							truthValue.getRelevance(), Utils.toString(sources),
 							logDocLength, fullMatchesFeatures,
-							partialMatchesFeatures, lemmas.toString());
+							partialMatchesFeatures, nounLemmas.toString(),
+							verbLemmas.toString());
 					queue.add(features);
 				}
 			}

@@ -203,23 +203,9 @@ def get_prob_and_pred_single(pg, pe):
     else:
         return pg, max_pg_idx
 
-def similar_words(model, target_vector):
-    min_distance = 100000.0
-    most_similar_words = []
-    left = len(model.vocab)
-    start = time.time()
-    print 'looking for most similars'
-    for word in model.vocab:
-        left -= 1
-        vector = matutils.unitvec(model.syn0[model.vocab[word].index])
-        centroid = target_vector
-        d = euclidean(centroid, vector)
-        if d < min_distance:
-            min_distance = d
-            most_similar_words.append((word, min_distance))
-            print 'most similar so far %s with distance %f' % (word, min_distance)
-            print '%d left to check' % left
-    elapsed = time.time() - start
-    print 'search took %s' % elapsed
-    return most_similar_words.reverse()
+def similar_words(model, target_vector, topn=10):
+    dists = np.dot(model.syn0norm, target_vector)
+    best = np.argsort(dists)[::-1][:topn]
+    result = [(model.index2word[sim], dists[sim]) for sim in best]
+    return result[:topn]
 

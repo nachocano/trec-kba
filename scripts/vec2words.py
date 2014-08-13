@@ -31,15 +31,16 @@ def main():
   parser.add_argument('-tr', '--truth_train_file', required=True)
   parser.add_argument('-ft', '--filter_targetid', required=True)
   parser.add_argument('-fc', '--filter_clusters', required=True, type=int)
+  parser.add_argument('-fe', '--filter_elements', required=True, type=int)
   parser.add_argument('-d', '--embeddings_dimension', required=False, type=int)
-  parser.add_argument('-s', '--most_similars', required=False, type=int)
+  parser.add_argument('-tp', '--topn', required=False, type=int)
   args = parser.parse_args()
 
   if not args.embeddings_dimension:
     args.embeddings_dimension = 300
 
-  if not args.most_similars:
-    args.most_similars = 5
+  if not args.topn:
+    args.topn = 10
 
 
   element_regex = re.compile(r'\(([^()]+)\)')
@@ -63,7 +64,7 @@ def main():
   complete_truth(train_test_truth, args.truth_train_file)
 
   centroids = defaultdict(defaultdict)
-  cluster_elements = defaultdict(lambda: defaultdict(list))
+  #cluster_elements = defaultdict(lambda: defaultdict(list))
   with open(args.clusters_file) as f:
     for line in f.read().splitlines():
       line = line.split('\t')
@@ -71,7 +72,7 @@ def main():
       clusterid = int(line[1])
       # removes starting [ and ending ]
       centroid_as_str = line[2][1:-1]
-      centroid = np.array(centroid_as_str.split(',')).astype(float)
+      centroid = np.array(centroid_as_str.split(',')).astype(np.float32)
       centroids[targetid][clusterid] = centroid
       elements = line[3][1:-1]
       for element in element_regex.findall(elements):
@@ -79,7 +80,7 @@ def main():
         values = element.replace('[', '').replace(']', '').replace("'", "").split(',')
         streamid = values[0].strip()
         date_hour = values[1].strip()
-        vector = np.array(values[2:]).astype(float)
+        vector = np.array(values[2:]).astype(np.float32)
         key = (streamid, date_hour)
         truth_relevance = train_test_truth[targetid][key]
         # it may have no prediction, it's part of the training files
@@ -87,7 +88,7 @@ def main():
         if run[targetid].has_key(key):
           predicted_relevance = run[targetid][key]
         cluster_elements[targetid][clusterid].append({'streamid' : streamid, 'date_hour' : date_hour, 'vector' : vector, 'truth' : truth_relevance, 'prediction' : predicted_relevance})
-
+      
   start = time.time()
   print 'loading file %s' % args.embeddings_file
   model = word2vec.Word2Vec.load_word2vec_format(args.embeddings_file, binary=True)
@@ -99,15 +100,49 @@ def main():
   for targetid in centroids:
     if args.filter_targetid not in targetid:
       continue
-    clusterids = random.sample(centroids[targetid].keys(), args.filter_clusters)
+    condition_matched = False
+    while not condition_matched:
+      print 'condition not matched yet...'
+      clusterids = random.sample(centroids[targetid].keys(), args.filter_clusters)
+      stop = True
+      for clusterid in clusterids:
+        if len(cluster_elements[targetid][clusterid]) <= args.filter_elements:
+          stop = False
+          break
+      condition_matched = stop
+    print 'condition matched'
     print 'checking only these clusters %s' % clusterids
     for clusterid in centroids[targetid]:
       if clusterid not in clusterids:
         continue
-      closest = similar_words(model, centroids[targetid][clusterid])
-      if len(closest) > args.most_similars:
-        closest = closest[:args.most_similars]
+      closest = similar_words(model, centroids[targetid][clusterid], args.topn)
       print 'closest to centroid of clusterid %d for targetid %s:\n%s' % (clusterid, targetid, closest)
+
+      for i in xrange(args.filter_elements):
+        element = cluster_elements[targetid][clusterid][i]
+        print 'prediction for element %s is %s, truth %s' % (element['streamid'], element['prediction'], element['truth'])
+        closest_to_element = similar_words(model, element['vector'], args.topn)
+        print 'closest to element %s of clusterid %d of targetid %s:\n%s' % (element['streamid'], clusterid, targetid, closest_to_element)
+
+      pred_usefuls = 0
+      pred_vitals = 0
+      truth_usefuls = 0
+      truth_vitals = 0
+      for element in cluster_elements[targetid][clusterid]:
+        if element['prediction'] == 1: 
+          pred_usefuls += 1
+        else:
+          pred_vitals += 1
+        if element['truth'] == 1:
+          truth_usefuls += 1
+        else:
+          truth_vitals += 1
+
+        print 'predicted %d usefuls and %d vitals' % (pred_usefuls, pred_vitals)
+        print 'actual %d usefuls and %d vitals' % (truth_useful, truth_vitals)
+        print '\n'
+
+
 
 if __name__ == '__main__':
   main()
