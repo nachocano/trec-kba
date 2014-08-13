@@ -14,52 +14,56 @@ def main():
 	parser = argparse.ArgumentParser(description='TODO')
 	parser.add_argument('-e', '--embeddings_file', required=True)
 	parser.add_argument('-d', '--embeddings_dimension', required=False, type=int)
+	parser.add_argument('-f', '--filter_amount', required=False, type=int)
 	args = parser.parse_args()
 
 	if not args.embeddings_dimension:
 	  args.embeddings_dimension = 300
+
+	if not args.filter_amount:
+	  args.filter_amount = 10
 
 	start = time.time()
 	print 'loading file %s' % args.embeddings_file
 	model = word2vec.Word2Vec.load_word2vec_format(args.embeddings_file, binary=True)
 	elapsed = time.time() - start
 	print 'loaded in %s' % elapsed
-	model.init_sims(replace=True)
+	model.init_sims()
 
-	words = ['launched', 'moving', 'company', 'weekend', 'tour', 'has', 'shows']
-	embeddings = np.zeros(args.embeddings_dimension)
-	count = 0
+	words = ['launched', 'moving', 'has', 'shows']
+	nouns = ['company', 'weekend', 'tour']
+	embeddings = []
 	for word in words:
 		if model.__contains__(word):
-			print 'most similar to %s %s' % (word, model.most_similar(positive=[word], topn=10))
-			embeddings += matutils.unitvec(model[word])
-			count += 1
+			#print 'most similar to %s %s' % (word, model.most_similar(positive=[word], topn=10))
+			embeddings.append(matutils.unitvec(model.syn0[model.vocab[word].index]))
 		else:
 			print 'model does not contain %s' % word
 
-	print 'count %d' % count
+	noun_embeddings = []
+	for noun in nouns:
+		if model.__contains__(noun):
+			#print 'most similar to %s %s' % (word, model.most_similar(positive=[word], topn=10))
+			noun_embeddings.append(matutils.unitvec(model.syn0[model.vocab[noun].index]))
+		else:
+			print 'model does not contain %s' % word
+
+
+	print 'computing mean...'
 	mean = matutils.unitvec(np.array(embeddings).mean(axis=0)).astype(np.float32)
-
-	min_distance = 100000.0
-	most_similar_words = []
-	start = time.time()
-	print 'looking for most similar...'
-	for word in model.vocab:
-		vector = matutils.unitvec(model[word])
-		d = euclidean(mean, vector)
-		if d < min_distance:
-			min_distance = d
-			most_similar_word.append(word)
-			print 'most similar so far %s with distance %f' % (word, min_distance)
-	elapsed = time.time() - start
-	print 'search took %s' % elapsed
-	print 'most similar to %s' % most_similar_word
-	most_similar_words.reverse()
-
-	if len(most_similar_words) > arg.filter_amount:
-		most_similar_words = most_similar_words[:args.filter_amount]
-
-	print most_similar_words
+	mean_nouns = matutils.unitvec(np.array(noun_embeddings).mean(axis=0)).astype(np.float32)
+	print 'mean computed... now computing dot product'
+	d = np.dot(model.syn0norm, mean)
+	dist = np.dot(model.syn0norm, mean_nouns)
+	print 'dot product computed'
+	best = np.argsort(d)[::-1][:10]
+	best_nouns = np.argsort(dist)[::-1][:10]
+	print 'after best'
+	result = [(model.index2word[sim], d[sim]) for sim in best]
+	result_nouns = [(model.index2word[sim], dist[sim]) for sim in best_nouns]
+	print 'after result'
+	print result[:10]
+	print result_nouns[:10]
 
 if __name__ == '__main__':
   main()
