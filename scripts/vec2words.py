@@ -93,7 +93,7 @@ def main():
   model = word2vec.Word2Vec.load_word2vec_format(args.embeddings_file, binary=True)
   elapsed = time.time() - start
   print 'loaded in %s' % elapsed
-  model.init_sims(replace=True)
+  model.init_sims()
   
   
   for targetid in centroids:

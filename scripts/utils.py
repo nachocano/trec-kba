@@ -26,6 +26,7 @@ def build_record(idx, context, relevance, prob):
     return [filter_run["team_id"], filter_run["system_id"], 
             stream_id, target_id, confidence, int(relevance), 1, date_hour, "NULL", -1, "0-0"]
 
+
 def to_rnr(y):
     y_rnr = np.array(y)
     for i, value in enumerate(y):
@@ -38,7 +39,7 @@ def to_rnr(y):
 def to_uv(x,y, context=False):
     idxs = np.where(y > 0)[0]
     count = len(idxs)
-    x_uv = np.zeros([count,x.shape[1]])
+    x_uv = np.zeros([count,x.shape[1]]).astype(np.float32)
     y_uv = np.zeros([count])
     for i, v in enumerate(idxs):
         x_uv[i] = x[v]
@@ -50,7 +51,7 @@ def to_uv(x,y, context=False):
 def to_uv_multitask(x,y, cxt, entities_idxs):
     idxs = np.where(y > 0)[0]
     count = len(idxs)
-    x_uv = np.zeros([count,x.shape[1]])
+    x_uv = np.zeros([count,x.shape[1]]).astype(np.float32)
     y_uv = np.zeros([count])
     for i, v in enumerate(idxs):
         x_uv[i] = x[v]
@@ -75,7 +76,7 @@ def to_uv_multitask(x,y, cxt, entities_idxs):
 def to_uv_given_pred(x, y, pred_rnr):
     idxs = np.where(pred_rnr == 1)[0]
     count = len(idxs)
-    x_uv = np.zeros([count,x.shape[1]])
+    x_uv = np.zeros([count,x.shape[1]]).astype(np.float32)
     y_uv = np.zeros([count])
     for i, v in enumerate(idxs):
         x_uv[i] = x[v]
@@ -85,7 +86,7 @@ def to_uv_given_pred(x, y, pred_rnr):
 def to_uv_given_pred_multitask(x, y, pred_rnr, cxt, entities_idxs):
     idxs = np.where(pred_rnr == 1)[0]
     count = len(idxs)
-    x_uv = np.zeros([count,x.shape[1]])
+    x_uv = np.zeros([count,x.shape[1]]).astype(np.float32)
     y_uv = np.zeros([count])
     indexes = []
     for i, index in enumerate(idxs):
@@ -145,7 +146,7 @@ def create_data(filename):
     x = {}
     y = {}
     for targetid in y_list:
-            x[targetid] = np.array(x_list[targetid]).astype(float)
+            x[targetid] = np.array(x_list[targetid]).astype(np.float32)
             y[targetid] = np.array(y_list[targetid]).astype(int)
     return x, y, context
 
@@ -165,7 +166,7 @@ def create_global_data(filename):
             y_list.append(label)
             context.append('%s %s %s' % (streamid, targetid, date_hour))
 
-    x = np.array(x_list).astype(float)
+    x = np.array(x_list).astype(np.float32)
     y = np.array(y_list).astype(int)
     return x, y, context
 
@@ -216,8 +217,8 @@ def similar_words(model, target_vector):
         if d < min_distance:
             min_distance = d
             most_similar_words.append((word, min_distance))
-        print 'most similar so far %s with distance %f' % (word, min_distance)
-        print '%d left to check' % left
+            print 'most similar so far %s with distance %f' % (word, min_distance)
+            print '%d left to check' % left
     elapsed = time.time() - start
     print 'search took %s' % elapsed
     return most_similar_words.reverse()
