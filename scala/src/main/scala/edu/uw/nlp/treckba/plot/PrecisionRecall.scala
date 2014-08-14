@@ -55,16 +55,20 @@ object PrecisionRecall {
       lists += list
     }
 
+    val names = Array("uw-aggregate-entity", "uw-embedding-multi", "uw-aggregate-multi")
+
     val length = lists.length
     val curve = new PrecRecallCurve(lists(0))
-    val chart = curve.prChart("Precision Recall")
+    val chart = curve.prChart(names(0))
 
-    for (index <- 1 to length-1) {
+   for (index <- 1 to length-1) {
       val anotherCurve = new PrecRecallCurve(lists(index))
-      val anotherChart = anotherCurve.prChart("Precision Recall")
+      val anotherChart = anotherCurve.prChart(names(index))
       chart.data += anotherChart.data.serieses.head
     }
+
     chart.data.serieses.foreach(_.pointType= Some(Style.PointType.Dot))
+    chart.showLegend = true
     val plotter = new GnuplotPlotter(chart)
     plotter.png(outputDir, outFilename)
   }

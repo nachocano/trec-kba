@@ -15,7 +15,7 @@ from gensim import matutils
 import operator
 
 
-def new_features_per_type(targetid, streamid, date_hour, centroids, cluster_elements, example, cluster_name, alpha):
+def new_features_per_type(targetid, streamid, date_hour, centroids, cluster_elements, cluster_elements_info, example, cluster_name, alpha):
     
     min_distance = 0
     avg_distance = 0
@@ -24,7 +24,8 @@ def new_features_per_type(targetid, streamid, date_hour, centroids, cluster_elem
         # new cluster, add the example as the centroids for both nouns and verbs
         # update the cluster_name counter
         centroids[targetid][cluster_name] = example
-        cluster_elements[cluster_name].append((streamid, date_hour, example))
+        cluster_elements[cluster_name].append(example)
+        cluster_elements_info[cluster_name].append((streamid, date_hour, list(example)))
         cluster_name += 1
     else:
         similarities = []
@@ -44,26 +45,27 @@ def new_features_per_type(targetid, streamid, date_hour, centroids, cluster_elem
 
         if min_distance < alpha:
             # put in an already existent cluster
-            cluster_elements[candidate_cluster_name].append((streamid, date_hour, example))
+            cluster_elements[cluster_name].append(example)
+            cluster_elements_info[candidate_cluster_name].append((streamid, date_hour, list(example)))
             # update the centroid for that cluster
-            examples = map(operator.itemgetter(2), cluster_elements[candidate_cluster_name])
-            examples = np.array(examples)
+            examples = np.array(cluster_elements[candidate_cluster_name])
             centroids[targetid][candidate_cluster_name] = matutils.unitvec(examples.mean(axis=0)).astype(np.float32)
         else:
             # create a new cluster, add the example as the centroid
             centroids[targetid][cluster_name] = example
-            cluster_elements[cluster_name].append((streamid, date_hour, example))
+            cluster_elements[cluster_name].append(example)
+            cluster_elements_info[cluster_name].append((streamid, date_hour, list(example)))
             cluster_name += 1
     return (min_distance, avg_distance, cluster_name)
 
 
-def compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, example, cluster_name_nouns, cluster_name_verbs, alpha_noun, alpha_verb):
+def compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, cluster_elements_info, example, cluster_name_nouns, cluster_name_verbs, alpha_noun, alpha_verb):
     
     nouns = example[:300]
     verbs = example[300:]
 
-    min_distance_noun, avg_distance_noun, cluster_name_nouns = new_features_per_type(targetid, streamid, date_hour, centroids['nouns'], cluster_elements['nouns'], nouns, cluster_name_nouns, alpha_noun)
-    min_distance_verb, avg_distance_verb, cluster_name_verbs = new_features_per_type(targetid, streamid, date_hour, centroids['verbs'], cluster_elements['verbs'], verbs, cluster_name_verbs, alpha_verb)
+    min_distance_noun, avg_distance_noun, cluster_name_nouns = new_features_per_type(targetid, streamid, date_hour, centroids['nouns'], cluster_elements['nouns'], cluster_elements_info['nouns'], nouns, cluster_name_nouns, alpha_noun)
+    min_distance_verb, avg_distance_verb, cluster_name_verbs = new_features_per_type(targetid, streamid, date_hour, centroids['verbs'], cluster_elements['verbs'], cluster_elements_info['verbs'], verbs, cluster_name_verbs, alpha_verb)
 
     return min_distance_noun, avg_distance_noun, min_distance_verb, avg_distance_verb, cluster_name_nouns, cluster_name_verbs
 
@@ -139,6 +141,10 @@ def main():
     cluster_elements = {}
     cluster_elements['nouns'] = defaultdict(list)
     cluster_elements['verbs'] = defaultdict(list)
+    cluster_elements_info = {}
+    cluster_elements_info['nouns'] = defaultdict(list)
+    cluster_elements_info['verbs'] = defaultdict(list)
+
     cluster_name_nouns = 0
     cluster_name_verbs = 0
 
@@ -150,7 +156,7 @@ def main():
         streamid, targetid, date_hour = train_context[idx].split()
         example = x_train_uv[i][25:]
         min_distance_noun, avg_distance_noun, min_distance_verb, avg_distance_verb, cluster_name_nouns, cluster_name_verbs = \
-                        compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, example, cluster_name_nouns, cluster_name_verbs, args.alpha_noun, args.alpha_verb)
+                        compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, cluster_elements_info, example, cluster_name_nouns, cluster_name_verbs, args.alpha_noun, args.alpha_verb)
         x_train_uv_extra_features[i] = np.hstack((x_train_uv[i], np.array([min_distance_noun, avg_distance_noun, min_distance_verb, avg_distance_verb])))
     elapsed = time.time() - start
     print 'finished building training for uv classifier, took %s' % elapsed
@@ -170,7 +176,7 @@ def main():
         streamid, targetid, date_hour = test_context[idx].split()
         example = x_test_uv[i][25:]
         min_distance_noun, avg_distance_noun, min_distance_verb, avg_distance_verb, cluster_name_nouns, cluster_name_verbs = \
-                        compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, example, cluster_name_nouns, cluster_name_verbs, args.alpha_noun, args.alpha_verb)
+                        compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, cluster_elements_info, example, cluster_name_nouns, cluster_name_verbs, args.alpha_noun, args.alpha_verb)
         x_test_uv_extra_features[i] = np.hstack((x_test_uv[i], np.array([min_distance_noun, avg_distance_noun, min_distance_verb, avg_distance_verb])))
     elapsed = time.time() - start
     print 'finished building testing for uv classifier, took %s' % elapsed
@@ -204,15 +210,15 @@ def main():
     clusters_noun_file = open(os.path.join(args.clusters_folder, 'clusters_nouns_%s' % args.alpha_noun), 'w')
     for targetid in centroids['nouns']:
         for cluster in centroids['nouns'][targetid]:
-            clusters_noun_file.write('%s\t%s\t%s\n' % (targetid, cluster, list(centroids['nouns'][targetid][cluster]))
+            clusters_noun_file.write('%s\t%s\t%s\t%s\n' % (targetid, cluster, list(centroids['nouns'][targetid][cluster]), cluster_elements_info['nouns'][cluster]))
     clusters_noun_file.close()
 
     clusters_verbs_file = open(os.path.join(args.clusters_folder, 'clusters_verbs_%s' % args.alpha_verb), 'w')
     for targetid in centroids['verbs']:
         for cluster in centroids['verbs'][targetid]:
-            clusters_verbs_file.write('%s\t%s\t%s\t%s\n' % (targetid, cluster, list(centroids['verbs'][targetid][cluster]))
+            clusters_verbs_file.write('%s\t%s\t%s\t%s\n' % (targetid, cluster, list(centroids['verbs'][targetid][cluster]), cluster_elements_info['verbs'][cluster]))
     clusters_verbs_file.close()
 
 if __name__ == '__main__':
-  np.set_printoptions(threshold=np.nan)
+  #np.set_printoptions(threshold=np.nan, linewidth=1000000000000000, )
   main()

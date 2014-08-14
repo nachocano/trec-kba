@@ -64,7 +64,7 @@ def main():
   complete_truth(train_test_truth, args.truth_train_file)
 
   centroids = defaultdict(defaultdict)
-  #cluster_elements = defaultdict(lambda: defaultdict(list))
+  cluster_elements = defaultdict(lambda: defaultdict(list))
   with open(args.clusters_file) as f:
     for line in f.read().splitlines():
       line = line.split('\t')
@@ -116,13 +116,14 @@ def main():
       if clusterid not in clusterids:
         continue
       closest = similar_words(model, centroids[targetid][clusterid], args.topn)
-      print 'closest to centroid of clusterid %d for targetid %s:\n%s' % (clusterid, targetid, closest)
-
+      print '######### TARGETID: %s - CLUSTER ID: %d ##########' % (targetid, clusterid)
+      print 'centroid:\n%s' % closest
+      print '\n'
       for i in xrange(args.filter_elements):
         element = cluster_elements[targetid][clusterid][i]
-        print 'prediction for element %s is %s, truth %s' % (element['streamid'], element['prediction'], element['truth'])
+        print 'element: %s -> prediction=%s, truth=%s' % (element['streamid'], element['prediction'], element['truth'])
         closest_to_element = similar_words(model, element['vector'], args.topn)
-        print 'closest to element %s of clusterid %d of targetid %s:\n%s' % (element['streamid'], clusterid, targetid, closest_to_element)
+        print '\n%s\n' % closest_to_element
 
       pred_usefuls = 0
       pred_vitals = 0
@@ -138,9 +139,9 @@ def main():
         else:
           truth_vitals += 1
 
-        print 'predicted %d usefuls and %d vitals' % (pred_usefuls, pred_vitals)
-        print 'actual %d usefuls and %d vitals' % (truth_useful, truth_vitals)
-        print '\n'
+      print 'Predictions: Usefuls=%d, Vitals=%d' % (pred_usefuls, pred_vitals)
+      print 'Truth:       Usefuls=%d, Vitals=%d' % (truth_usefuls, truth_vitals)
+      print '#################################################'
 
 
 
