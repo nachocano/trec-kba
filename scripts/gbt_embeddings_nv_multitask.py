@@ -148,7 +148,6 @@ def get_features(x_uv, uv_idxs_context, context, centroids, cluster_elements, st
         min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, \
         min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb = \
         compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, alpha_noun, alpha_verb, gamma_noun, gamma_verb, init_cluster_info)
-        print timeliness_noun, timeliness_verb
         x_uv_extra_features[i] = np.hstack((x_uv[i], np.array([min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb])))
     return x_uv_extra_features
 
