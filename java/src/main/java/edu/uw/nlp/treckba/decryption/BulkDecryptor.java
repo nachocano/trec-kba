@@ -59,6 +59,7 @@ public class BulkDecryptor {
 				if (pw != null) {
 					pw.close();
 				}
+				executor.shutdown();
 			}
 		}
 	}
