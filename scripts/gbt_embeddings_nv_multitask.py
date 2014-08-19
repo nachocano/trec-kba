@@ -14,7 +14,6 @@ from scipy.spatial.distance import euclidean
 from collections import defaultdict
 from gensim import matutils
 import operator
-from target import InitCluster, Target, Stream
 
 starting_timeliness = 0.5
 
@@ -77,8 +76,8 @@ def new_features_per_type(targetid, streamid, date_hour, centroids, cluster_elem
             max_similarity = float(maximum_tuple[1])
         
             # two new features
-            min_distance = abs(1 - max_similarity)
-            avg_distance = abs(1 - (similarities_sum / len(similarities)))
+            min_distance = 1 - max_similarity
+            avg_distance = 1 - (similarities_sum / len(similarities))
 
             if min_distance < alpha:
                 # put in an already existent cluster
@@ -113,7 +112,6 @@ def compute_new_features(targetid, streamid, date_hour, centroids, cluster_eleme
 
     nouns = example[:300]
     verbs = example[300:]
-
 
     init_cluster_info_noun = None if not init_clusters_info else init_clusters_info['nouns']
     init_cluster_info_verb = None if not init_clusters_info else init_clusters_info['verbs']
@@ -150,6 +148,7 @@ def get_features(x_uv, uv_idxs_context, context, centroids, cluster_elements, st
         compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, alpha_noun, alpha_verb, gamma_noun, gamma_verb, init_cluster_info)
         x_uv_extra_features[i] = np.hstack((x_uv[i], np.array([min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb])))
     return x_uv_extra_features
+    
 
 def main():
 
@@ -166,12 +165,9 @@ def main():
     parser.add_argument('-c', '--clusters_folder', required=True)
     parser.add_argument('-rnrs', '--rnr_save_model_file', required=False)
     parser.add_argument('-rnrl', '--rnr_load_model_file', required=False)
-    parser.add_argument('-s', '--pre_train_split', required=False, type=float)
+    parser.add_argument('-s', '--pre_train_split', required=False, type=float, default=0.2)
 
     args = parser.parse_args()
-
-    if not args.pre_train_split:
-        args.pre_train_split = 0.2
 
     filter_topics = json.load(open(args.entities_json))
     entities = []
@@ -333,7 +329,6 @@ def main():
     print 'all run took %s' % elapsed_run
 
     # generate output
-
     output = open(args.output_file, "w")
     filter_run_json_string = json.dumps(filter_run)
     output.write("#%s\n" % filter_run_json_string)
