@@ -1,6 +1,5 @@
-package edu.uw.nlp.treckba.feature;
+package edu.uw.nlp.treckba.decryption;
 
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.cli.BasicParser;
@@ -12,50 +11,46 @@ import org.apache.commons.lang3.Validate;
 
 import edu.uw.nlp.treckba.utils.Utils;
 
-public class FeatureDriver {
+public class BulkDecryptorDriver {
 
 	public static void main(final String[] args) {
 
 		final Options options = new Options();
 		options.addOption("i", true, "input directory");
-		options.addOption("o", true, "output file (with full path)");
-		options.addOption("e", true, "entities ccr file with surface forms");
-		options.addOption("t", true, "modified truth file");
+		options.addOption("f", true, "input files");
+		options.addOption("lo", true, "log output file (with full path)");
+		options.addOption("g", true, "gpg path");
 
 		final CommandLineParser parser = new BasicParser();
 
 		String inputDir = null;
+		String inputFile = null;
 		String output = null;
-		Map<String, List<String>> entities = null;
-		Map<TruthKey, TruthValue> truths = null;
+		String gpg = null;
 		try {
 			final CommandLine line = parser.parse(options, args);
 			inputDir = line.getOptionValue("i");
 			Validate.notNull(inputDir);
-			output = line.getOptionValue("o");
+			inputFile = line.getOptionValue("f");
+			Validate.notNull(inputFile);
+			output = line.getOptionValue("lo");
 			Validate.notNull(output);
-			final String entitiesCcr = line.getOptionValue("e");
-			Validate.notNull(entitiesCcr);
-			entities = Utils.readFile(entitiesCcr);
-			Validate.notNull(entities);
-			final String truthFile = line.getOptionValue("t");
-			truths = Utils.readTruthFile(truthFile, entities.keySet());
-			Validate.notNull(truths);
+			gpg = line.getOptionValue("g");
+			Validate.notNull(gpg);
 
 		} catch (final Exception e) {
 			final HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp("featuredriver", options);
+			formatter.printHelp("bulkdecryption", options);
 			return;
 		}
 
-		// System.out.println(truths.size());
-		// System.out.println(entities.size());
-
+		final Map<String, String> files = Utils.readUnassessedFiles(inputFile);
 		final long start = System.currentTimeMillis();
-		final FeatureFactory ff = new FeatureFactory();
+		final BulkDecryptor bd = new BulkDecryptor();
 
-		ff.createFeatures(inputDir, output, entities, truths);
+		bd.decrypt(inputDir, files, output, gpg);
 		System.out.println(String.format("total time during processing %s",
 				(System.currentTimeMillis() - start) / 1000));
 	}
+
 }

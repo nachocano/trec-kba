@@ -1,4 +1,4 @@
-package edu.uw.nlp.treckba.feature;
+package edu.uw.nlp.treckba.preprocess;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -6,21 +6,18 @@ import java.io.FilenameFilter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import edu.uw.nlp.treckba.utils.Utils;
 
-public class FeatureFactory {
+public class StreamIdsReader {
 
 	private final ExecutorService executor = Executors.newFixedThreadPool(10);
-	private final ConcurrentLinkedQueue<String> features = new ConcurrentLinkedQueue<>();
+	private final ConcurrentLinkedQueue<String> streamIds = new ConcurrentLinkedQueue<>();
 
-	public void createFeatures(final String inputDir, final String output,
-			final Map<String, List<String>> entities,
-			final Map<TruthKey, TruthValue> truths) {
+	public void readStreamIds(final String inputDir, final String output) {
 		final File dir = new File(inputDir);
 		if (dir.exists() && dir.isDirectory()) {
 			final FilenameFilter binFilter = new FilenameFilter() {
@@ -29,13 +26,11 @@ public class FeatureFactory {
 					return name.endsWith(".bin");
 				}
 			};
-			final List<CreateFeaturesTask> tasks = new ArrayList<CreateFeaturesTask>();
+			final List<StreamIdReaderTask> tasks = new ArrayList<StreamIdReaderTask>();
 			for (final File file : dir.listFiles(binFilter)) {
 				final String targetEntity = Utils.DIFFEO_URL
 						+ file.getName().replace(".bin", "");
-				final List<String> entityNames = entities.get(targetEntity);
-				tasks.add(new CreateFeaturesTask(file, features, targetEntity,
-						entityNames, truths));
+				tasks.add(new StreamIdReaderTask(file, streamIds, targetEntity));
 			}
 			try {
 				executor.invokeAll(tasks);
@@ -46,8 +41,8 @@ public class FeatureFactory {
 			PrintWriter pw = null;
 			try {
 				pw = new PrintWriter(new File(output));
-				for (final String feature : features) {
-					pw.println(feature);
+				for (final String streamid : streamIds) {
+					pw.println(streamid);
 				}
 			} catch (final FileNotFoundException e) {
 				System.err.println(String.format(

@@ -1,4 +1,4 @@
-package edu.uw.nlp.treckba.feature;
+package edu.uw.nlp.treckba.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+
+import edu.uw.nlp.treckba.feature.TruthKey;
+import edu.uw.nlp.treckba.feature.TruthValue;
 
 public class Utils {
 
@@ -238,5 +241,35 @@ public class Utils {
 			}
 		}
 		return paths;
+	}
+
+	public static Map<String, String> readUnassessedFiles(final String inputFile) {
+		final Map<String, String> map = new HashMap<>();
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(new File(inputFile)));
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				final String[] str = line.split("\t");
+				final String key = String.format("%s|%s", str[0], str[1]);
+				final String value = str[2];
+				map.put(key, value);
+			}
+		} catch (final FileNotFoundException e) {
+			System.err.println("file not found exception " + inputFile);
+		} catch (final IOException e) {
+			System.err.println("io exception " + inputFile);
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (final IOException e) {
+					System.err
+							.println("unexpected io exception while closing br "
+									+ inputFile);
+				}
+			}
+		}
+		return map;
 	}
 }

@@ -20,11 +20,16 @@ filter_run = {
     "system_description_short": "TODO",
     }
 
-def build_record(idx, context, relevance, prob):
+def build_record(idx, context, relevance, prob, predictions=None, truths=None, y_truth=None):
     confidence = int(prob * 1000)
     stream_id, target_id, date_hour = context[idx].split()
-    return [filter_run["team_id"], filter_run["system_id"], 
-            stream_id, target_id, confidence, int(relevance), 1, date_hour, "NULL", -1, "0-0"]
+    prediction = int(relevance)
+    if predictions != None:
+        predictions[(stream_id, target_id)] = prediction
+    if truths != None and y_truth != None:
+        truths[(stream_id, target_id)] = y_truth
+    return [filter_run["team_id"], filter_run["system_id"],
+            stream_id, target_id, confidence, prediction, 1, date_hour, "NULL", -1, "0-0"]
 
 
 def to_rnr(y):

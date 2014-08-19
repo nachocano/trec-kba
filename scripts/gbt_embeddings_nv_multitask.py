@@ -14,20 +14,21 @@ from scipy.spatial.distance import euclidean
 from collections import defaultdict
 from gensim import matutils
 import operator
+from target import Target, InitCluster, Stream
 
 starting_timeliness = 0.5
 
-def increase_timeliness(cluster_timeliness, targetid, cluster_name, gamma):
+def increase_timeliness(cluster_timeliness, targetid, cluster_name, gamma_increase):
     prev = cluster_timeliness[targetid][cluster_name]
-    cluster_timeliness[targetid][cluster_name] = 1 - (1 - prev) * gamma
+    cluster_timeliness[targetid][cluster_name] = 1 - (1 - prev) * gamma_increase
 
-def decrease_timeliness_except(cluster_timeliness, targetid, cluster_name, gamma):
+def decrease_timeliness_except(cluster_timeliness, targetid, cluster_name, gamma_decrease):
     for cluster in cluster_timeliness[targetid]:
         if cluster != cluster_name:
             prev = cluster_timeliness[targetid][cluster]
-            cluster_timeliness[targetid][cluster] = gamma * prev
+            cluster_timeliness[targetid][cluster] = gamma_decrease * prev
 
-def new_features_per_type(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, alpha, gamma, init_clusters_info=None):
+def new_features_per_type(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, alpha, gamma_increase, gamma_decrease, init_clusters_info=None):
     
     min_distance = 0
     avg_distance = 0
@@ -38,18 +39,18 @@ def new_features_per_type(targetid, streamid, date_hour, centroids, cluster_elem
         if not centroids[targetid].has_key(0):
             cluster_timeliness[targetid][0] = starting_timeliness
         else:
-            increase_timeliness(cluster_timeliness, targetid, 0, gamma)
+            increase_timeliness(cluster_timeliness, targetid, 0, gamma_increase)
 
         timeliness = cluster_timeliness[targetid][0]
-        decrease_timeliness_except(cluster_timeliness, targetid, 0, gamma)
+        decrease_timeliness_except(cluster_timeliness, targetid, 0, gamma_decrease)
         cluster_elements[targetid][0].append(example)
         examples = np.array(cluster_elements[targetid][0])
         centroids[targetid][0] = matutils.unitvec(examples.mean(axis=0)).astype(np.float32)
         all_zeros = 1
         if init_clusters_info != None:
-            init_clusters_info[targetid][0].append((streamid, date_hour, list(example)))
+            init_clusters_info[targetid][0].append((streamid, date_hour, min_distance, avg_distance, list(example)))
         else:
-            stream_info[targetid][0].append((streamid, date_hour, timeliness, list(example), list(centroids[targetid][0])))
+            stream_info[targetid][0].append((streamid, date_hour, timeliness, min_distance, avg_distance, list(example), list(centroids[targetid][0])))
     else:
         if not centroids.has_key(targetid):
             # new cluster, add the example as the centroids
@@ -59,9 +60,9 @@ def new_features_per_type(targetid, streamid, date_hour, centroids, cluster_elem
             centroids[targetid][cluster_name] = example
             cluster_elements[targetid][cluster_name].append(example)
             if init_clusters_info != None:
-                init_clusters_info[targetid][cluster_name].append((streamid, date_hour, list(example)))
+                init_clusters_info[targetid][cluster_name].append((streamid, date_hour, min_distance, avg_distance, list(example)))
             else:
-                stream_info[targetid][cluster_name].append((streamid, date_hour, timeliness, list(example), list(centroids[targetid][cluster_name])))
+                stream_info[targetid][cluster_name].append((streamid, date_hour, timeliness, min_distance, avg_distance, list(example), list(centroids[targetid][cluster_name])))
             cluster_names[targetid] += 1
         else:
             similarities = []
@@ -81,34 +82,34 @@ def new_features_per_type(targetid, streamid, date_hour, centroids, cluster_elem
 
             if min_distance < alpha:
                 # put in an already existent cluster
-                increase_timeliness(cluster_timeliness, targetid, candidate_cluster_name, gamma)
-                decrease_timeliness_except(cluster_timeliness, targetid, candidate_cluster_name, gamma)
+                increase_timeliness(cluster_timeliness, targetid, candidate_cluster_name, gamma_increase)
+                decrease_timeliness_except(cluster_timeliness, targetid, candidate_cluster_name, gamma_decrease)
                 timeliness = cluster_timeliness[targetid][candidate_cluster_name]
                 cluster_elements[targetid][candidate_cluster_name].append(example)
                 # update the centroid for that cluster
                 examples = np.array(cluster_elements[targetid][candidate_cluster_name])
                 centroids[targetid][candidate_cluster_name] = matutils.unitvec(examples.mean(axis=0)).astype(np.float32)
                 if init_clusters_info != None:
-                    init_clusters_info[targetid][candidate_cluster_name].append((streamid, date_hour, list(example)))
+                    init_clusters_info[targetid][candidate_cluster_name].append((streamid, date_hour, min_distance, avg_distance, list(example)))
                 else:
-                    stream_info[targetid][candidate_cluster_name].append((streamid, date_hour, timeliness, list(example), list(centroids[targetid][candidate_cluster_name])))
+                    stream_info[targetid][candidate_cluster_name].append((streamid, date_hour, timeliness, min_distance, avg_distance, list(example), list(centroids[targetid][candidate_cluster_name])))
             else:
                 # create a new cluster, add the example as the centroid
                 cluster_name = cluster_names[targetid]
                 cluster_timeliness[targetid][cluster_name] = starting_timeliness
-                decrease_timeliness_except(cluster_timeliness, targetid, cluster_name, gamma)
+                decrease_timeliness_except(cluster_timeliness, targetid, cluster_name, gamma_decrease)
                 timeliness = cluster_timeliness[targetid][cluster_name]
                 centroids[targetid][cluster_name] = example
                 cluster_elements[targetid][cluster_name].append(example)
                 if init_clusters_info != None:
-                    init_clusters_info[targetid][cluster_name].append((streamid, date_hour, list(example)))
+                    init_clusters_info[targetid][cluster_name].append((streamid, date_hour, min_distance, avg_distance, list(example)))
                 else:
-                    stream_info[targetid][cluster_name].append((streamid, date_hour, timeliness, list(example), list(centroids[targetid][cluster_name])))
+                    stream_info[targetid][cluster_name].append((streamid, date_hour, timeliness, min_distance, avg_distance, list(example), list(centroids[targetid][cluster_name])))
                 cluster_names[targetid] += 1
     return (min_distance, avg_distance, all_zeros, timeliness)
 
 
-def compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, alpha_noun, alpha_verb, gamma_noun, gamma_verb, init_clusters_info=None):
+def compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, init_clusters_info=None):
 
     nouns = example[:300]
     verbs = example[300:]
@@ -116,8 +117,8 @@ def compute_new_features(targetid, streamid, date_hour, centroids, cluster_eleme
     init_cluster_info_noun = None if not init_clusters_info else init_clusters_info['nouns']
     init_cluster_info_verb = None if not init_clusters_info else init_clusters_info['verbs']
 
-    min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun = new_features_per_type(targetid, streamid, date_hour, centroids['nouns'], cluster_elements['nouns'], stream_info['nouns'], cluster_timeliness['nouns'], cluster_names['nouns'], nouns, alpha_noun, gamma_noun, init_cluster_info_noun)
-    min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb = new_features_per_type(targetid, streamid, date_hour, centroids['verbs'], cluster_elements['verbs'], stream_info['verbs'], cluster_timeliness['verbs'], cluster_names['verbs'], verbs, alpha_verb, gamma_verb, init_cluster_info_verb)
+    min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun = new_features_per_type(targetid, streamid, date_hour, centroids['nouns'], cluster_elements['nouns'], stream_info['nouns'], cluster_timeliness['nouns'], cluster_names['nouns'], nouns, alpha_noun, gamma_noun_increase, gamma_noun_decrease, init_cluster_info_noun)
+    min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb = new_features_per_type(targetid, streamid, date_hour, centroids['verbs'], cluster_elements['verbs'], stream_info['verbs'], cluster_timeliness['verbs'], cluster_names['verbs'], verbs, alpha_verb, gamma_verb_increase, gamma_verb_decrease, init_cluster_info_verb)
     return min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb
 
 def build_init_cluster_centroid(init_cluster_info, init_cluster_centroid, centroid):
@@ -134,7 +135,7 @@ def build_init_clusters_centroids(init_clusters_info, init_clusters_centroids, c
     assert len(init_clusters_info['verbs']) == len(centroids['verbs'])
     assert len(init_clusters_info['verbs']) == len(init_clusters_centroids['verbs'])
 
-def get_features(x_uv, uv_idxs_context, context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, alpha_noun, alpha_verb, gamma_noun, gamma_verb, init_cluster_info, delimiter=None):
+def get_features(x_uv, uv_idxs_context, context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, init_cluster_info, delimiter=None):
     x_uv_extra_features = np.zeros([x_uv.shape[0], x_uv.shape[1]+8])
     for i in xrange(x_uv.shape[0]):
         if delimiter != None:
@@ -145,7 +146,7 @@ def get_features(x_uv, uv_idxs_context, context, centroids, cluster_elements, st
         example = x_uv[i][25:625]
         min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, \
         min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb = \
-        compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, alpha_noun, alpha_verb, gamma_noun, gamma_verb, init_cluster_info)
+        compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, init_cluster_info)
         x_uv_extra_features[i] = np.hstack((x_uv[i], np.array([min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb])))
     return x_uv_extra_features
     
@@ -160,8 +161,10 @@ def main():
     parser.add_argument('-i', '--system_id', required=True)
     parser.add_argument('-av', '--alpha_verb', required=True, type=float)
     parser.add_argument('-an', '--alpha_noun', required=True, type=float)
-    parser.add_argument('-gv', '--gamma_verb', required=True, type=float)
-    parser.add_argument('-gn', '--gamma_noun', required=True, type=float)
+    parser.add_argument('-gvi', '--gamma_verb_increase', required=True, type=float)
+    parser.add_argument('-gvd', '--gamma_verb_decrease', required=True, type=float)
+    parser.add_argument('-gni', '--gamma_noun_increase', required=True, type=float)
+    parser.add_argument('-gnd', '--gamma_noun_decrease', required=True, type=float)
     parser.add_argument('-c', '--clusters_folder', required=True)
     parser.add_argument('-rnrs', '--rnr_save_model_file', required=False)
     parser.add_argument('-rnrl', '--rnr_load_model_file', required=False)
@@ -283,7 +286,7 @@ def main():
         idx = train_uv_idxs_context[i]
         streamid, targetid, date_hour = train_context[idx].split()
         example = x_pre_train_uv[i][25:625]
-        compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, args.alpha_noun, args.alpha_verb, args.gamma_noun, args.gamma_verb, init_clusters_info)
+        compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease, init_clusters_info)
     elapsed = time.time() - start
     print 'finished pre training uv classifier, took %s' % elapsed
 
@@ -293,7 +296,7 @@ def main():
 
     start = time.time()
     print 'building training for uv classifier...'
-    x_train_uv_extra_features = get_features(x_train_uv, train_uv_idxs_context, train_context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun, args.gamma_verb, None, delimiter)
+    x_train_uv_extra_features = get_features(x_train_uv, train_uv_idxs_context, train_context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease, None, delimiter)
     elapsed = time.time() - start
     print 'finished building training for uv classifier, took %s' % elapsed
 
@@ -306,7 +309,7 @@ def main():
 
     start = time.time()
     print 'building testing for uv classifier...'
-    x_test_uv_extra_features = get_features(x_test_uv, test_uv_idxs_context, test_context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun, args.gamma_verb, None)
+    x_test_uv_extra_features = get_features(x_test_uv, test_uv_idxs_context, test_context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease, None)
     elapsed = time.time() - start
     print 'finished building testing for uv classifier, took %s' % elapsed
 
@@ -318,9 +321,12 @@ def main():
     print 'finished testing on uv classifier, took %s' % elapsed
 
     pred_uv += 1
+    predictions = {}
+    truths = {}
     for i, relevance in enumerate(pred_uv):
         prob = max(pred_uv_prob[i])
-        recs.append(build_record(test_uv_idxs_context[i], test_context, relevance, prob))
+        recs.append(build_record(test_uv_idxs_context[i], test_context, relevance, prob, predictions, truths, y_test_uv[i]+1))
+
 
     assert len(recs) == y_test.shape[0]
     assert y_test_uv.shape == pred_uv.shape
@@ -345,18 +351,43 @@ def main():
 
     output.close()
 
+    print 'building targets ...'
+    start = time.time()
+    noun_targets = build_targets('nouns', centroids, init_clusters_centroids, init_clusters_info, stream_info, predictions, truths)
+    verb_targets = build_targets('verbs', centroids, init_clusters_centroids, init_clusters_info, stream_info, predictions, truths)
+    print 'finished building targets, took %s' % (time.time() - start)
 
-    clusters_noun_file = open(os.path.join(args.clusters_folder, 'clusters_nouns_%s' % args.alpha_noun), 'w')
-    for targetid in centroids['nouns']:
-        for cluster in centroids['nouns'][targetid]:
-            clusters_noun_file.write('%s\t%s\t%s\t%s\n' % (targetid, cluster, list(centroids['nouns'][targetid][cluster]), stream_info['nouns'][targetid][cluster]))
+    clusters_noun_file = open(os.path.join(args.clusters_folder, 'nouns_%s' % args.alpha_noun), 'w')
+    clusters_noun_file.write('targets : [ %s ]' % (','.join(str(t) for t in noun_targets)))
     clusters_noun_file.close()
 
-    clusters_verbs_file = open(os.path.join(args.clusters_folder, 'clusters_verbs_%s' % args.alpha_verb), 'w')
-    for targetid in centroids['verbs']:
-        for cluster in centroids['verbs'][targetid]:
-            clusters_verbs_file.write('%s\t%s\t%s\t%s\n' % (targetid, cluster, list(centroids['verbs'][targetid][cluster]), stream_info['verbs'][targetid][cluster]))
+    clusters_verbs_file = open(os.path.join(args.clusters_folder, 'verbs_%s' % args.alpha_verb), 'w')
+    clusters_verbs_file.write('targets : [ %s ]' % (','.join(str(t) for t in verb_targets)))
     clusters_verbs_file.close()
+
+    print 'noun clusters %s' % stats('nouns', centroids)
+    print 'verb clusters %s' % stats('verbs', centroids)
+
+def stats(word_type, centroids):
+    count = 0
+    for targetid in centroids[word_type]:
+        count += len(centroids[word_type][targetid])
+    return count
+
+def build_targets(word_type, centroids, init_clusters_centroids, init_clusters_info, stream_info, predictions, truths):
+    targets = []
+    for targetid in centroids[word_type]:
+        target = Target(targetid)
+        for cluster in init_clusters_centroids[word_type][targetid]:
+            init_cluster = InitCluster(cluster, init_clusters_centroids[word_type][targetid][cluster], init_clusters_info[word_type][targetid][cluster])
+            target.add_init_cluster(init_cluster)
+        for cluster in stream_info[word_type][targetid]:
+            for (streamid, date_hour, timeliness, min_distance, avg_distance, vector, current_centroid) in stream_info[word_type][targetid][cluster]:
+                key = (streamid, targetid)
+                stream = Stream(streamid, cluster, vector, current_centroid, timeliness, min_distance, avg_distance, predictions[key] if predictions.has_key(key) else None, truths[key] if truths.has_key(key) else None)
+                target.add_stream(stream)
+        targets.append(target)
+    return targets
 
 
 if __name__ == '__main__':

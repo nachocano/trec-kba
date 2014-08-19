@@ -23,6 +23,7 @@ import edu.uw.nlp.treckba.gen.MentionType;
 import edu.uw.nlp.treckba.gen.Sentence;
 import edu.uw.nlp.treckba.gen.StreamItem;
 import edu.uw.nlp.treckba.gen.Token;
+import edu.uw.nlp.treckba.utils.Utils;
 
 public class CreateFeaturesTask implements Callable<Void> {
 

@@ -8,6 +8,8 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import edu.uw.nlp.treckba.utils.Utils;
+
 public class UtilsTest {
 
 	@Test
