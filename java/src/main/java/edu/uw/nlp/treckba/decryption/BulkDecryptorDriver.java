@@ -18,14 +18,12 @@ public class BulkDecryptorDriver {
 		final Options options = new Options();
 		options.addOption("i", true, "input directory");
 		options.addOption("f", true, "input files");
-		options.addOption("lo", true, "log output file (with full path)");
 		options.addOption("g", true, "gpg path");
 
 		final CommandLineParser parser = new BasicParser();
 
 		String inputDir = null;
 		String inputFile = null;
-		String output = null;
 		String gpg = null;
 		try {
 			final CommandLine line = parser.parse(options, args);
@@ -33,8 +31,6 @@ public class BulkDecryptorDriver {
 			Validate.notNull(inputDir);
 			inputFile = line.getOptionValue("f");
 			Validate.notNull(inputFile);
-			output = line.getOptionValue("lo");
-			Validate.notNull(output);
 			gpg = line.getOptionValue("g");
 			Validate.notNull(gpg);
 
@@ -48,7 +44,7 @@ public class BulkDecryptorDriver {
 		final long start = System.currentTimeMillis();
 		final BulkDecryptor bd = new BulkDecryptor();
 
-		bd.decrypt(inputDir, files, output, gpg);
+		bd.decrypt(inputDir, files, gpg);
 		System.out.println(String.format("total time during processing %s",
 				(System.currentTimeMillis() - start) / 1000));
 	}
