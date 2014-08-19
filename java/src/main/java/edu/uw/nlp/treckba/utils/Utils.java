@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -254,6 +255,43 @@ public class Utils {
 				final String key = String.format("%s|%s", str[0], str[1]);
 				final String value = str[2];
 				map.put(key, value);
+			}
+		} catch (final FileNotFoundException e) {
+			System.err.println("file not found exception " + inputFile);
+		} catch (final IOException e) {
+			System.err.println("io exception " + inputFile);
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (final IOException e) {
+					System.err
+							.println("unexpected io exception while closing br "
+									+ inputFile);
+				}
+			}
+		}
+		return map;
+	}
+
+	public static Map<String, Set<StreamIdFilename>> readUnassessedFilesPerEntity(
+			final String inputDir, final String inputFile) {
+		final Map<String, Set<StreamIdFilename>> map = new HashMap<>();
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(new File(inputFile)));
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				final String[] str = line.split("\t");
+				final String targetId = str[0];
+				final String streamId = str[1];
+				final String filename = str[2].replace(".gpg", "");
+				if (!map.containsKey(targetId)) {
+					final Set<StreamIdFilename> set = new HashSet<>();
+					map.put(targetId, set);
+				}
+				map.get(targetId).add(
+						new StreamIdFilename(streamId, inputDir + filename));
 			}
 		} catch (final FileNotFoundException e) {
 			System.err.println("file not found exception " + inputFile);
