@@ -21,6 +21,7 @@ import edu.uw.nlp.treckba.feature.TruthValue;
 public class Utils {
 
 	public static final String DIFFEO_URL = "https://kb.diffeo.com/";
+	public static final String CORPUS_URL = "http://s3.amazonaws.com/aws-publicdatasets/trec/kba/kba-streamcorpus-2014-v0_3_0-kba-filtered/";
 
 	public static String toString(final int[] sources) {
 		final StringBuilder sb = new StringBuilder();
@@ -75,6 +76,44 @@ public class Utils {
 			}
 		}
 		return lines;
+	}
+
+	public static Map<TruthKey, TruthValue> readUnassessed(
+			final String unassessedFile, final Set<String> entities) {
+		final Map<TruthKey, TruthValue> unassessed = new HashMap<>();
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(new File(unassessedFile)));
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				final String[] str = line.split("\t");
+				final String targetId = str[0];
+				if (!entities.contains(targetId)) {
+					continue;
+				}
+				final String streamId = str[1];
+				final String dateHour = str[2]
+						.substring(0, str[2].indexOf("/"));
+				final TruthKey key = new TruthKey(streamId, targetId);
+				final TruthValue value = new TruthValue(-10, dateHour);
+				unassessed.put(key, value);
+			}
+		} catch (final FileNotFoundException e) {
+			System.err.println("file not found exception " + unassessedFile);
+		} catch (final IOException e) {
+			System.err.println("io exception " + unassessedFile);
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (final IOException e) {
+					System.err
+							.println("unexpected io exception while closing br "
+									+ unassessedFile);
+				}
+			}
+		}
+		return unassessed;
 	}
 
 	public static Map<TruthKey, TruthValue> readTruthFile(
@@ -305,6 +344,41 @@ public class Utils {
 					System.err
 							.println("unexpected io exception while closing br "
 									+ inputFile);
+				}
+			}
+		}
+		return map;
+	}
+
+	public static Map<String, Set<String>> createFilesPerFolder(
+			final String filename) {
+		final Map<String, Set<String>> map = new HashMap<>();
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(new File(filename)));
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				final String[] str = line.split("/");
+				final String folder = str[1];
+				final String file = str[2];
+				if (!map.containsKey(folder)) {
+					final Set<String> set = new HashSet<>();
+					map.put(folder, set);
+				}
+				map.get(folder).add(file);
+			}
+		} catch (final FileNotFoundException e) {
+			System.err.println("file not found exception " + filename);
+		} catch (final IOException e) {
+			System.err.println("io exception " + filename);
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (final IOException e) {
+					System.err
+							.println("unexpected io exception while closing br "
+									+ filename);
 				}
 			}
 		}

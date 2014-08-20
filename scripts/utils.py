@@ -39,6 +39,8 @@ def to_rnr(y):
             y_rnr[i] = 0
         elif value == 2:
             y_rnr[i] = 1
+        elif value == -10:
+            y_rnr[i] = 1
     return y_rnr
 
 def to_uv(x,y, context=False):
@@ -73,8 +75,14 @@ def to_rnr_multitask(x, cxt, entities_idxs):
 
 
 def to_uv_multitask(x,y, cxt, entities_idxs, context=False):
-    idxs = np.where(y > 0)[0]
+    assessed_idxs = np.where(y > 0)[0]
+    print 'assessed uv docs %s' % len(assessed_idxs)
+    unassessed_idxs = np.where(y == -10)[0]
+    print 'unassessed uv docs %s' % len(unassessed_idxs)
+    idxs = np.hstack((assessed_idxs, unassessed_idxs))
+    idxs.sort()
     count = len(idxs)
+    print 'overall uv docs %s' % count
     x_uv = np.zeros([count,x.shape[1]]).astype(np.float32)
     y_uv = np.zeros([count])
     for i, v in enumerate(idxs):

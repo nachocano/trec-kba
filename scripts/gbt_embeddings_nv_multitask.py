@@ -135,8 +135,9 @@ def build_init_clusters_centroids(init_clusters_info, init_clusters_centroids, c
     assert len(init_clusters_info['verbs']) == len(centroids['verbs'])
     assert len(init_clusters_info['verbs']) == len(init_clusters_centroids['verbs'])
 
-def get_features(x_uv, uv_idxs_context, context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, init_cluster_info, delimiter=None):
-    x_uv_extra_features = np.zeros([x_uv.shape[0], x_uv.shape[1]+8])
+def get_features(x_uv, y_uv, mode, uv_idxs_context, context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, init_cluster_info, delimiter=None):
+    x_uv_filtered = []
+    y_uv_filtered = []
     for i in xrange(x_uv.shape[0]):
         if delimiter != None:
             idx = uv_idxs_context[i+delimiter]
@@ -147,8 +148,18 @@ def get_features(x_uv, uv_idxs_context, context, centroids, cluster_elements, st
         min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, \
         min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb = \
         compute_new_features(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, init_cluster_info)
-        x_uv_extra_features[i] = np.hstack((x_uv[i], np.array([min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb])))
-    return x_uv_extra_features
+        if mode == 'train':
+            # only train the GBT with the annotated stuff, but update the clusters for all of them
+            if y_uv[i] != -10:
+                x_uv_filtered.append(np.hstack((x_uv[i], [min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb])))
+                y_uv_filtered.append(y_uv[i])
+        elif mode == 'test':
+            # test the GBT with all the annotated and unassessed stuff
+            x_uv_filtered.append(np.hstack((x_uv[i], [min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb])))
+            y_uv_filtered.append(y_uv[i])
+        else:
+            print 'error, no mode %s defined' % mode
+    return np.array(x_uv_filtered), np.array(y_uv_filtered)
     
 
 def main():
@@ -156,7 +167,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-e', '--entities_json', required=True)
     parser.add_argument('-o', '--output_file', required=True)
-    parser.add_argument('-tr', '--train_verb_nouns_sorted_with_embeddings', required=True)
+    parser.add_argument('-tr', '--train_verb_nouns_assessed_unassessed_sorted', required=True)
     parser.add_argument('-t', '--test_verb_nouns_sorted_with_embeddings', required=True)
     parser.add_argument('-i', '--system_id', required=True)
     parser.add_argument('-av', '--alpha_verb', required=True, type=float)
@@ -189,7 +200,7 @@ def main():
     begin = time.time()
 
     # read whole dataset
-    x_train, y_train, train_context = create_global_data(args.train_verb_nouns_sorted_with_embeddings)
+    x_train, y_train, train_context = create_global_data(args.train_verb_nouns_assessed_unassessed_sorted)
     x_test, y_test, test_context = create_global_data(args.test_verb_nouns_sorted_with_embeddings)
 
 
@@ -209,6 +220,7 @@ def main():
             save_model(args.rnr_save_model_file, clf_rnr)
         elapsed = time.time() - start
         print 'finished training rnr classifier, took %s' % elapsed
+        exit()
 
     print 'converting to rnr...'
     start = time.time()
@@ -275,6 +287,7 @@ def main():
     rows = x_all_train_uv.shape[0]
     delimiter = int(rows * args.pre_train_split)
     x_pre_train_uv = x_all_train_uv[:delimiter]
+    print 'pre training examples are %d' % x_pre_train_uv.shape[0]
     x_train_uv = x_all_train_uv[delimiter:]
     y_pre_train_uv = y_all_train_uv[:delimiter]
     y_train_uv = y_all_train_uv[delimiter:]
@@ -296,20 +309,25 @@ def main():
 
     start = time.time()
     print 'building training for uv classifier...'
-    x_train_uv_extra_features = get_features(x_train_uv, train_uv_idxs_context, train_context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease, None, delimiter)
+    x_train_uv_filtered_extra_features, y_train_uv_filtered_extra_features = get_features(x_train_uv, y_train_uv, 'train', train_uv_idxs_context, train_context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease, None, delimiter)
     elapsed = time.time() - start
     print 'finished building training for uv classifier, took %s' % elapsed
+
+    assert x_train_uv_filtered_extra_features.shape[0] == y_train_uv_filtered_extra_features.shape[0]
+    assert len(y_train_uv_filtered_extra_features[y_train_uv_filtered_extra_features == -1]) == 0
+    assert len(y_train_uv_filtered_extra_features[y_train_uv_filtered_extra_features == 0]) == 0
+    assert len(y_train_uv_filtered_extra_features[y_train_uv_filtered_extra_features == -10]) == 0
 
     start = time.time()
     print 'training on uv classifier...'
     clf_uv = ensemble.GradientBoostingClassifier()
-    clf_uv = clf_uv.fit(x_train_uv_extra_features, y_train_uv)
+    clf_uv = clf_uv.fit(x_train_uv_filtered_extra_features, y_train_uv_filtered_extra_features)
     elapsed = time.time() - start
     print 'finished training on uv classifier, took %s' % elapsed
 
     start = time.time()
     print 'building testing for uv classifier...'
-    x_test_uv_extra_features = get_features(x_test_uv, test_uv_idxs_context, test_context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease, None)
+    x_test_uv_extra_features, _ = get_features(x_test_uv, y_test_uv, 'test', test_uv_idxs_context, test_context, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease, None)
     elapsed = time.time() - start
     print 'finished building testing for uv classifier, took %s' % elapsed
 
@@ -325,7 +343,12 @@ def main():
     truths = {}
     for i, relevance in enumerate(pred_uv):
         prob = max(pred_uv_prob[i])
-        recs.append(build_record(test_uv_idxs_context[i], test_context, relevance, prob, predictions, truths, y_test_uv[i]+1))
+        truth_value = y_test_uv[i]
+        truth = None
+        # means is assessed
+        if truth_value != -10:
+            truth = y_test_uv[i]+1
+        recs.append(build_record(test_uv_idxs_context[i], test_context, relevance, prob, predictions, truths, truth))
 
 
     assert len(recs) == y_test.shape[0]

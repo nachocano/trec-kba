@@ -21,13 +21,15 @@ public class FeatureDriver {
 		options.addOption("o", true, "output file (with full path)");
 		options.addOption("e", true, "entities ccr file with surface forms");
 		options.addOption("t", true, "modified truth file");
+		options.addOption("un", true, "unassessed doc files");
+		options.addOption("u", false, "is unassessed?");
 
 		final CommandLineParser parser = new BasicParser();
 
 		String inputDir = null;
 		String output = null;
 		Map<String, List<String>> entities = null;
-		Map<TruthKey, TruthValue> truths = null;
+		Map<TruthKey, TruthValue> truthsOrUnassessed = null;
 		try {
 			final CommandLine line = parser.parse(options, args);
 			inputDir = line.getOptionValue("i");
@@ -38,9 +40,16 @@ public class FeatureDriver {
 			Validate.notNull(entitiesCcr);
 			entities = Utils.readFile(entitiesCcr);
 			Validate.notNull(entities);
-			final String truthFile = line.getOptionValue("t");
-			truths = Utils.readTruthFile(truthFile, entities.keySet());
-			Validate.notNull(truths);
+			if (!line.hasOption("u")) {
+				final String truthFile = line.getOptionValue("t");
+				truthsOrUnassessed = Utils.readTruthFile(truthFile,
+						entities.keySet());
+			} else {
+				final String unassessedFile = line.getOptionValue("un");
+				truthsOrUnassessed = Utils.readUnassessed(unassessedFile,
+						entities.keySet());
+			}
+			Validate.notNull(truthsOrUnassessed);
 
 		} catch (final Exception e) {
 			final HelpFormatter formatter = new HelpFormatter();
@@ -48,13 +57,11 @@ public class FeatureDriver {
 			return;
 		}
 
-		// System.out.println(truths.size());
-		// System.out.println(entities.size());
-
 		final long start = System.currentTimeMillis();
 		final FeatureFactory ff = new FeatureFactory();
 
-		ff.createFeatures(inputDir, output, entities, truths);
+		ff.createFeatures(inputDir, output, entities, truthsOrUnassessed);
+
 		System.out.println(String.format("total time during processing %s",
 				(System.currentTimeMillis() - start) / 1000));
 	}
