@@ -9,7 +9,7 @@ public class DecryptionUtils {
 			throws IOException {
 		final String[] cmd = new String[] { gpg, "--output",
 				filename.replace(".gpg", ""), "--decrypt", filename };
-		System.out.println(Arrays.toString(cmd));
+		// System.out.println(Arrays.toString(cmd));
 		return run(cmd);
 	}
 

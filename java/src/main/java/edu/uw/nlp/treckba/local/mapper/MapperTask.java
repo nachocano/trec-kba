@@ -62,7 +62,7 @@ public class MapperTask implements Callable<Void> {
 								+ encrypted.getAbsolutePath());
 					} else {
 						encrypted.delete();
-						decompressAndSearch(encrypted);
+						decompressAndSearch(actualFile);
 					}
 				}
 
