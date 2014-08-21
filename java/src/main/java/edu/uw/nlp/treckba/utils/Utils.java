@@ -384,4 +384,31 @@ public class Utils {
 		}
 		return map;
 	}
+
+	public static Set<String> corpusChunk(final String corpusChunk) {
+		final Set<String> set = new HashSet<>();
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(new File(corpusChunk)));
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				set.add(line.trim().replace(".gpg", ""));
+			}
+		} catch (final FileNotFoundException e) {
+			System.err.println("file not found exception " + corpusChunk);
+		} catch (final IOException e) {
+			System.err.println("io exception " + corpusChunk);
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (final IOException e) {
+					System.err
+							.println("unexpected io exception while closing br "
+									+ corpusChunk);
+				}
+			}
+		}
+		return set;
+	}
 }
