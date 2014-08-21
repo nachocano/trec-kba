@@ -19,17 +19,21 @@ public class DownloaderDriver {
 		final Options options = new Options();
 		options.addOption("i", true, "input directory");
 		options.addOption("f", true, "filename");
+		options.addOption("g", true, "gpg");
 
 		final CommandLineParser parser = new BasicParser();
 
 		String inputDir = null;
 		String filename = null;
+		String gpg = null;
 		try {
 			final CommandLine line = parser.parse(options, args);
 			inputDir = line.getOptionValue("i");
 			Validate.notNull(inputDir);
 			filename = line.getOptionValue("f");
 			Validate.notNull(filename);
+			gpg = line.getOptionValue("g");
+			Validate.notNull(gpg);
 
 		} catch (final Exception e) {
 			final HelpFormatter formatter = new HelpFormatter();
@@ -42,7 +46,7 @@ public class DownloaderDriver {
 		final long start = System.currentTimeMillis();
 		final Downloader downloader = new Downloader();
 
-		downloader.downloadMissing(inputDir, filesPerFolder);
+		downloader.downloadMissing(inputDir, filesPerFolder, gpg);
 
 		System.out.println(String.format("total time during processing %s",
 				(System.currentTimeMillis() - start) / 1000));

@@ -359,8 +359,8 @@ public class Utils {
 			String line = null;
 			while ((line = br.readLine()) != null) {
 				final String[] str = line.split("/");
-				final String folder = str[1];
-				final String file = str[2];
+				final String folder = str[0];
+				final String file = str[1];
 				if (!map.containsKey(folder)) {
 					final Set<String> set = new HashSet<>();
 					map.put(folder, set);
