@@ -91,8 +91,8 @@ public class DownloaderTask implements Callable<Void> {
 			errors.incrementAndGet();
 		} catch (final IOException e) {
 			errors.incrementAndGet();
-			System.out.println("error: ioexception downloading " + folder
-					+ File.separator + file);
+			System.out.println("error: ioexception downloading " + url + " "
+					+ e.getMessage());
 		}
 	}
 }
