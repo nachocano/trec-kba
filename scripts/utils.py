@@ -66,7 +66,7 @@ def to_rnr_multitask(x, cxt, entities_idxs):
         indexes.append(entities_idxs[targetid])
 
     for i, row in enumerate(x):
-        start = entity_number * (indexes[i]+1)
+        start = x.shape[1] * (indexes[i])
         for j in xrange(row.shape[0]):
             rest[i,start] = row[j]
             start+=1
@@ -75,14 +75,14 @@ def to_rnr_multitask(x, cxt, entities_idxs):
 
 
 def to_uv_multitask(x,y, cxt, entities_idxs, context=False):
-    assessed_idxs = np.where(y > 0)[0]
-    print 'assessed uv docs %s' % len(assessed_idxs)
-    unassessed_idxs = np.where(y == -10)[0]
-    print 'unassessed uv docs %s' % len(unassessed_idxs)
-    idxs = np.hstack((assessed_idxs, unassessed_idxs))
-    idxs.sort()
+    idxs = np.where(y > 0)[0]
+    #print 'assessed uv docs %s' % len(assessed_idxs)
+    #unassessed_idxs = np.where(y == -10)[0]
+    #print 'unassessed uv docs %s' % len(unassessed_idxs)
+    #idxs = np.hstack((assessed_idxs, unassessed_idxs))
+    #idxs.sort()
     count = len(idxs)
-    print 'overall uv docs %s' % count
+    #print 'overall uv docs %s' % count
     x_uv = np.zeros([count,x.shape[1]]).astype(np.float32)
     y_uv = np.zeros([count])
     for i, v in enumerate(idxs):
@@ -98,7 +98,7 @@ def to_uv_multitask(x,y, cxt, entities_idxs, context=False):
     added_columns = x.shape[1] * entity_number
     rest = np.zeros([count, added_columns])
     for i, row in enumerate(x_uv):
-        start = entity_number * (indexes[i]+1)
+        start = x.shape[1] * (indexes[i])
         for j in xrange(row.shape[0]):
             rest[i,start] = row[j]
             start+=1
@@ -135,7 +135,7 @@ def to_uv_given_pred_multitask(x, y, pred_rnr, cxt, entities_idxs):
     added_columns = x.shape[1] * entity_number
     rest = np.zeros([count, added_columns])
     for i, row in enumerate(x_uv):
-        start = entity_number * (indexes[i]+1)
+        start = x.shape[1] * (indexes[i])
         for j in xrange(row.shape[0]):
             rest[i,start] = row[j]
             start+=1
