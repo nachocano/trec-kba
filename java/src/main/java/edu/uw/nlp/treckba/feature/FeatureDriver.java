@@ -21,15 +21,16 @@ public class FeatureDriver {
 		options.addOption("o", true, "output file (with full path)");
 		options.addOption("e", true, "entities ccr file with surface forms");
 		options.addOption("t", true, "modified truth file");
-		options.addOption("un", true, "unassessed doc files");
-		options.addOption("u", false, "is unassessed?");
+		options.addOption("f", true, "all filtered doc files");
+		options.addOption("to", false,
+				"truth only flag, set together with t, otherwise f");
 
 		final CommandLineParser parser = new BasicParser();
 
 		String inputDir = null;
 		String output = null;
 		Map<String, List<String>> entities = null;
-		Map<TruthKey, TruthValue> truthsOrUnassessed = null;
+		Map<ExampleKey, ExampleValue> values = null;
 		try {
 			final CommandLine line = parser.parse(options, args);
 			inputDir = line.getOptionValue("i");
@@ -40,16 +41,17 @@ public class FeatureDriver {
 			Validate.notNull(entitiesCcr);
 			entities = Utils.readFile(entitiesCcr);
 			Validate.notNull(entities);
-			if (!line.hasOption("u")) {
+			if (line.hasOption("to")) {
 				final String truthFile = line.getOptionValue("t");
-				truthsOrUnassessed = Utils.readTruthFile(truthFile,
-						entities.keySet());
+				Validate.notNull(truthFile);
+				values = Utils.readTruthFile(truthFile, entities.keySet());
 			} else {
-				final String unassessedFile = line.getOptionValue("un");
-				truthsOrUnassessed = Utils.readUnassessed(unassessedFile,
+				final String allFilteredFile = line.getOptionValue("f");
+				Validate.notNull(allFilteredFile);
+				values = Utils.readAllFiltered(allFilteredFile,
 						entities.keySet());
 			}
-			Validate.notNull(truthsOrUnassessed);
+			Validate.notNull(values);
 
 		} catch (final Exception e) {
 			final HelpFormatter formatter = new HelpFormatter();
@@ -60,7 +62,7 @@ public class FeatureDriver {
 		final long start = System.currentTimeMillis();
 		final FeatureFactory ff = new FeatureFactory();
 
-		ff.createFeatures(inputDir, output, entities, truthsOrUnassessed);
+		ff.createFeatures(inputDir, output, entities, values);
 
 		System.out.println(String.format("total time during processing %s",
 				(System.currentTimeMillis() - start) / 1000));

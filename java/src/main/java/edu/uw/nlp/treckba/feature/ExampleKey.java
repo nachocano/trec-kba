@@ -1,11 +1,11 @@
 package edu.uw.nlp.treckba.feature;
 
-public class TruthKey {
+public class ExampleKey {
 
 	private String streamId;
 	private String targetId;
 
-	public TruthKey(final String streamId, final String targetId) {
+	public ExampleKey(final String streamId, final String targetId) {
 		this.streamId = streamId;
 		this.targetId = targetId;
 	}
@@ -48,7 +48,7 @@ public class TruthKey {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		final TruthKey other = (TruthKey) obj;
+		final ExampleKey other = (ExampleKey) obj;
 		if (streamId == null) {
 			if (other.streamId != null) {
 				return false;

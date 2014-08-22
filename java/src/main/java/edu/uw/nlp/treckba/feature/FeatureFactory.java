@@ -20,7 +20,7 @@ public class FeatureFactory {
 
 	public void createFeatures(final String inputDir, final String output,
 			final Map<String, List<String>> entities,
-			final Map<TruthKey, TruthValue> truthsOrUnassessed) {
+			final Map<ExampleKey, ExampleValue> values) {
 		final File dir = new File(inputDir);
 		if (dir.exists() && dir.isDirectory()) {
 			final FilenameFilter binFilter = new FilenameFilter() {
@@ -35,7 +35,7 @@ public class FeatureFactory {
 						+ file.getName().replace(".bin", "");
 				final List<String> entityNames = entities.get(targetEntity);
 				tasks.add(new CreateFeaturesTask(file, features, targetEntity,
-						entityNames, truthsOrUnassessed));
+						entityNames, values));
 			}
 			try {
 				executor.invokeAll(tasks);

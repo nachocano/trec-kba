@@ -15,11 +15,12 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import edu.uw.nlp.treckba.feature.TruthKey;
-import edu.uw.nlp.treckba.feature.TruthValue;
+import edu.uw.nlp.treckba.feature.ExampleKey;
+import edu.uw.nlp.treckba.feature.ExampleValue;
 
 public class Utils {
 
+	public static final int UNKNOWN_RELEVANCE = -10;
 	public static final String DIFFEO_URL = "https://kb.diffeo.com/";
 	public static final String CORPUS_URL = "http://s3.amazonaws.com/aws-publicdatasets/trec/kba/kba-streamcorpus-2014-v0_3_0-kba-filtered/";
 
@@ -60,7 +61,7 @@ public class Utils {
 				lines.put(key, value);
 			}
 		} catch (final Exception exc) {
-			System.err.println(String.format(
+			System.out.println(String.format(
 					"exception %s while reading file %s", exc.getMessage(),
 					filename));
 			throw exc;
@@ -69,7 +70,7 @@ public class Utils {
 				try {
 					br.close();
 				} catch (final IOException e) {
-					System.err.println(String.format(
+					System.out.println(String.format(
 							"ioexception %s while closing file %s",
 							e.getMessage(), filename));
 				}
@@ -78,51 +79,53 @@ public class Utils {
 		return lines;
 	}
 
-	public static Map<TruthKey, TruthValue> readUnassessed(
-			final String unassessedFile, final Set<String> entities) {
-		final Map<TruthKey, TruthValue> unassessed = new HashMap<>();
+	public static Map<ExampleKey, ExampleValue> readAllFiltered(
+			final String allFile, final Set<String> entities) {
+		final Map<ExampleKey, ExampleValue> all = new HashMap<>();
 		BufferedReader br = null;
 		try {
-			br = new BufferedReader(new FileReader(new File(unassessedFile)));
+			br = new BufferedReader(new FileReader(new File(allFile)));
 			String line = null;
 			while ((line = br.readLine()) != null) {
-				final String[] str = line.split("\t");
+				final String[] str = line.split(" ");
 				final String targetId = str[0];
+				final String streamId = str[1];
+				final String dateHour = str[2];
 				if (!entities.contains(targetId)) {
+					System.out.println("warn: targetid " + targetId
+							+ " is not in the target entities");
 					continue;
 				}
-				final String streamId = str[1];
-				final String dateHour = str[2]
-						.substring(0, str[2].indexOf("/"));
-				final TruthKey key = new TruthKey(streamId, targetId);
-				final TruthValue value = new TruthValue(-10, dateHour);
-				unassessed.put(key, value);
+				final ExampleKey key = new ExampleKey(streamId, targetId);
+				final ExampleValue value = new ExampleValue(UNKNOWN_RELEVANCE,
+						dateHour);
+				all.put(key, value);
 			}
 		} catch (final FileNotFoundException e) {
-			System.err.println("file not found exception " + unassessedFile);
+			System.out.println("error: file not found exception " + allFile);
 		} catch (final IOException e) {
-			System.err.println("io exception " + unassessedFile);
+			System.out.println("error: io exception " + allFile);
 		} finally {
 			if (br != null) {
 				try {
 					br.close();
 				} catch (final IOException e) {
-					System.err
-							.println("unexpected io exception while closing br "
-									+ unassessedFile);
+					System.out
+							.println("error: unexpected io exception while closing br "
+									+ allFile);
 				}
 			}
 		}
-		return unassessed;
+		return all;
 	}
 
-	public static Map<TruthKey, TruthValue> readTruthFile(
+	public static Map<ExampleKey, ExampleValue> readTruthFile(
 			final String truthFile, final Set<String> entities)
 			throws Exception {
-		Map<TruthKey, TruthValue> truths = null;
+		Map<ExampleKey, ExampleValue> truths = null;
 		BufferedReader br = null;
 		try {
-			final Map<TruthKey, List<TruthValue>> noisyTruths = new HashMap<>();
+			final Map<ExampleKey, List<ExampleValue>> noisyTruths = new HashMap<>();
 			br = new BufferedReader(new FileReader(new File(truthFile)));
 			String line = null;
 			while ((line = br.readLine()) != null) {
@@ -134,29 +137,29 @@ public class Utils {
 				final String streamId = instance[2];
 				final int relevance = Integer.valueOf(instance[5]);
 				final String dateHour = instance[7];
-				final TruthKey key = new TruthKey(streamId, targetId);
-				List<TruthValue> truthValues = noisyTruths.get(key);
+				final ExampleKey key = new ExampleKey(streamId, targetId);
+				List<ExampleValue> truthValues = noisyTruths.get(key);
 				if (truthValues == null) {
 					truthValues = new ArrayList<>();
-					truthValues.add(new TruthValue(relevance, dateHour));
+					truthValues.add(new ExampleValue(relevance, dateHour));
 					noisyTruths.put(key, truthValues);
 				} else {
-					truthValues.add(new TruthValue(relevance, dateHour));
+					truthValues.add(new ExampleValue(relevance, dateHour));
 				}
 			}
 			truths = Utils.getMostFrequent(noisyTruths);
 		} catch (final Exception exc) {
-			System.err.println(String.format(
-					"exception %s while reading file %s", exc.getMessage(),
-					truthFile));
+			System.out.println(String.format(
+					"error: exception %s while reading file %s",
+					exc.getMessage(), truthFile));
 			throw exc;
 		} finally {
 			if (br != null) {
 				try {
 					br.close();
 				} catch (final IOException e) {
-					System.err.println(String.format(
-							"ioexception %s while closing file %s",
+					System.out.println(String.format(
+							"error: ioexception %s while closing file %s",
 							e.getMessage(), truthFile));
 				}
 			}
@@ -164,14 +167,14 @@ public class Utils {
 		return truths;
 	}
 
-	public static Map<TruthKey, TruthValue> getMostFrequent(
-			final Map<TruthKey, List<TruthValue>> noisyTruths) {
-		final Map<TruthKey, TruthValue> truths = new HashMap<>();
-		for (final TruthKey key : noisyTruths.keySet()) {
-			final List<TruthValue> truthValues = noisyTruths.get(key);
+	public static Map<ExampleKey, ExampleValue> getMostFrequent(
+			final Map<ExampleKey, List<ExampleValue>> noisyTruths) {
+		final Map<ExampleKey, ExampleValue> truths = new HashMap<>();
+		for (final ExampleKey key : noisyTruths.keySet()) {
+			final List<ExampleValue> truthValues = noisyTruths.get(key);
 			final String dateHour = truthValues.get(0).getDateHour();
 			final Map<Integer, Integer> counts = new HashMap<Integer, Integer>();
-			for (final TruthValue tv : truthValues) {
+			for (final ExampleValue tv : truthValues) {
 				final int i = tv.getRelevance();
 				final Integer count = counts.get(i);
 				counts.put(i, count != null ? count + 1 : 0);
@@ -183,7 +186,7 @@ public class Utils {
 							return o2.compareTo(o1);
 						}
 					});
-			truths.put(key, new TruthValue(popularRelevance, dateHour));
+			truths.put(key, new ExampleValue(popularRelevance, dateHour));
 		}
 		return truths;
 	}
@@ -266,15 +269,15 @@ public class Utils {
 				paths.add(line.replace(".gpg", ""));
 			}
 		} catch (final FileNotFoundException e) {
-			System.err.println("file not found exception " + pathsFile);
+			System.out.println("file not found exception " + pathsFile);
 		} catch (final IOException e) {
-			System.err.println("io exception " + pathsFile);
+			System.out.println("io exception " + pathsFile);
 		} finally {
 			if (br != null) {
 				try {
 					br.close();
 				} catch (final IOException e) {
-					System.err
+					System.out
 							.println("unexpected io exception while closing br "
 									+ pathsFile);
 				}
@@ -296,15 +299,15 @@ public class Utils {
 				map.put(key, value);
 			}
 		} catch (final FileNotFoundException e) {
-			System.err.println("file not found exception " + inputFile);
+			System.out.println("file not found exception " + inputFile);
 		} catch (final IOException e) {
-			System.err.println("io exception " + inputFile);
+			System.out.println("io exception " + inputFile);
 		} finally {
 			if (br != null) {
 				try {
 					br.close();
 				} catch (final IOException e) {
-					System.err
+					System.out
 							.println("unexpected io exception while closing br "
 									+ inputFile);
 				}
@@ -334,15 +337,15 @@ public class Utils {
 						new StreamIdFilename(streamId, inputDir + filename));
 			}
 		} catch (final FileNotFoundException e) {
-			System.err.println("file not found exception " + inputFile);
+			System.out.println("file not found exception " + inputFile);
 		} catch (final IOException e) {
-			System.err.println("io exception " + inputFile);
+			System.out.println("io exception " + inputFile);
 		} finally {
 			if (br != null) {
 				try {
 					br.close();
 				} catch (final IOException e) {
-					System.err
+					System.out
 							.println("unexpected io exception while closing br "
 									+ inputFile);
 				}
@@ -369,15 +372,15 @@ public class Utils {
 				map.get(folder).add(file);
 			}
 		} catch (final FileNotFoundException e) {
-			System.err.println("file not found exception " + filename);
+			System.out.println("file not found exception " + filename);
 		} catch (final IOException e) {
-			System.err.println("io exception " + filename);
+			System.out.println("io exception " + filename);
 		} finally {
 			if (br != null) {
 				try {
 					br.close();
 				} catch (final IOException e) {
-					System.err
+					System.out
 							.println("unexpected io exception while closing br "
 									+ filename);
 				}
@@ -396,15 +399,15 @@ public class Utils {
 				set.add(line.trim().replace(".gpg", ""));
 			}
 		} catch (final FileNotFoundException e) {
-			System.err.println("file not found exception " + corpusChunk);
+			System.out.println("file not found exception " + corpusChunk);
 		} catch (final IOException e) {
-			System.err.println("io exception " + corpusChunk);
+			System.out.println("io exception " + corpusChunk);
 		} finally {
 			if (br != null) {
 				try {
 					br.close();
 				} catch (final IOException e) {
-					System.err
+					System.out
 							.println("unexpected io exception while closing br "
 									+ corpusChunk);
 				}

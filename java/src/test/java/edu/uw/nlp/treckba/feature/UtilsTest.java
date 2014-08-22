@@ -14,27 +14,27 @@ public class UtilsTest {
 
 	@Test
 	public void testGetMostFrequent() {
-		final Map<TruthKey, List<TruthValue>> noisy = new HashMap<>();
-		final List<TruthValue> list1 = new ArrayList<>();
-		list1.add(new TruthValue(5, "date1"));
-		list1.add(new TruthValue(5, "date1"));
-		list1.add(new TruthValue(5, "date1"));
-		final TruthKey truthKey1 = new TruthKey("streamid1", "targetId1");
+		final Map<ExampleKey, List<ExampleValue>> noisy = new HashMap<>();
+		final List<ExampleValue> list1 = new ArrayList<>();
+		list1.add(new ExampleValue(5, "date1"));
+		list1.add(new ExampleValue(5, "date1"));
+		list1.add(new ExampleValue(5, "date1"));
+		final ExampleKey truthKey1 = new ExampleKey("streamid1", "targetId1");
 		noisy.put(truthKey1, list1);
 
-		final List<TruthValue> list2 = new ArrayList<>();
-		list2.add(new TruthValue(2, "date2"));
-		final TruthKey truthKey2 = new TruthKey("streamid2", "targetId2");
+		final List<ExampleValue> list2 = new ArrayList<>();
+		list2.add(new ExampleValue(2, "date2"));
+		final ExampleKey truthKey2 = new ExampleKey("streamid2", "targetId2");
 		noisy.put(truthKey2, list2);
 
-		final List<TruthValue> list3 = new ArrayList<>();
-		list3.add(new TruthValue(1, "date3"));
-		list3.add(new TruthValue(2, "date3"));
-		list3.add(new TruthValue(4, "date3"));
-		final TruthKey truthKey3 = new TruthKey("streamid3", "targetId3");
+		final List<ExampleValue> list3 = new ArrayList<>();
+		list3.add(new ExampleValue(1, "date3"));
+		list3.add(new ExampleValue(2, "date3"));
+		list3.add(new ExampleValue(4, "date3"));
+		final ExampleKey truthKey3 = new ExampleKey("streamid3", "targetId3");
 		noisy.put(truthKey3, list3);
 
-		final Map<TruthKey, TruthValue> actual = Utils.getMostFrequent(noisy);
+		final Map<ExampleKey, ExampleValue> actual = Utils.getMostFrequent(noisy);
 
 		Assert.assertEquals(Integer.valueOf(5), actual.get(truthKey1)
 				.getRelevance());

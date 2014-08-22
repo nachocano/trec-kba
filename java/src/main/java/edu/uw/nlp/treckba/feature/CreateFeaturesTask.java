@@ -31,17 +31,17 @@ public class CreateFeaturesTask implements Callable<Void> {
 	private final List<String> entityNames;
 	private final String targetId;
 	private final ConcurrentLinkedQueue<String> queue;
-	private final Map<TruthKey, TruthValue> truthsMap;
+	private final Map<ExampleKey, ExampleValue> values;
 
 	public CreateFeaturesTask(final File file,
 			final ConcurrentLinkedQueue<String> queue,
 			final String targetEntity, final List<String> entityNames,
-			final Map<TruthKey, TruthValue> truthsMap) {
+			final Map<ExampleKey, ExampleValue> values) {
 		this.file = file;
 		this.queue = queue;
 		this.targetId = targetEntity;
 		this.entityNames = entityNames;
-		this.truthsMap = truthsMap;
+		this.values = values;
 
 	}
 
@@ -67,8 +67,9 @@ public class CreateFeaturesTask implements Callable<Void> {
 				final StreamItem item = new StreamItem();
 				item.read(protocol);
 
-				final TruthKey tk = new TruthKey(item.getStream_id(), targetId);
-				if (truthsMap.containsKey(tk)) {
+				final ExampleKey tk = new ExampleKey(item.getStream_id(),
+						targetId);
+				if (values.containsKey(tk)) {
 
 					final ContentItem body = item.getBody();
 					final String cleanVisible = body.getClean_visible()
@@ -190,7 +191,7 @@ public class CreateFeaturesTask implements Callable<Void> {
 							lastPosPartial, lastPosNormPartial, spreadPartial,
 							spreadNormPartial);
 
-					final TruthValue truthValue = truthsMap.get(tk);
+					final ExampleValue truthValue = values.get(tk);
 
 					final String features = String.format(
 							"%s %s %s %s %s %s %s %s %s %s",
@@ -205,13 +206,13 @@ public class CreateFeaturesTask implements Callable<Void> {
 			}
 		} catch (final TTransportException te) {
 			if (te.getType() != TTransportException.END_OF_FILE) {
-				System.err.println(String.format(
-						"exception with file %s. exc %s", file.getName(),
-						te.getMessage()));
+				System.out.println(String.format(
+						"error: exception with file %s. exc %s",
+						file.getName(), te.getMessage()));
 			}
 		} catch (final Exception exc) {
-			System.err
-					.println(String.format("exception: %s", exc.getMessage()));
+			System.out.println(String.format("error: exception: %s",
+					exc.getMessage()));
 		} finally {
 			if (transport != null) {
 				transport.close();

@@ -1,11 +1,11 @@
 package edu.uw.nlp.treckba.feature;
 
-public class TruthValue {
+public class ExampleValue {
 
 	private Integer relevance;
 	private String dateHour;
 
-	public TruthValue(final Integer relevance, final String dateHour) {
+	public ExampleValue(final Integer relevance, final String dateHour) {
 		this.relevance = relevance;
 		this.dateHour = dateHour;
 	}
@@ -48,7 +48,7 @@ public class TruthValue {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		final TruthValue other = (TruthValue) obj;
+		final ExampleValue other = (ExampleValue) obj;
 		if (dateHour == null) {
 			if (other.dateHour != null) {
 				return false;
