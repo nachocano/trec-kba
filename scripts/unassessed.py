@@ -72,7 +72,7 @@ def main():
   print '%d assessed that were missing' % count_missing
 
   if count_missing > 0:
-    print 'missing':
+    print 'missing'
     for l in missing_assessed:
       print l[0], l[1]
 
