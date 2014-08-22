@@ -18,18 +18,24 @@ def main():
       l = line.strip().split()
       streamid = l[0]
       targetid = l[1]
-      test_or_train_assessed[(targetid, streamid)] = True
+      date_hour = l[2]
+      test_or_train_assessed[(targetid, streamid, date_hour)] = line
 
+  count = 0
   with open(args.test_or_train_filtered_file) as f:
     for line in f.read().splitlines():
       l = line.strip().split()
-      targetid = l[0]
-      streamid = l[1]
+      streamid = l[0]
+      targetid = l[1]
       date_hour = l[2]
-      filename = l[3]
-      key = (targetid, streamid)
-      if not test_or_train_assessed.has_key(key):
-        print '%s\t%s\t%s' % (targetid, streamid, '%s/%s' % (date_hour, filename))
+      key = (targetid, streamid, date_hour)
+      if test_or_train_assessed.has_key(key):
+        print test_or_train_assessed[key]
+        count += 1
+      else:
+        print line
+
+  print '%d assessed part of all' % count
 
 
 if __name__ == '__main__':

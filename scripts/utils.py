@@ -67,9 +67,8 @@ def to_rnr_multitask(x, cxt, entities_idxs):
 
     for i, row in enumerate(x):
         start = x.shape[1] * (indexes[i])
-        for j in xrange(row.shape[0]):
-            rest[i,start] = row[j]
-            start+=1
+        end = start + x.shape[1]
+        rest[i][start:end] = row
     new_x = np.hstack((x, rest))
     return new_x
 
@@ -99,9 +98,8 @@ def to_uv_multitask(x,y, cxt, entities_idxs, context=False):
     rest = np.zeros([count, added_columns])
     for i, row in enumerate(x_uv):
         start = x.shape[1] * (indexes[i])
-        for j in xrange(row.shape[0]):
-            rest[i,start] = row[j]
-            start+=1
+        end = start + x.shape[1]
+        rest[i][start:end] = row
     new_x_uv = np.hstack((x_uv, rest))
     if context:
         return (new_x_uv, y_uv, idxs)
@@ -136,9 +134,8 @@ def to_uv_given_pred_multitask(x, y, pred_rnr, cxt, entities_idxs):
     rest = np.zeros([count, added_columns])
     for i, row in enumerate(x_uv):
         start = x.shape[1] * (indexes[i])
-        for j in xrange(row.shape[0]):
-            rest[i,start] = row[j]
-            start+=1
+        end = start + x.shape[1]
+        rest[i][start:end] = row
     new_x_uv = np.hstack((x_uv, rest))
     return (new_x_uv, y_uv, idxs)
 
