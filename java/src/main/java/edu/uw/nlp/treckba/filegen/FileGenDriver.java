@@ -20,17 +20,21 @@ public class FileGenDriver {
 		options.addOption("i", true, "base input directory");
 		options.addOption("f", true, "input file");
 		options.addOption("o", true, "output directory");
+		options.addOption("g", true, "gpg");
 
 		final CommandLineParser parser = new BasicParser();
 
 		String inputDir = null;
 		String inputFile = null;
 		String outputDir = null;
+		String gpg = null;
 		try {
 			final CommandLine line = parser.parse(options, args);
 			inputDir = line.getOptionValue("i");
 			inputFile = line.getOptionValue("f");
 			outputDir = line.getOptionValue("o");
+			gpg = line.getOptionValue("g");
+			Validate.notNull(gpg);
 			Validate.notNull(inputDir);
 			Validate.isTrue(inputDir.endsWith("/"));
 			Validate.notNull(outputDir);
@@ -48,7 +52,7 @@ public class FileGenDriver {
 		System.out.println(files.size());
 
 		final FileGen fileGen = new FileGen();
-		fileGen.generateFiles(outputDir, files);
+		fileGen.generateFiles(outputDir, files, gpg);
 	}
 
 }

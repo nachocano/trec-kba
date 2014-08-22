@@ -81,7 +81,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>edu.uw.nlp.treckba.downloader.DownloaderDriver</mainClass>
+							<mainClass>edu.uw.nlp.treckba.filegen.FileGenDriver</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>

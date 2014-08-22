@@ -9,15 +9,17 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
 
 import edu.uw.nlp.treckba.utils.StreamIdFilename;
 
 public class FileGen {
 
-	private final ExecutorService executor = Executors.newFixedThreadPool(15);
+	private final ExecutorService executor = Executors.newFixedThreadPool(20);
+	private final AtomicLong errors = new AtomicLong(0);
 
 	public void generateFiles(final String outputDir,
-			final Map<String, Set<StreamIdFilename>> elements) {
+			final Map<String, Set<StreamIdFilename>> elements, final String gpg) {
 
 		final File output = new File(outputDir);
 		if (!output.isDirectory()) {
@@ -28,7 +30,7 @@ public class FileGen {
 		final List<Future<Void>> futures = new ArrayList<>();
 		for (final String targetId : elements.keySet()) {
 			final FileGenTask fgt = new FileGenTask(targetId,
-					elements.get(targetId), output);
+					elements.get(targetId), output, errors, gpg);
 			final Future<Void> future = executor.submit(fgt);
 			futures.add(future);
 		}
@@ -37,6 +39,9 @@ public class FileGen {
 			for (final Future<Void> future : futures) {
 				future.get();
 			}
+
+			System.out.println("errors: " + errors.get());
+
 		} catch (final InterruptedException e) {
 			System.err.println(String.format("Interrupted exception: %s",
 					e.getMessage()));

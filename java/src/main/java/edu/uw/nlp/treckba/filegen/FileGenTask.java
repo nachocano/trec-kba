@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TIOStreamTransport;
@@ -14,6 +15,7 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.tukaani.xz.XZInputStream;
 
+import edu.uw.nlp.treckba.decryption.DecryptionUtils;
 import edu.uw.nlp.treckba.gen.StreamItem;
 import edu.uw.nlp.treckba.utils.StreamIdFilename;
 import edu.uw.nlp.treckba.utils.Utils;
@@ -24,13 +26,18 @@ public class FileGenTask implements Callable<Void> {
 	private final Set<StreamIdFilename> elements;
 	private final File outputDir;
 	private final String outputFilename;
+	private final AtomicLong errors;
+	private final String gpg;
 
 	public FileGenTask(final String targetEntity,
-			final Set<StreamIdFilename> elements, final File outputDir) {
+			final Set<StreamIdFilename> elements, final File outputDir,
+			final AtomicLong errors, final String gpg) {
 		this.targetEntity = targetEntity;
 		this.elements = elements;
 		this.outputDir = outputDir;
 		this.outputFilename = getFilename(targetEntity);
+		this.errors = errors;
+		this.gpg = gpg;
 	}
 
 	@Override
@@ -55,10 +62,31 @@ public class FileGenTask implements Callable<Void> {
 				final String streamId = sifn.getStreamId();
 				final File f = new File(filename);
 				if (!f.isFile()) {
-					System.out.println(String.format("missing: %s %s %s",
-							targetEntity, streamId, filename));
-					continue;
+					// try with the encrypted one, though it should have been
+					// decrypted already
+					final String encryptedFile = filename.concat(".gpg");
+					final File encrypted = new File(encryptedFile);
+					if (!encrypted.exists()) {
+						errors.incrementAndGet();
+						System.out
+								.println("error: file does not exist, neither encrypted one "
+										+ f.getAbsolutePath());
+						continue;
+					} else {
+						// decrypt it
+						final int status = DecryptionUtils.executeDecryption(
+								gpg, encrypted.getAbsolutePath());
+						if (status != 0) {
+							errors.incrementAndGet();
+							System.out.println("error: decryption "
+									+ encrypted.getAbsolutePath());
+							continue;
+						} else {
+							encrypted.delete();
+						}
+					}
 				}
+				// should be a file here
 				TTransport transport = null;
 				try {
 					transport = new TIOStreamTransport(new BufferedInputStream(
@@ -78,12 +106,14 @@ public class FileGenTask implements Callable<Void> {
 					}
 				} catch (final TTransportException te) {
 					if (te.getType() != TTransportException.END_OF_FILE) {
-						System.err.println(String.format(
-								"exception with file %s. exc %s", filename,
+						errors.incrementAndGet();
+						System.out.println(String.format(
+								"error: ttexc with file %s. exc %s", filename,
 								te.getMessage()));
 					}
 				} catch (final Exception exc) {
-					System.err.println(String.format("exception: %s",
+					errors.incrementAndGet();
+					System.out.println(String.format("error: exc: %s",
 							exc.getMessage()));
 				} finally {
 					if (transport != null) {
@@ -92,8 +122,9 @@ public class FileGenTask implements Callable<Void> {
 				}
 			}
 		} catch (final Exception exc) {
-			System.err
-					.println(String.format("exception: %s", exc.getMessage()));
+			errors.incrementAndGet();
+			System.out.println(String.format("error: exc catch all: %s",
+					exc.getMessage()));
 		} finally {
 			if (outTrans != null) {
 				outTrans.close();

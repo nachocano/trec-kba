@@ -22,8 +22,8 @@ def main():
   
   folder_regex = re.compile(r'/(20\d{2}-\d{2}-\d{2}-\d{2})/')
 
-  train = open(args.train_file, 'a+')
-  test = open(args.test_file, 'a+')
+  train = open(args.train_file, 'w')
+  test = open(args.test_file, 'w')
 
   with open(args.whole_file) as f:
     for line in f.read().splitlines():

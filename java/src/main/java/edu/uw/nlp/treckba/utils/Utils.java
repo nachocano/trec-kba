@@ -321,10 +321,11 @@ public class Utils {
 			br = new BufferedReader(new FileReader(new File(inputFile)));
 			String line = null;
 			while ((line = br.readLine()) != null) {
-				final String[] str = line.split("\t");
+				final String[] str = line.split(" ");
 				final String targetId = str[0];
 				final String streamId = str[1];
-				final String filename = str[2].replace(".gpg", "");
+				final String filename = str[2] + "/"
+						+ str[3].replace(".gpg", "");
 				if (!map.containsKey(targetId)) {
 					final Set<StreamIdFilename> set = new HashSet<>();
 					map.put(targetId, set);
