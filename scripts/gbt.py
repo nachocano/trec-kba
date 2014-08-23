@@ -1,30 +1,11 @@
 #!/usr/bin/python
-from utils import create_separate_global_data, to_rnr, to_uv, to_uv_given_pred, filter_run, build_record, save_model, load_model
+from utils import do_predict_rnr, do_predict_uv, create_separate_global_data, to_rnr, to_uv, to_uv_given_pred, filter_run, build_record, save_model, load_model
 import json
 import time
 import re
 import argparse
 import numpy as np
 from sklearn import ensemble
-
-def do_predict_rnr(clf_rnr, x, cxt, recs):
-    pred_rnr_prob = clf_rnr.predict_proba(x)
-    pred_rnr = np.array(map(np.argmax, pred_rnr_prob))
-    for i, prob in enumerate(pred_rnr_prob):
-        if prob[0] >= prob[1]:
-            recs.append(build_record(i, cxt, 0, prob[0]))
-    return pred_rnr
-
-def do_predict_uv(clf_uv, x, cxt, recs, idxs_cxt=None):
-    pred_uv_prob = clf_uv.predict_proba(x)
-    pred_uv = np.array(map(np.argmax, pred_uv_prob))
-    pred_uv += 1
-    for i, relevance in enumerate(pred_uv):
-        prob = max(pred_uv_prob[i])
-        if idxs_cxt != None:
-            recs.append(build_record(idxs_cxt[i], cxt, relevance, prob))
-        else:
-            recs.append(build_record(i, cxt, relevance, prob))
 
 def main():
  

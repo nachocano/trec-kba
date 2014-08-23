@@ -271,3 +271,22 @@ def similar_words(model, target_vector, topn=10):
     result = [(model.index2word[sim], dists[sim]) for sim in best]
     return result[:topn]
 
+def do_predict_rnr(clf_rnr, x, cxt, recs):
+    pred_rnr_prob = clf_rnr.predict_proba(x)
+    pred_rnr = np.array(map(np.argmax, pred_rnr_prob))
+    for i, prob in enumerate(pred_rnr_prob):
+        if prob[0] >= prob[1]:
+            recs.append(build_record(i, cxt, 0, prob[0]))
+    return pred_rnr
+
+def do_predict_uv(clf_uv, x, cxt, recs, idxs_cxt=None):
+    pred_uv_prob = clf_uv.predict_proba(x)
+    pred_uv = np.array(map(np.argmax, pred_uv_prob))
+    pred_uv += 1
+    for i, relevance in enumerate(pred_uv):
+        prob = max(pred_uv_prob[i])
+        if idxs_cxt != None:
+            recs.append(build_record(idxs_cxt[i], cxt, relevance, prob))
+        else:
+            recs.append(build_record(i, cxt, relevance, prob))
+
