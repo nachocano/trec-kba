@@ -5,6 +5,9 @@ from gensim import matutils
 from scipy.spatial.distance import euclidean
 import time
 
+
+UNASSESSED_LABEL = -10
+
 filter_run = {
     "$schema": "http://trec-kba.org/schemas/v1.1/filter-run.json",
     "task_id": "kba-ccr-2014",
@@ -38,8 +41,6 @@ def to_rnr(y):
         if value == -1:
             y_rnr[i] = 0
         elif value == 2:
-            y_rnr[i] = 1
-        elif value == -10:
             y_rnr[i] = 1
     return y_rnr
 
@@ -105,15 +106,14 @@ def to_uv_multitask(x,y, cxt, entities_idxs, context=False):
         return (new_x_uv, y_uv, idxs)
     return (new_x_uv, y_uv)
 
-def to_uv_given_pred(x, y, pred_rnr):
+def to_uv_given_pred(x, pred_rnr):
     idxs = np.where(pred_rnr == 1)[0]
     count = len(idxs)
     x_uv = np.zeros([count,x.shape[1]]).astype(np.float32)
     y_uv = np.zeros([count])
     for i, v in enumerate(idxs):
         x_uv[i] = x[v]
-        y_uv[i] = y[v]
-    return (x_uv, y_uv, idxs)
+    return (x_uv, idxs)
 
 def to_uv_given_pred_multitask(x, y, pred_rnr, cxt, entities_idxs):
     idxs = np.where(pred_rnr == 1)[0]
@@ -180,6 +180,37 @@ def create_data(filename):
             x[targetid] = np.array(x_list[targetid]).astype(np.float32)
             y[targetid] = np.array(y_list[targetid]).astype(int)
     return x, y, context
+
+
+def create_separate_global_data(filename):
+    x_a_list = []
+    y_a_list = []
+    cxt_a = []
+    x_u_list = []
+    y_u_list = []
+    cxt_u = []
+    with open(filename) as f:
+        for line in f.read().splitlines():
+            instance = line.split()
+            streamid = instance[0]
+            targetid = instance[1]
+            date_hour = instance[2]
+            label = int(instance[3])
+            features = instance[4:]
+            if label == UNASSESSED_LABEL:
+                x_u_list.append(features)
+                y_u_list.append(label)
+                cxt_u.append('%s %s %s' % (streamid, targetid, date_hour))
+            else:
+                x_a_list.append(features)
+                y_a_list.append(label)
+                cxt_a.append('%s %s %s' % (streamid, targetid, date_hour))
+
+    x_a = np.array(x_a_list).astype(np.float32)
+    y_a = np.array(y_a_list).astype(int)
+    x_u = np.array(x_u_list).astype(np.float32)
+    y_u = np.array(y_u_list).astype(int)
+    return x_a, y_a, cxt_a, x_u, y_u, cxt_u
 
 def create_global_data(filename):
     x_list = []

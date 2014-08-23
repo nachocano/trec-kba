@@ -1,14 +1,30 @@
 #!/usr/bin/python
-from utils import to_rnr, to_uv, to_uv_given_pred, feature_importance, filter_run, build_record, save_model
-import re
-import os
-import sys
+from utils import create_separate_global_data, to_rnr, to_uv, to_uv_given_pred, filter_run, build_record, save_model, load_model
 import json
 import time
+import re
 import argparse
 import numpy as np
 from sklearn import ensemble
-from sklearn import metrics
+
+def do_predict_rnr(clf_rnr, x, cxt, recs):
+    pred_rnr_prob = clf_rnr.predict_proba(x)
+    pred_rnr = np.array(map(np.argmax, pred_rnr_prob))
+    for i, prob in enumerate(pred_rnr_prob):
+        if prob[0] >= prob[1]:
+            recs.append(build_record(i, cxt, 0, prob[0]))
+    return pred_rnr
+
+def do_predict_uv(clf_uv, x, cxt, recs, idxs_cxt=None):
+    pred_uv_prob = clf_uv.predict_proba(x)
+    pred_uv = np.array(map(np.argmax, pred_uv_prob))
+    pred_uv += 1
+    for i, relevance in enumerate(pred_uv):
+        prob = max(pred_uv_prob[i])
+        if idxs_cxt != None:
+            recs.append(build_record(idxs_cxt[i], cxt, relevance, prob))
+        else:
+            recs.append(build_record(i, cxt, relevance, prob))
 
 def main():
  
@@ -16,90 +32,82 @@ def main():
     parser.add_argument('-o', '--output_file', required=True)
     parser.add_argument('-tr', '--training_file', required=True)
     parser.add_argument('-t', '--test_file', required=True)
-    parser.add_argument('-c', '--context_test_file', required=True)
     parser.add_argument('-i', '--system_id', required=True)
-    parser.add_argument('-rnr', '--rnr_save_model_file', required=False)
-    parser.add_argument('-uv', '--uv_save_model_file', required=False)
+    parser.add_argument('-rnrl', '--rnr_load_model_file', required=False)
+    parser.add_argument('-rnrs', '--rnr_save_model_file', required=False)
+
     args = parser.parse_args()
 
     filter_run["system_id"] = args.system_id
     
     recs = []
 
-    context = []
-    unique_entities = {}
-    with open(args.context_test_file) as f:
-        for line in f.read().splitlines():
-            context.append(line.strip())
-            unique_entities[line.strip().split()[1]] = True
+    # reading data
+    x_train_a, y_train_a, cxt_train_a, x_train_u, y_train_u, cxt_train_u = create_separate_global_data(args.training_file)
+    x_test_a, y_test_a, cxt_test_a, x_test_u, y_test_u, cxt_test_u = create_separate_global_data(args.test_file)
 
     filter_run["run_info"] = {
-        "num_entities": len(unique_entities)
+        "num_entities": 71
     }
-
-    data_train = np.genfromtxt(args.training_file)
-    x_train = data_train[:,1:]
-    y_train = data_train[:,0]
-    data_test = np.genfromtxt(args.test_file)
-    x_test = data_test[:,1:]
-    y_test = data_test[:,0]
-
 
     begin = time.time()
 
-    y_train_rnr = to_rnr(y_train)
-    y_test_rnr = to_rnr(y_test)
+    y_train_a_rnr = to_rnr(y_train_a)
 
-    assert y_test.shape[0] == len(context)
-    assert y_test.shape == y_test_rnr.shape
-    assert len(y_train_rnr[y_train_rnr == -1]) == 0
-    assert len(y_train_rnr[y_train_rnr == 2]) == 0
-    assert len(y_test_rnr[y_test_rnr == -1]) == 0
-    assert len(y_test_rnr[y_test_rnr == 2]) == 0
+    assert y_train_a.shape == y_train_a_rnr.shape
+    assert len(y_train_a_rnr[y_train_a_rnr == -1]) == 0
+    assert len(y_train_a_rnr[y_train_a_rnr == 2]) == 0
 
-    print x_train.shape
-    print y_train.shape
+    print x_train_a.shape
+    print x_test_a.shape
+    print x_train_u.shape
+    print x_test_u.shape
 
-    clf_rnr = ensemble.GradientBoostingClassifier()
-    clf_rnr = clf_rnr.fit(x_train, y_train_rnr)
-    #feature_importance(clf_rnr.feature_importances_, 'R-NR')
-
-    #save_model(args.rnr_save_model_file, clf_rnr)
+    clf_rnr = None
+    if args.rnr_load_model_file:
+        clf_rnr = load_model(args.rnr_load_model_file)
+    else:
+        clf_rnr = ensemble.GradientBoostingClassifier()
+        clf_rnr = clf_rnr.fit(x_train_a, y_train_a_rnr)
+        if args.rnr_save_model_file:
+            save_model(args.rnr_save_model_file, clf_rnr)
     
-    pred_rnr_prob = clf_rnr.predict_proba(x_test)
-    pred_rnr = np.array(map(np.argmax, pred_rnr_prob))
+    # predict R-NR
+    pred_rnr_a = do_predict_rnr(clf_rnr, x_test_a, cxt_test_a, recs)
+    pred_rnr_u_from_train = do_predict_rnr(clf_rnr, x_train_u, cxt_train_u, recs)
 
-    for i, prob in enumerate(pred_rnr_prob):
-        if prob[0] >= prob[1]:
-            recs.append(build_record(i, context, 0, prob[0]))
+    assert y_test_a.shape == pred_rnr_a.shape
+    assert y_train_u.shape == pred_rnr_u_from_train.shape
 
-    assert y_test_rnr.shape == pred_rnr.shape
 
-    x_train_uv, y_train_uv = to_uv(x_train, y_train)
-    x_test_uv, y_test_uv, idxs_context = to_uv_given_pred(x_test, y_test, pred_rnr)
+    # build training for uv
+    x_train_a_uv, y_train_a_uv = to_uv(x_train_a, y_train_a)
 
-    print x_train_uv.shape
-    print x_test_uv.shape
+    # build test for uv
+    # assessed predicted relevant
+    x_test_a_uv, idxs_cxt_test_a_uv = to_uv_given_pred(x_test_a, pred_rnr_a)
+    # unassessed of the training predicted relevant
+    x_test_u_uv_from_train, idxs_cxt_test_u_uv_from_train = to_uv_given_pred(x_train_u, pred_rnr_u_from_train)
+    # and the whole test unassessed, i.e x_test_u
 
-    assert y_test_uv.shape[0] == len(pred_rnr[pred_rnr == 1])
-    assert y_test_uv.shape[0] == len(idxs_context)
+    print x_train_a_uv.shape
+    print x_test_a_uv.shape
+    print x_test_u_uv_from_train.shape
+
+    assert x_test_a_uv.shape[0] == len(pred_rnr_a[pred_rnr_a == 1])
+    assert x_test_u_uv_from_train.shape[0] == len(pred_rnr_u_from_train[pred_rnr_u_from_train == 1])
 
     clf_uv = ensemble.GradientBoostingClassifier()
-    clf_uv = clf_uv.fit(x_train_uv, y_train_uv)
-    #feature_importance(clf_uv.feature_importances_, 'U-V')
+    clf_uv = clf_uv.fit(x_train_a_uv, y_train_a_uv)
 
-    #save_model(args.uv_save_model_file, clf_uv)
 
-    pred_uv_prob = clf_uv.predict_proba(x_test_uv)
-    pred_uv = np.array(map(np.argmax, pred_uv_prob))
-    pred_uv += 1
-    for i, relevance in enumerate(pred_uv):
-        prob = max(pred_uv_prob[i])
-        recs.append(build_record(idxs_context[i], context, relevance, prob))
+    # predict U-V
+    pred_uv_a = do_predict_uv(clf_uv, x_test_a_uv, cxt_test_a, recs, idxs_cxt_test_a_uv)
+    pred_uv_u_from_train = do_predict_uv(clf_uv, x_test_u_uv_from_train, cxt_train_u, recs, idxs_cxt_test_u_uv_from_train)
+    pred_uv_u = do_predict_uv(clf_uv, x_test_u, cxt_test_u, recs)
 
-    assert len(recs) == y_test.shape[0]
-    assert y_test_uv.shape == pred_uv.shape
 
+    assert len(recs) == x_test_a.shape[0] + x_test_u.shape[0] + x_train_u.shape[0]
 
     elapsed_run = time.time() - begin
     print 'all run took %s' % elapsed_run
@@ -118,7 +126,6 @@ def main():
     filter_run_json_string = json.dumps(filter_run, indent=4, sort_keys=True)
     filter_run_json_string = re.sub("\n", "\n#", filter_run_json_string)
     output.write("#%s\n" % filter_run_json_string)
-
     output.close()
 
 if __name__ == '__main__':
