@@ -72,8 +72,9 @@ def main():
     # load rnr basic model
     clf_rnr = load_model(args.rnr_load_model_file)
     # test r-nr
-    pred_rnr_a = do_predict_rnr(clf_rnr, x_test_a, cxt_test_a, recs)
-    pred_rnr_u_from_train = do_predict_rnr(clf_rnr, x_train_u, cxt_train_u, recs)
+    pred_rnr_a = do_predict_rnr(clf_rnr, x_test_a[:,:25], cxt_test_a, recs)
+    pred_rnr_u_from_train = do_predict_rnr(clf_rnr, x_train_u[:,:25], cxt_train_u, recs)
+    pred_rnr_u = do_predict_rnr(clf_rnr, x_test_u[:,:25], cxt_test_u, recs)
 
 
     # --------------- U-V classifier
@@ -93,7 +94,7 @@ def main():
 
     do_predict_uv_multitask(clf_uv, entities_idxs, cxt_test_a, x_test_a, recs, pred_rnr_a)
     do_predict_uv_multitask(clf_uv, entities_idxs, cxt_train_u, x_train_u, recs, pred_rnr_u_from_train)
-    do_predict_uv_multitask(clf_uv, entities_idxs, cxt_test_u, x_test_u, recs)
+    do_predict_uv_multitask(clf_uv, entities_idxs, cxt_test_u, x_test_u, recs, pred_rnr_u)
 
 
     assert len(recs) == x_test_a.shape[0] + x_test_u.shape[0] + x_train_u.shape[0]

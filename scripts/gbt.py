@@ -56,9 +56,11 @@ def main():
     # predict R-NR
     pred_rnr_a = do_predict_rnr(clf_rnr, x_test_a, cxt_test_a, recs)
     pred_rnr_u_from_train = do_predict_rnr(clf_rnr, x_train_u, cxt_train_u, recs)
+    pred_rnr_u = do_predict_rnr(clf_rnr, x_test_u, cxt_test_u, recs)
 
     assert y_test_a.shape == pred_rnr_a.shape
     assert y_train_u.shape == pred_rnr_u_from_train.shape
+    assert y_test_u.shape == pred_rnr_u.shape
 
 
     # build training for uv
@@ -69,14 +71,17 @@ def main():
     x_test_a_uv, idxs_cxt_test_a_uv = to_uv_given_pred(x_test_a, pred_rnr_a)
     # unassessed of the training predicted relevant
     x_test_u_uv_from_train, idxs_cxt_test_u_uv_from_train = to_uv_given_pred(x_train_u, pred_rnr_u_from_train)
-    # and the whole test unassessed, i.e x_test_u
+    # and the unassessed of the test predicted relevant
+    x_test_u_uv, idxs_cxt_test_u_uv = to_uv_given_pred(x_test_u, pred_rnr_u)
 
     print x_train_a_uv.shape
     print x_test_a_uv.shape
     print x_test_u_uv_from_train.shape
+    print x_test_u_uv.shape
 
     assert x_test_a_uv.shape[0] == len(pred_rnr_a[pred_rnr_a == 1])
     assert x_test_u_uv_from_train.shape[0] == len(pred_rnr_u_from_train[pred_rnr_u_from_train == 1])
+    assert x_test_u_uv.shape[0] == len(pred_rnr_u[pred_rnr_u == 1])
 
     clf_uv = ensemble.GradientBoostingClassifier()
     clf_uv = clf_uv.fit(x_train_a_uv, y_train_a_uv)
@@ -85,7 +90,7 @@ def main():
     # predict U-V
     pred_uv_a = do_predict_uv(clf_uv, x_test_a_uv, cxt_test_a, recs, idxs_cxt_test_a_uv)
     pred_uv_u_from_train = do_predict_uv(clf_uv, x_test_u_uv_from_train, cxt_train_u, recs, idxs_cxt_test_u_uv_from_train)
-    pred_uv_u = do_predict_uv(clf_uv, x_test_u, cxt_test_u, recs)
+    pred_uv_u = do_predict_uv(clf_uv, x_test_u_uv, cxt_test_u, recs, idxs_cxt_test_u_uv)
 
 
     assert len(recs) == x_test_a.shape[0] + x_test_u.shape[0] + x_train_u.shape[0]

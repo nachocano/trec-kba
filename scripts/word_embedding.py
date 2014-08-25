@@ -14,7 +14,6 @@ def main():
   parser.add_argument('-e', '--embeddings_file', required=True)
   parser.add_argument('-d', '--embeddings_dimension', required=False, type=int)
   parser.add_argument('-t', '--train_or_test_tsv_file', required=True)
-  parser.add_argument('-tp', '--topn', required=False, type=int)
   args = parser.parse_args()
 
   if not args.embeddings_dimension:
