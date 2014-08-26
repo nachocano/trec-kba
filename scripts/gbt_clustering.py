@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from __future__ import division
 from utils import do_predict_rnr, do_predict_rnr_from_train_u, UNASSESSED_LABEL, filter_run, build_record, create_global_data, load_model, to_multitask_single
-from cluster_helper import update_clusters, build_init_clusters_centroids
+from cluster_helper import update_clusters, build_init_clusters_centroids, build_targets, stats
 import re
 import os
 import sys
@@ -11,8 +11,6 @@ import argparse
 import numpy as np
 from sklearn import ensemble
 from collections import defaultdict
-from target import Target, InitCluster, Stream
-
 
 def do_predict_train(clf_uv, train, train_context, idxs_entities, recs):
     left = len(train)
@@ -28,7 +26,7 @@ def do_predict_train(clf_uv, train, train_context, idxs_entities, recs):
         relevance += 1
         recs.append(build_record(idx, train_context, relevance, prob))        
 
-def do_predict_test(clf_uv, x_test, y_test, relevant_idxes_au_test, test_context, idxs_entities, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, recs):
+def do_predict_test(clf_uv, x_test, y_test, relevant_idxes_au_test, test_context, idxs_entities, centroids, stream_info, cluster_timeliness, cluster_names, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, recs):
     nr_examples = len(relevant_idxes_au_test)
     left = nr_examples
     for i in xrange(nr_examples):
@@ -40,7 +38,7 @@ def do_predict_test(clf_uv, x_test, y_test, relevant_idxes_au_test, test_context
         # update the clusters for all of the examples
         min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, \
         min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb = \
-            update_clusters(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, None)
+            update_clusters(targetid, streamid, date_hour, centroids, stream_info, cluster_timeliness, cluster_names, example, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, None)
         x_multitask = to_multitask_single(x_test[idx], targetid, idxs_entities)
         to_test = np.hstack((x_multitask, [min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb]))
         pred_uv_prob = clf_uv.predict_proba(to_test)[0]
@@ -50,7 +48,7 @@ def do_predict_test(clf_uv, x_test, y_test, relevant_idxes_au_test, test_context
         recs.append(build_record(idx, test_context, relevance, prob))
     
 
-def build_train(x_train, y_train, train_context, delimiter, relevant_idxes_au_train, idxs_entities, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease):
+def build_train(x_train, y_train, train_context, delimiter, relevant_idxes_au_train, idxs_entities, centroids, stream_info, cluster_timeliness, cluster_names, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease):
     x_train_a = []
     y_train_a = []
     x_train_u = {}
@@ -65,7 +63,7 @@ def build_train(x_train, y_train, train_context, delimiter, relevant_idxes_au_tr
         # update the clusters for all of the examples
         min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, \
         min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb = \
-            update_clusters(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, None)
+            update_clusters(targetid, streamid, date_hour, centroids, stream_info, cluster_timeliness, cluster_names, example, alpha_noun, alpha_verb, gamma_noun_increase, gamma_noun_decrease, gamma_verb_increase, gamma_verb_decrease, None)
         if y_train[idx] != UNASSESSED_LABEL:
             # only train the GBT with the annotated relevant stuff
             x_multitask = to_multitask_single(x_train[idx], targetid, idxs_entities)
@@ -151,9 +149,6 @@ def main():
     centroids = {}
     centroids['nouns'] = defaultdict(lambda: defaultdict(defaultdict))
     centroids['verbs'] = defaultdict(lambda: defaultdict(defaultdict))
-    cluster_elements = {}
-    cluster_elements['nouns'] = defaultdict(lambda: defaultdict(list))
-    cluster_elements['verbs'] = defaultdict(lambda: defaultdict(list))
     stream_info = {}
     stream_info['nouns'] = defaultdict(lambda: defaultdict(list))
     stream_info['verbs'] = defaultdict(lambda: defaultdict(list))
@@ -179,7 +174,7 @@ def main():
         example = x_train[idx][25:]
         min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, \
         min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb = \
-            update_clusters(targetid, streamid, date_hour, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, example, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease, init_clusters_info)
+            update_clusters(targetid, streamid, date_hour, centroids, stream_info, cluster_timeliness, cluster_names, example, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease, init_clusters_info)
         if y_train[idx] == UNASSESSED_LABEL:
             pre_train_u[idx] = (x_train[idx], min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, min_distance_verb, avg_distance_verb, all_zeros_verb, timeliness_verb)
     elapsed = time.time() - start
@@ -187,12 +182,12 @@ def main():
     print 'finished pre training uv classifier, took %s' % elapsed
 
     print 'adding centroids to init_clusters'
-    #build_init_clusters_centroids(init_clusters_info, init_clusters_centroids, centroids)
+    build_init_clusters_centroids(init_clusters_info, init_clusters_centroids, centroids)
     print 'finished adding centroids to init_clusters'
 
     start = time.time()
     print 'building training for uv classifier...'
-    x_train_a_uv, y_train_a_uv, x_train_u_uv = build_train(x_train, y_train, train_context, pre_train_delimiter, relevant_idxes_au_train, idxs_entities, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease)
+    x_train_a_uv, y_train_a_uv, x_train_u_uv = build_train(x_train, y_train, train_context, pre_train_delimiter, relevant_idxes_au_train, idxs_entities, centroids, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease)
     elapsed = time.time() - start
     print 'finished building training for uv classifier, took %s' % elapsed
 
@@ -213,14 +208,14 @@ def main():
 
     start = time.time()
     print 'testing on uv classifier...'
-    do_predict_test(clf_uv, x_test, y_test, relevant_idxes_au_test, test_context, idxs_entities, centroids, cluster_elements, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease, recs)
+    do_predict_test(clf_uv, x_test, y_test, relevant_idxes_au_test, test_context, idxs_entities, centroids, stream_info, cluster_timeliness, cluster_names, args.alpha_noun, args.alpha_verb, args.gamma_noun_increase, args.gamma_noun_decrease, args.gamma_verb_increase, args.gamma_verb_decrease, recs)
     do_predict_train(clf_uv, pre_train_u, train_context, idxs_entities, recs)
     do_predict_train(clf_uv, x_train_u_uv, train_context, idxs_entities, recs)
     elapsed = time.time() - start
     print 'finished testing on uv classifier, took %s' % elapsed
 
-    print len(recs)
-    print (x_test.shape[0] + len(relevant_idxes_u_train))
+    #print len(recs)
+    #print (x_test.shape[0] + len(relevant_idxes_u_train))
     #assert len(recs) == x_test.shape[0] + len(relevant_idxes_u_train)
 
     elapsed_run = time.time() - begin
@@ -243,44 +238,25 @@ def main():
 
     output.close()
 
-    #print 'building targets ...'
-    #start = time.time()
-    #noun_targets = build_targets('nouns', centroids, init_clusters_centroids, init_clusters_info, stream_info, predictions, truths)
-    #verb_targets = build_targets('verbs', centroids, init_clusters_centroids, init_clusters_info, stream_info, predictions, truths)
-    #print 'finished building targets, took %s' % (time.time() - start)
+    print 'building targets ...'
+    print 'TODO predictions and truths'
+    predictions = {}
+    truths = {}
+    start = time.time()
+    noun_targets = build_targets('nouns', centroids, init_clusters_centroids, init_clusters_info, stream_info, predictions, truths)
+    verb_targets = build_targets('verbs', centroids, init_clusters_centroids, init_clusters_info, stream_info, predictions, truths)
+    print 'finished building targets, took %s' % (time.time() - start)
 
-    #clusters_noun_file = open(os.path.join(args.clusters_folder, 'nouns_%s' % args.alpha_noun), 'w')
-    #clusters_noun_file.write('targets : [ %s ]' % (','.join(str(t) for t in noun_targets)))
-    #clusters_noun_file.close()
+    clusters_noun_file = open(os.path.join(args.clusters_folder, '%s_nouns' % args.system_id), 'w')
+    clusters_noun_file.write('targets : [ %s ]' % (','.join(str(t) for t in noun_targets)))
+    clusters_noun_file.close()
 
-    #clusters_verbs_file = open(os.path.join(args.clusters_folder, 'verbs_%s' % args.alpha_verb), 'w')
-    #clusters_verbs_file.write('targets : [ %s ]' % (','.join(str(t) for t in verb_targets)))
-    #clusters_verbs_file.close()
+    clusters_verbs_file = open(os.path.join(args.clusters_folder, '%s_verbs' % args.system_id), 'w')
+    clusters_verbs_file.write('targets : [ %s ]' % (','.join(str(t) for t in verb_targets)))
+    clusters_verbs_file.close()
 
-    #print 'noun clusters %s' % stats('nouns', centroids)
-    #print 'verb clusters %s' % stats('verbs', centroids)
-
-def stats(word_type, centroids):
-    count = 0
-    for targetid in centroids[word_type]:
-        count += len(centroids[word_type][targetid])
-    return count
-
-def build_targets(word_type, centroids, init_clusters_centroids, init_clusters_info, stream_info, predictions, truths):
-    targets = []
-    for targetid in centroids[word_type]:
-        target = Target(targetid)
-        for cluster in init_clusters_centroids[word_type][targetid]:
-            init_cluster = InitCluster(cluster, init_clusters_centroids[word_type][targetid][cluster], init_clusters_info[word_type][targetid][cluster])
-            target.add_init_cluster(init_cluster)
-        for cluster in stream_info[word_type][targetid]:
-            for (streamid, date_hour, timeliness, min_distance, avg_distance, vector, current_centroid) in stream_info[word_type][targetid][cluster]:
-                key = (streamid, targetid)
-                stream = Stream(streamid, cluster, vector, current_centroid, timeliness, min_distance, avg_distance, predictions[key] if predictions.has_key(key) else None, truths[key] if truths.has_key(key) else None)
-                target.add_stream(stream)
-        targets.append(target)
-    return targets
-
+    print 'noun clusters %s' % stats('nouns', centroids)
+    print 'verb clusters %s' % stats('verbs', centroids)
 
 if __name__ == '__main__':
   #np.set_printoptions(threshold=np.nan, linewidth=1000000000000000, )

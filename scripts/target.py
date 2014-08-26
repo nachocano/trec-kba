@@ -25,7 +25,7 @@ class Target:
 class InitCluster:
     def __init__(self, clusterid, centroid, docs):
         self.clusterid = clusterid
-        self.centroid = str(list(centroid))
+        self.centroid = str(centroid)
         self.docs = str(list(docs))
 
 class Stream:
