@@ -14,29 +14,55 @@ def new_features_per_type(targetid, streamid, date_hour, centroids, stream_info,
     
     min_distance = 0
     avg_distance = 0
-    all_zeros = 0
+    all_zeros = 1 if np.all(example == 0) else 0
     timeliness = 0
 
-    if np.all(example == 0):
-        if not centroids[targetid].has_key(0):
-            cluster_timeliness[targetid][0] = START_TIMELINESS
-            # only put the centroid to 0 the first time
-            centroids[targetid][0] = (example, 1)
-        else:
-            increase_timeliness(cluster_timeliness, targetid, 0, gamma_increase)
-
-        timeliness = cluster_timeliness[targetid][0]
-        decrease_timeliness_except(cluster_timeliness, targetid, 0, gamma_decrease)
-        all_zeros = 1
+    if not centroids.has_key(targetid):
+        # new cluster, add the example as the centroids
+        cluster_name = cluster_names[targetid]
+        cluster_timeliness[targetid][cluster_name] = START_TIMELINESS
+        timeliness = cluster_timeliness[targetid][cluster_name]
+        centroids[targetid][cluster_name] = (example, 1)
         if init_clusters_info != None:
-            init_clusters_info[targetid][0].append((streamid, date_hour, min_distance, avg_distance, list(example)))
+            init_clusters_info[targetid][cluster_name].append((streamid, date_hour, min_distance, avg_distance, list(example)))
         else:
-            stream_info[targetid][0].append((streamid, date_hour, timeliness, min_distance, avg_distance, list(example), list(centroids[targetid][0])))
+            stream_info[targetid][cluster_name].append((streamid, date_hour, timeliness, min_distance, avg_distance, list(example), list(centroids[targetid][cluster_name])))
+        cluster_names[targetid] += 1
     else:
-        if not centroids.has_key(targetid):
-            # new cluster, add the example as the centroids
+        similarities = []
+        similarities_sum = 0
+        for cluster in centroids[targetid]:
+            centroid = matutils.unitvec(centroids[targetid][cluster][0] / centroids[targetid][cluster][1]).astype(np.float32)
+            similarity = np.dot(centroid, example)
+            similarities.append((cluster, similarity))
+            similarities_sum += similarity
+    
+        maximum_tuple = max(tuple(r[::-1]) for r in similarities)[::-1]
+        candidate_cluster_name = maximum_tuple[0]
+        max_similarity = float(maximum_tuple[1])
+    
+        # two new features
+        min_distance = 1 - max_similarity
+        avg_distance = 1 - (similarities_sum / len(similarities))
+
+        if min_distance < alpha:
+            # put in an already existent cluster
+            increase_timeliness(cluster_timeliness, targetid, candidate_cluster_name, gamma_increase)
+            decrease_timeliness_except(cluster_timeliness, targetid, candidate_cluster_name, gamma_decrease)
+            timeliness = cluster_timeliness[targetid][candidate_cluster_name]
+            # update the centroid for that cluster
+            p_sum = centroids[targetid][candidate_cluster_name][0] + example
+            p_n = centroids[targetid][candidate_cluster_name][1] + 1
+            centroids[targetid][candidate_cluster_name] = (p_sum, p_n)
+            if init_clusters_info != None:
+                init_clusters_info[targetid][candidate_cluster_name].append((streamid, date_hour, min_distance, avg_distance, list(example)))
+            else:
+                stream_info[targetid][candidate_cluster_name].append((streamid, date_hour, timeliness, min_distance, avg_distance, list(example), list(centroids[targetid][candidate_cluster_name])))
+        else:
+            # create a new cluster, add the example as the centroid
             cluster_name = cluster_names[targetid]
             cluster_timeliness[targetid][cluster_name] = START_TIMELINESS
+            decrease_timeliness_except(cluster_timeliness, targetid, cluster_name, gamma_decrease)
             timeliness = cluster_timeliness[targetid][cluster_name]
             centroids[targetid][cluster_name] = (example, 1)
             if init_clusters_info != None:
@@ -44,48 +70,6 @@ def new_features_per_type(targetid, streamid, date_hour, centroids, stream_info,
             else:
                 stream_info[targetid][cluster_name].append((streamid, date_hour, timeliness, min_distance, avg_distance, list(example), list(centroids[targetid][cluster_name])))
             cluster_names[targetid] += 1
-        else:
-            similarities = []
-            similarities_sum = 0
-            for cluster in centroids[targetid]:
-                centroid = matutils.unitvec(centroids[targetid][cluster][0] / centroids[targetid][cluster][1]).astype(np.float32)
-                similarity = np.dot(centroid, example)
-                similarities.append((cluster, similarity))
-                similarities_sum += similarity
-        
-            maximum_tuple = max(tuple(r[::-1]) for r in similarities)[::-1]
-            candidate_cluster_name = maximum_tuple[0]
-            max_similarity = float(maximum_tuple[1])
-        
-            # two new features
-            min_distance = 1 - max_similarity
-            avg_distance = 1 - (similarities_sum / len(similarities))
-
-            if min_distance < alpha:
-                # put in an already existent cluster
-                increase_timeliness(cluster_timeliness, targetid, candidate_cluster_name, gamma_increase)
-                decrease_timeliness_except(cluster_timeliness, targetid, candidate_cluster_name, gamma_decrease)
-                timeliness = cluster_timeliness[targetid][candidate_cluster_name]
-                # update the centroid for that cluster
-                p_sum = centroids[targetid][candidate_cluster_name][0] + example
-                p_n = centroids[targetid][candidate_cluster_name][1] + 1
-                centroids[targetid][candidate_cluster_name] = (p_sum, p_n)
-                if init_clusters_info != None:
-                    init_clusters_info[targetid][candidate_cluster_name].append((streamid, date_hour, min_distance, avg_distance, list(example)))
-                else:
-                    stream_info[targetid][candidate_cluster_name].append((streamid, date_hour, timeliness, min_distance, avg_distance, list(example), list(centroids[targetid][candidate_cluster_name])))
-            else:
-                # create a new cluster, add the example as the centroid
-                cluster_name = cluster_names[targetid]
-                cluster_timeliness[targetid][cluster_name] = START_TIMELINESS
-                decrease_timeliness_except(cluster_timeliness, targetid, cluster_name, gamma_decrease)
-                timeliness = cluster_timeliness[targetid][cluster_name]
-                centroids[targetid][cluster_name] = (example, 1)
-                if init_clusters_info != None:
-                    init_clusters_info[targetid][cluster_name].append((streamid, date_hour, min_distance, avg_distance, list(example)))
-                else:
-                    stream_info[targetid][cluster_name].append((streamid, date_hour, timeliness, min_distance, avg_distance, list(example), list(centroids[targetid][cluster_name])))
-                cluster_names[targetid] += 1
     return (min_distance, avg_distance, all_zeros, timeliness)
 
 
