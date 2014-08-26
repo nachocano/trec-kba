@@ -73,6 +73,16 @@ def to_rnr_multitask(x, cxt, entities_idxs):
     new_x = np.hstack((x, rest))
     return new_x
 
+def to_multitask_single(x, targetid, idxs_entities):
+    idx = idxs_entities[targetid]
+    entity_number = len(idxs_entities)
+    added_columns = x.shape[0] * entity_number
+    rest = np.zeros([added_columns])
+    start = x.shape[0] * idx
+    end = start + x.shape[1]
+    rest[start:end] = x[idx]
+    new_x = np.hstack((x, rest))
+    return new_x
 
 def to_uv_multitask(x,y, cxt, entities_idxs, context=False):
     idxs = np.where(y > 0)[0]
@@ -271,13 +281,33 @@ def similar_words(model, target_vector, topn=10):
     result = [(model.index2word[sim], dists[sim]) for sim in best]
     return result[:topn]
 
-def do_predict_rnr(clf_rnr, x, cxt, recs):
+def do_predict_rnr(clf_rnr, x, cxt, recs, returnIdx=False):
     pred_rnr_prob = clf_rnr.predict_proba(x)
     pred_rnr = np.array(map(np.argmax, pred_rnr_prob))
+    rel_idxs = []
     for i, prob in enumerate(pred_rnr_prob):
         if prob[0] >= prob[1]:
             recs.append(build_record(i, cxt, 0, prob[0]))
-    return pred_rnr
+        else:
+            rel_idxs.append(i)
+    if returnIdx:
+        return rel_idxs
+    else:
+        return pred_rnr
+
+def do_predict_rnr_from_train_u(clf_rnr, x_train, y_train, train_context, recs):
+    unassessed_train_idxs = np.where(y_train == UNASSESSED_LABEL)[0]
+    count = len(unassessed_train_idxs)
+    relevant_idxs = []
+    for i in xrange(count):
+        row_idx = unassessed_train_idxs[i]
+        pred_prob = clf_rnr.predict_proba(x_train[row_idx,:25])
+        pred = np.argmax(pred_prob)
+        if pred_prob[0] > pred_prob[1]:
+            recs.append(build_record(row_idx, train_context, 0, pred_prob[0]))
+        else:
+            relevant_idxs.append(row_idx)
+    return relevant_idxs
 
 def do_predict_uv(clf_uv, x, cxt, recs, idxs_cxt=None):
     pred_uv_prob = clf_uv.predict_proba(x)

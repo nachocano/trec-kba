@@ -7,7 +7,7 @@ from collections import defaultdict
 def main():
   parser = argparse.ArgumentParser(description='TODO')
   parser.add_argument('-t', '--train_file_assessed_unassessed_sorted', required=True)
-  parser.add_argument('-p', '--split_percentage', required=True, type=float, default=0.2)
+  parser.add_argument('-p', '--split_percentage', required=False, type=float, default=0.2)
   args = parser.parse_args()
 
   examples_per_entity = defaultdict(list)
