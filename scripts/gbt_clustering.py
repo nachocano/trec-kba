@@ -142,7 +142,7 @@ def main():
     print 'relevant train a %s' % len(relevant_idxes_a_train)
     print 'relevant train u %s' % len(relevant_idxes_u_train)
 
-    relevant_idxes_au_train = relevant_idxes_a_train + relevant_idxes_u_train
+    relevant_idxes_au_train = relevant_idxes_a_train.tolist() + relevant_idxes_u_train.tolist()
     relevant_idxes_au_train.sort()
 
     rows = len(relevant_idxes_au_train)
