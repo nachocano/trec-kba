@@ -56,7 +56,7 @@ def build_train(x_train, y_train, train_context, delimiter, relevant_idxes_au_tr
     left = nr_examples
     for i in xrange(nr_examples):
         left -= 1
-        print 'build training, %s left' % left
+        print 'building training, %s left' % left
         idx = relevant_idxes_au_train[i+delimiter]
         streamid, targetid, date_hour = train_context[idx].split()
         example = x_train[idx][25:]
@@ -121,8 +121,8 @@ def main():
     elapsed = time.time() - start
     print 'dataset read, took %s' % elapsed
 
-    print x_train.shape
-    print x_test.shape
+    print 'train shape %s' % str(x_train.shape)
+    print 'test shape %s' % str(x_test.shape)
 
     # RNR classifier
     clf_rnr = load_model(args.rnr_load_model_file)
@@ -214,9 +214,8 @@ def main():
     elapsed = time.time() - start
     print 'finished testing on uv classifier, took %s' % elapsed
 
-    #print len(recs)
-    #print (x_test.shape[0] + len(relevant_idxes_u_train))
-    #assert len(recs) == x_test.shape[0] + len(relevant_idxes_u_train)
+    print len(recs)
+    print (x_test.shape[0] + len(relevant_idxes_u_train))
 
     elapsed_run = time.time() - begin
     print 'all run took %s' % elapsed_run
@@ -238,6 +237,10 @@ def main():
 
     output.close()
 
+    print 'noun clusters %s' % stats('nouns', centroids)
+    print 'verb clusters %s' % stats('verbs', centroids)
+
+'''
     print 'building targets ...'
     print 'TODO predictions and truths'
     predictions = {}
@@ -254,10 +257,8 @@ def main():
     clusters_verbs_file = open(os.path.join(args.clusters_folder, '%s_verbs' % args.system_id), 'w')
     clusters_verbs_file.write('targets : [ %s ]' % (','.join(str(t) for t in verb_targets)))
     clusters_verbs_file.close()
-
-    print 'noun clusters %s' % stats('nouns', centroids)
-    print 'verb clusters %s' % stats('verbs', centroids)
-
+'''
+    
 if __name__ == '__main__':
   #np.set_printoptions(threshold=np.nan, linewidth=1000000000000000, )
   main()

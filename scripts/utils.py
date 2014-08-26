@@ -297,13 +297,11 @@ def do_predict_rnr(clf_rnr, x, cxt, recs, returnIdx=False):
 
 def do_predict_rnr_from_train_u(clf_rnr, x_train, y_train, train_context, recs):
     unassessed_train_idxs = np.where(y_train == UNASSESSED_LABEL)[0]
-    count = len(unassessed_train_idxs)
     relevant_idxs = []
-    for i in xrange(count):
-        row_idx = unassessed_train_idxs[i]
+    for row_idx in unassessed_train_idxs:
         pred_prob = clf_rnr.predict_proba(x_train[row_idx,:25])[0]
         pred = np.argmax(pred_prob)
-        if pred_prob[0] > pred_prob[1]:
+        if pred_prob[0] >= pred_prob[1]:
             recs.append(build_record(row_idx, train_context, 0, pred_prob[0]))
         else:
             relevant_idxs.append(row_idx)
