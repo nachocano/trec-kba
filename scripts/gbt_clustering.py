@@ -191,7 +191,7 @@ def main():
     elapsed = time.time() - start
     print 'finished building training for uv classifier, took %s' % elapsed
 
-    print 'train a uv %s' % x_train_a_uv.shape
+    print 'train a uv %s' % str(x_train_a_uv.shape)
     print 'train u uv %s' % len(x_train_u_uv)
     
     assert x_train_a_uv.shape[0] == y_train_a_uv.shape[0]
