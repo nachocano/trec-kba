@@ -301,7 +301,7 @@ def do_predict_rnr_from_train_u(clf_rnr, x_train, y_train, train_context, recs):
     relevant_idxs = []
     for i in xrange(count):
         row_idx = unassessed_train_idxs[i]
-        pred_prob = clf_rnr.predict_proba(x_train[row_idx,:25])
+        pred_prob = clf_rnr.predict_proba(x_train[row_idx,:25])[0]
         pred = np.argmax(pred_prob)
         if pred_prob[0] > pred_prob[1]:
             recs.append(build_record(row_idx, train_context, 0, pred_prob[0]))
