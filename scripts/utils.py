@@ -79,7 +79,7 @@ def to_multitask_single(x, targetid, idxs_entities):
     added_columns = x.shape[0] * entity_number
     rest = np.zeros([added_columns])
     start = x.shape[0] * idx
-    end = start + x.shape[1]
+    end = start + x.shape[0]
     rest[start:end] = x[idx]
     new_x = np.hstack((x, rest))
     return new_x

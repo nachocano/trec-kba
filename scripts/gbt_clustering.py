@@ -142,7 +142,7 @@ def main():
     print 'relevant train a %s' % len(relevant_idxes_a_train)
     print 'relevant train u %s' % len(relevant_idxes_u_train)
 
-    relevant_idxes_au_train = relevant_idxes_a_train.tolist() + relevant_idxes_u_train.tolist()
+    relevant_idxes_au_train = relevant_idxes_a_train.tolist() + relevant_idxes_u_train
     relevant_idxes_au_train.sort()
 
     rows = len(relevant_idxes_au_train)
@@ -174,7 +174,7 @@ def main():
     print 'pre training clusters with %s examples, %s of the training' % (pre_train_delimiter, args.pre_train_split)
     pre_train_u = {}
     for i in xrange(pre_train_delimiter):
-        idx = train_context[rel_idxes_au_train[i]]
+        idx = relevant_idxes_au_train[i]
         streamid, targetid, date_hour = train_context[idx].split()
         example = x_train[idx][25:]
         min_distance_noun, avg_distance_noun, all_zeros_noun, timeliness_noun, \
@@ -196,6 +196,9 @@ def main():
     elapsed = time.time() - start
     print 'finished building training for uv classifier, took %s' % elapsed
 
+    print 'train a uv %s' % x_train_a_uv.shape
+    print 'train u uv %s' % len(x_train_u_uv)
+    
     assert x_train_a_uv.shape[0] == y_train_a_uv.shape[0]
     assert len(y_train_a_uv[y_train_a_uv == -1]) == 0
     assert len(y_train_a_uv[y_train_a_uv == 0]) == 0
