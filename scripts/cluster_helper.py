@@ -29,21 +29,26 @@ def new_features_per_type(targetid, streamid, date_hour, centroids, stream_info,
             stream_info[targetid][cluster_name].append((streamid, date_hour, timeliness, min_distance, avg_distance, list(example), list(centroids[targetid][cluster_name])))
         cluster_names[targetid] += 1
     else:
-        similarities = []
-        similarities_sum = 0
-        for cluster in centroids[targetid]:
-            centroid = matutils.unitvec(centroids[targetid][cluster][0] / centroids[targetid][cluster][1]).astype(np.float32)
-            similarity = np.dot(centroid, example)
-            similarities.append((cluster, similarity))
-            similarities_sum += similarity
+        if all_zeros == 1:
+            # use last cluster to put this new zero example
+            candidate_cluster_name = cluster_names[targetid] - 1
+            # min distance will be zero, so as to put it in the previous cluster
+        else:
+            similarities = []
+            similarities_sum = 0
+            for cluster in centroids[targetid]:
+                centroid = matutils.unitvec(centroids[targetid][cluster][0] / centroids[targetid][cluster][1]).astype(np.float32)
+                similarity = np.dot(centroid, example)
+                similarities.append((cluster, similarity))
+                similarities_sum += similarity
+        
+            maximum_tuple = max(tuple(r[::-1]) for r in similarities)[::-1]
+            candidate_cluster_name = maximum_tuple[0]
+            max_similarity = float(maximum_tuple[1])
     
-        maximum_tuple = max(tuple(r[::-1]) for r in similarities)[::-1]
-        candidate_cluster_name = maximum_tuple[0]
-        max_similarity = float(maximum_tuple[1])
-    
-        # two new features
-        min_distance = 1 - max_similarity
-        avg_distance = 1 - (similarities_sum / len(similarities))
+            # two new features
+            min_distance = 1 - max_similarity
+            avg_distance = 1 - (similarities_sum / len(similarities))
 
         if min_distance < alpha:
             # put in an already existent cluster
