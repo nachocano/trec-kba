@@ -55,10 +55,12 @@ def new_features_per_type(targetid, streamid, date_hour, centroids, stream_info,
             increase_timeliness(cluster_timeliness, targetid, candidate_cluster_name, gamma_increase)
             decrease_timeliness_except(cluster_timeliness, targetid, candidate_cluster_name, gamma_decrease)
             timeliness = cluster_timeliness[targetid][candidate_cluster_name]
-            # update the centroid for that cluster
-            p_sum = centroids[targetid][candidate_cluster_name][0] + example
-            p_n = centroids[targetid][candidate_cluster_name][1] + 1
-            centroids[targetid][candidate_cluster_name] = (p_sum, p_n)
+            # only update the centroid if it's not a zero example
+            if all_zeros == 0:
+                p_sum = centroids[targetid][candidate_cluster_name][0] + example
+                p_n = centroids[targetid][candidate_cluster_name][1] + 1
+                centroids[targetid][candidate_cluster_name] = (p_sum, p_n)
+            
             if init_clusters_info != None:
                 init_clusters_info[targetid][candidate_cluster_name].append((streamid, date_hour, min_distance, avg_distance, list(example)))
             else:

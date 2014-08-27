@@ -15,8 +15,9 @@ def main():
   args = parser.parse_args()
 
   for line in open(args.corpus).read().splitlines():
-    line = line.replace('http://s3.amazonaws.com/aws-publicdatasets/trec/kba/kba-streamcorpus-2014-v0_3_0-kba-filtered/', '')    
-    print line
+		line = line.replace('match: ', '').replace('/projects/grail/streamlab/datasets/aws-publicdatasets/trec/kba/kba-streamcorpus-2014-v0_3_0-kba-filtered/', '')
+		streamid, targetid, filename = line.split('\t')
+		print '%s\t%s\t%s' % (streamid, targetid, filename)
 
 if __name__ == '__main__':
   main()

@@ -32,8 +32,8 @@ def main():
         continue
       streamid = l[0]
       targetid = l[1]
-      date_hour = folder_regex.search(l[2]).group(1)
-      filename = l[2][l[2].rfind('/')+1:]
+      date_hour, filename = l[2].split('/')
+      #filename = l[2][l[2].rfind('/')+1:]
       if date_hour < entities[targetid]:
         train.write('%s %s %s %s\n' % (targetid, streamid, date_hour, filename))
       else:
