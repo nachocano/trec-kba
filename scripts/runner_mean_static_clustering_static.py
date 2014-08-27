@@ -16,8 +16,8 @@ def main():
                   -o ../../../clustering/data/outputs/uw-clustering_static_a%s.txt -tr ../../../clustering/data/train_sorted.tsv -t ../../../clustering/data/test_sorted.tsv \
                   -i uw-clustering_static_a%s -av %s -an %s -gvi 1 -gvd 1 -gni 1 -gnd 1 -s 0 -c ../../../clustering/ -rnrl ../../../clustering/model/rnr.pkl \
                   > ../../../clustering/logs/uw-clustering_static_a%s.log' % (name, name, alpha, alpha, name)
-  print clustering_static
-  os.system(clustering_static)
+    print clustering_static
+    os.system(clustering_static)
 
 if __name__ == '__main__':
   main()
