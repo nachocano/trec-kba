@@ -84,37 +84,17 @@ def to_multitask_single(x, targetid, idxs_entities):
     new_x = np.hstack((x, rest))
     return new_x
 
-def to_uv_multitask(x,y, cxt, entities_idxs, context=False):
-    idxs = np.where(y > 0)[0]
-    #print 'assessed uv docs %s' % len(assessed_idxs)
-    #unassessed_idxs = np.where(y == -10)[0]
-    #print 'unassessed uv docs %s' % len(unassessed_idxs)
-    #idxs = np.hstack((assessed_idxs, unassessed_idxs))
-    #idxs.sort()
-    count = len(idxs)
-    #print 'overall uv docs %s' % count
-    x_uv = np.zeros([count,x.shape[1]]).astype(np.float32)
-    y_uv = np.zeros([count])
-    for i, v in enumerate(idxs):
-        x_uv[i] = x[v]
-        y_uv[i] = y[v]
-
-    indexes = []
-    for i, index in enumerate(idxs):
-        targetid = cxt[index].split()[1]
-        indexes.append(entities_idxs[targetid])
-
-    entity_number = len(entities_idxs)
+def to_multitask(x, cxt, idxs_entities):
+    entity_number = len(idxs_entities)
     added_columns = x.shape[1] * entity_number
-    rest = np.zeros([count, added_columns])
-    for i, row in enumerate(x_uv):
-        start = x.shape[1] * (indexes[i])
+    rest = np.zeros([x.shape[0], added_columns])
+    for i, row in enumerate(x):
+        targetid = cxt[i].split()[1]
+        start = x.shape[1] * idxs_entities[targetid]
         end = start + x.shape[1]
         rest[i][start:end] = row
-    new_x_uv = np.hstack((x_uv, rest))
-    if context:
-        return (new_x_uv, y_uv, idxs)
-    return (new_x_uv, y_uv)
+    new_x = np.hstack((x, rest))
+    return new_x
 
 def to_uv_given_pred(x, pred_rnr):
     idxs = np.where(pred_rnr == 1)[0]
@@ -149,6 +129,31 @@ def to_uv_given_pred_multitask(x, y, pred_rnr, cxt, entities_idxs):
     new_x_uv = np.hstack((x_uv, rest))
     return (new_x_uv, y_uv, idxs)
 
+def to_uv_multitask(x,y, cxt, entities_idxs, context=False):
+    idxs = np.where(y > 0)[0]
+    count = len(idxs)
+    x_uv = np.zeros([count,x.shape[1]]).astype(np.float32)
+    y_uv = np.zeros([count])
+    for i, v in enumerate(idxs):
+        x_uv[i] = x[v]
+        y_uv[i] = y[v]
+
+    indexes = []
+    for i, index in enumerate(idxs):
+        targetid = cxt[index].split()[1]
+        indexes.append(entities_idxs[targetid])
+
+    entity_number = len(entities_idxs)
+    added_columns = x.shape[1] * entity_number
+    rest = np.zeros([count, added_columns])
+    for i, row in enumerate(x_uv):
+        start = x.shape[1] * (indexes[i])
+        end = start + x.shape[1]
+        rest[i][start:end] = row
+    new_x_uv = np.hstack((x_uv, rest))
+    if context:
+        return (new_x_uv, y_uv, idxs)
+    return (new_x_uv, y_uv)
 
 def feature_importance(importances, classifier):
     indices = np.argsort(importances)[::-1]
