@@ -15,7 +15,7 @@ filter_run = {
     "corpus_id": "kba-streamcorpus-2014-v0_3_0-kba-filtered",
     "team_id": "UW",
     "team_name": "University of Washington",
-    "poc_name": "TODO", 
+    "poc_name": "Ignacio Cano", 
     "poc_email": "icano@cs.washington.edu",
     "system_id": "TODO",
     "run_type": "automatic",
