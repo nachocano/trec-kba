@@ -57,25 +57,25 @@ public class ClusteringFeatureTask implements Callable<Void> {
 	}
 
 	private float[] populateFeatures(final List<Cluster> clusters,
-			final ClusterExample example, final WordType wordType,
+			final ClusterExample example, final WordType exampleWordType,
 			final HyperParams params) {
-		if (wordType.isZero()) {
+		if (exampleWordType.isZero()) {
 			// do not put it in any cluster
-			wordType.setAllZeros(1);
-			wordType.setMinDistance(1);
-			wordType.setAvgDistance(1);
+			exampleWordType.setAllZeros(1);
+			exampleWordType.setMinDistance(1);
+			exampleWordType.setAvgDistance(1);
 			// timeliness to zero, doesn't belong to any cluster
-			wordType.setTimeliness(0);
+			exampleWordType.setTimeliness(0);
 		} else {
 			if (clusters.isEmpty()) {
 				// create a new cluster, and add the example to it
 				final Cluster c = new Cluster();
-				c.updateSum(wordType.getArray());
+				c.updateSum(exampleWordType.getArray());
 				c.incrementCount();
 				c.addExample(example);
 				clusters.add(c);
 				// allZeros=0, minDistance=0, avgDistance=0
-				wordType.setTimeliness(c.getTimeliness());
+				exampleWordType.setTimeliness(c.getTimeliness());
 			} else {
 				float maxSimilarity = Float.MIN_VALUE;
 				float similaritiesSum = 0;
@@ -83,7 +83,7 @@ public class ClusteringFeatureTask implements Callable<Void> {
 				for (final Cluster c : clusters) {
 					// this may take time, try to profile it
 					final float sim = ClusteringUtils.dotProduct(
-							c.meanNormalized(), wordType.getArray());
+							c.meanNormalized(), exampleWordType.getArray());
 					similaritiesSum += sim;
 					if (sim > maxSimilarity) {
 						maxSimilarity = sim;
@@ -93,25 +93,25 @@ public class ClusteringFeatureTask implements Callable<Void> {
 				// two new features
 				final float minDistance = 1 - maxSimilarity;
 				final float avgDistance = 1 - similaritiesSum / clusters.size();
-				wordType.setMinDistance(minDistance);
-				wordType.setAvgDistance(avgDistance);
+				exampleWordType.setMinDistance(minDistance);
+				exampleWordType.setAvgDistance(avgDistance);
 
 				if (minDistance < params.getAlpha()) {
 					// put the example in an existent cluster
 					nearestCluster.addExample(example);
-					nearestCluster.updateSum(wordType.getArray());
+					nearestCluster.updateSum(exampleWordType.getArray());
 					nearestCluster.incrementCount();
 					updateTimeliness(clusters, nearestCluster, params);
-					wordType.setTimeliness(nearestCluster.getTimeliness());
+					exampleWordType.setTimeliness(nearestCluster.getTimeliness());
 				} else {
 					// create a new cluster, and add the example to it
 					final Cluster c = new Cluster();
-					c.updateSum(wordType.getArray());
+					c.updateSum(exampleWordType.getArray());
 					c.incrementCount();
 					c.addExample(example);
 					clusters.add(c);
 					// allZeros=0, minDistance=0, avgDistance=0
-					wordType.setTimeliness(c.getTimeliness());
+					exampleWordType.setTimeliness(c.getTimeliness());
 				}
 			}
 		}
