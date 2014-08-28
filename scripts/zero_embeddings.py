@@ -48,8 +48,8 @@ def print_stats(x_matrix, y_vector, mode):
     print 'number of examples with zero verb embedding that are vital %s' % zero_verbs_vital
     print 'number of examples with zero verb embedding that are useful %s' % zero_verbs_useful
     print 'number of examples with zero verb embedding that are non relevant %s' % zero_verbs_nr
-    print 'total usefuls %s' % usefuls
-    print 'total vitals %s' % vitals
+    print 'total usefuls %s' % useful
+    print 'total vitals %s' % vital
     print 'total non_relevant %s' % non_relevant
     print '### end %s ###' % mode
 

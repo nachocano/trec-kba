@@ -83,16 +83,20 @@ public class WordType {
 				.toHashCode();
 	}
 
-	@Override
-	public String toString() {
+	public String featuresToString() {
+		final StringBuilder sb = new StringBuilder().append(minDistance)
+				.append(ClusteringConstants.WHITE_SPACE).append(avgDistance)
+				.append(ClusteringConstants.WHITE_SPACE).append(timeliness)
+				.append(ClusteringConstants.WHITE_SPACE).append(allZeros);
+		return sb.toString();
+
+	}
+
+	public String arrayToString() {
 		final StringBuilder sb = new StringBuilder().append(array[0]);
 		for (int i = 1; i < array.length; i++) {
 			sb.append(ClusteringConstants.WHITE_SPACE).append(array[i]);
 		}
-		sb.append(ClusteringConstants.WHITE_SPACE).append(minDistance);
-		sb.append(ClusteringConstants.WHITE_SPACE).append(avgDistance);
-		sb.append(ClusteringConstants.WHITE_SPACE).append(timeliness);
-		sb.append(ClusteringConstants.WHITE_SPACE).append(allZeros);
 		return sb.toString();
 	}
 }

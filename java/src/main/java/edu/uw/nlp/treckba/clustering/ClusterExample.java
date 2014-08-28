@@ -92,9 +92,12 @@ public class ClusterExample {
 		for (int i = 1; i < features.length; i++) {
 			sb.append(ClusteringConstants.WHITE_SPACE).append(features[i]);
 		}
-		final String nounsAsStr = nouns.toString();
-		final String verbsAsStr = verbs.toString();
-		return String.format("%s %s %s", sb.toString(),
-				nounsAsStr, verbsAsStr);
+		final String nounsArrayAsStr = nouns.arrayToString();
+		final String verbsArrayAsStr = verbs.arrayToString();
+		final String nounsFeaturesAsStr = nouns.featuresToString();
+		final String verbsFeaturesAsStr = verbs.featuresToString();
+
+		return String.format("%s %s %s %s %s", sb.toString(), nounsArrayAsStr,
+				verbsArrayAsStr, nounsFeaturesAsStr, verbsFeaturesAsStr);
 	}
 }
