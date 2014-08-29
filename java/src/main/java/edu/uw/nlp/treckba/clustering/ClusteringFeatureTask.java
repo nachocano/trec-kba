@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class ClusteringFeatureTask implements Callable<Void> {
+public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 
 	private final List<ClusterExample> train;
 	private final List<ClusterExample> test;
@@ -27,7 +27,7 @@ public class ClusteringFeatureTask implements Callable<Void> {
 	}
 
 	@Override
-	public Void call() throws Exception {
+	public ClusteringOutput call() throws Exception {
 		final long start = System.currentTimeMillis();
 		try {
 			System.out.println("processing " + targetId);
@@ -41,7 +41,7 @@ public class ClusteringFeatureTask implements Callable<Void> {
 					targetId, (System.currentTimeMillis() - start) / 1000));
 
 		}
-		return null;
+		return new ClusteringOutput(targetId, nouns, verbs);
 	}
 
 	private void doProcess(final List<ClusterExample> set, final String str) {
@@ -102,7 +102,8 @@ public class ClusteringFeatureTask implements Callable<Void> {
 					nearestCluster.updateSum(exampleWordType.getArray());
 					nearestCluster.incrementCount();
 					updateTimeliness(clusters, nearestCluster, params);
-					exampleWordType.setTimeliness(nearestCluster.getTimeliness());
+					exampleWordType.setTimeliness(nearestCluster
+							.getTimeliness());
 				} else {
 					// create a new cluster, and add the example to it
 					final Cluster c = new Cluster();

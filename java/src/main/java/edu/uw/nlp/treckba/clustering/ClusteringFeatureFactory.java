@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class ClusteringFeatureFactory {
 
@@ -29,10 +30,27 @@ public class ClusteringFeatureFactory {
 		}
 
 		try {
-			executor.invokeAll(tasks);
+			final List<Future<ClusteringOutput>> futures = executor
+					.invokeAll(tasks);
+			int nounClusters = 0;
+			int verbClusters = 0;
+			for (final Future<ClusteringOutput> future : futures) {
+				final ClusteringOutput output = future.get();
+				if (output != null) {
+					nounClusters += output.getNounClusters().size();
+					verbClusters += output.getVerbClusters().size();
+				}
+			}
+
+			System.out.println("noun clusters " + nounClusters);
+			System.out.println("verb clusters " + verbClusters);
+
 		} catch (final InterruptedException e) {
 			System.out.println(String.format(
 					"error: interrupted exception: %s", e.getMessage()));
+		} catch (final Exception e) {
+			System.out.println(String.format("error: exception: %s",
+					e.getMessage()));
 		} finally {
 			executor.shutdown();
 		}
