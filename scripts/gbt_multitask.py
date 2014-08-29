@@ -10,6 +10,7 @@ from sklearn import ensemble
 def do_predict_uv_multitask(clf_uv, entities_idxs, cxt, x, recs, pred_rnr=None):
     if pred_rnr != None:
         idxs = np.where(pred_rnr == 1)[0]
+        print len(idxs)
     else:
         idxs = np.arange(x.shape[0]).tolist()
     entity_number = len(entities_idxs)

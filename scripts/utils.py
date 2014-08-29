@@ -73,16 +73,16 @@ def to_rnr_multitask(x, cxt, entities_idxs):
     new_x = np.hstack((x, rest))
     return new_x
 
-def to_multitask_single(x, targetid, idxs_entities):
-    idx = idxs_entities[targetid]
-    entity_number = len(idxs_entities)
-    added_columns = x.shape[0] * entity_number
-    rest = np.zeros([added_columns])
-    start = x.shape[0] * idx
-    end = start + x.shape[0]
-    rest[start:end] = x[idx]
-    new_x = np.hstack((x, rest))
-    return new_x
+#def to_multitask_single(x, targetid, idxs_entities):
+#    idx = idxs_entities[targetid]
+#    entity_number = len(idxs_entities)
+#    added_columns = x.shape[0] * entity_number
+#    rest = np.zeros([added_columns])
+#    start = x.shape[0] * idx
+#    end = start + x.shape[0]
+#    rest[start:end] = x
+#    new_x = np.hstack((x, rest))
+#    return new_x
 
 def to_multitask(x, cxt, idxs_entities):
     entity_number = len(idxs_entities)

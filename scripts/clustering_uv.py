@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from __future__ import division
-from utils import to_multitask, create_separate_global_data, filter_run, build_record, create_global_data, load_model, to_multitask_single
+from utils import to_multitask, create_separate_global_data, filter_run, build_record, create_global_data, load_model
 import re
 import os
 import sys
@@ -12,17 +12,21 @@ from sklearn import ensemble
 from collections import defaultdict
 
 def do_predict(clf_uv, x, cxt, idxs_entities, recs):
-    left = x.shape[0]
+    entity_number = len(idxs_entities)
+    orig_columns = x.shape[1]
     for i in xrange(x.shape[0]):
-        left -= 1
-        print 'more testing, %s left' % left
-        _, targetid, _ = cxt[i].split()
-        x_multitask = to_multitask_single(x[i], targetid, idxs_entities)
-        pred_uv_prob = clf_uv.predict_proba(x_multitask)[0]
+        targetid = cxt[i].split()[1]
+        idx = idxs_entities[targetid]
+        added_columns = np.zeros([orig_columns * entity_number])
+        start = orig_columns * idx
+        end = start + orig_columns
+        added_columns[start:end] = x[i]
+        new_x = np.hstack((x[i], added_columns))
+        pred_uv_prob = clf_uv.predict_proba(new_x)[0]
         prob = max(pred_uv_prob)
         relevance = np.argmax(pred_uv_prob)
         relevance += 1
-        recs.append(build_record(i, cxt, relevance, prob))        
+        recs.append(build_record(i, cxt, relevance, prob))
 
 def add_nr_results(filename, recs, filter_run):
     print 'adding nr results...'
@@ -91,6 +95,8 @@ def main():
     x_train_a_r_multitask = to_multitask(x_train_a_r, cxt_train_a_r, idxs_entities)
     elapsed = time.time() - start
     print 'finished to multitask, took %s' % elapsed
+
+    print x_train_a_r_multitask.shape
 
     start = time.time()
     print 'training uv classifier...'
