@@ -27,6 +27,7 @@ import edu.uw.nlp.treckba.utils.Utils;
 
 public class CreateFeaturesTask implements Callable<Void> {
 
+	private static final String WHITESPACE = " ";
 	private final File file;
 	private final List<String> entityNames;
 	private final String targetId;
@@ -42,7 +43,6 @@ public class CreateFeaturesTask implements Callable<Void> {
 		this.targetId = targetEntity;
 		this.entityNames = entityNames;
 		this.values = values;
-
 	}
 
 	@Override
@@ -138,45 +138,43 @@ public class CreateFeaturesTask implements Callable<Void> {
 							"serif");
 					final Set<String> nounLemmas = new HashSet<>();
 					final Set<String> verbLemmas = new HashSet<>();
-					for (final Sentence sentence : sentences) {
-						boolean containsMatch = false;
-						final Set<String> nounCandidateLemmas = new HashSet<>();
-						final Set<String> verbCandidateLemmas = new HashSet<>();
-						final List<Token> tokens = sentence.getTokens();
-						for (final Token token : tokens) {
-							final String lemma = token.getLemma();
-							final MentionType mentionType = token
-									.getMention_type();
-							if (partial != null
-									&& partial.matcher(lemma).find()
-									|| full.matcher(lemma).find()) {
-								if (mentionType == MentionType.NAME) {
-									containsMatch = true;
-									// don't add it as candidate
-									continue;
+					// only find lemmas on full matches, otherwise I may be
+					// adding irrelevant words (e.g. john lennon will match john
+					// tillman)
+					if (fullMatchesCount > 0) {
+						for (final Sentence sentence : sentences) {
+							final Set<String> nounCandidateLemmas = new HashSet<>();
+							final Set<String> verbCandidateLemmas = new HashSet<>();
+							final List<Token> tokens = sentence.getTokens();
+							final StringBuilder lemmas = new StringBuilder();
+							for (final Token token : tokens) {
+								final String lemma = token.getLemma();
+								lemmas.append(lemma).append(WHITESPACE);
+								final String pos = token.getPos();
+								// take the verbs
+								if (pos != null && pos.startsWith("V")) {
+									final String removedNonWords = lemma
+											.replaceAll("[^a-zA-Z ]", "");
+									if (removedNonWords.length() > 1) {
+										verbCandidateLemmas
+												.add(removedNonWords);
+									}
+								} else if (pos != null
+										&& !pos.startsWith("NNP")
+										&& token.getMention_type() != MentionType.NAME
+										&& pos.startsWith("N")) {
+									// take the nouns
+									final String nonWords = lemma.replaceAll(
+											"[^a-zA-Z ]", "");
+									if (nonWords.length() > 1) {
+										nounCandidateLemmas.add(nonWords);
+									}
 								}
 							}
-							final String pos = token.getPos();
-							// take the verbs
-							if (pos != null && pos.startsWith("V")) {
-								final String removedNonWords = lemma
-										.replaceAll("[^a-zA-Z ]", "");
-								if (removedNonWords.length() > 1) {
-									verbCandidateLemmas.add(removedNonWords);
-								}
-							} else if (pos != null && !pos.startsWith("NNP")
-									&& pos.startsWith("N")) {
-								// take the nouns
-								final String nonWords = lemma.replaceAll(
-										"[^a-zA-Z ]", "");
-								if (nonWords.length() > 1) {
-									nounCandidateLemmas.add(nonWords);
-								}
+							if (full.matcher(lemmas.toString()).find()) {
+								nounLemmas.addAll(nounCandidateLemmas);
+								verbLemmas.addAll(verbCandidateLemmas);
 							}
-						}
-						if (containsMatch) {
-							nounLemmas.addAll(nounCandidateLemmas);
-							verbLemmas.addAll(verbCandidateLemmas);
 						}
 					}
 
