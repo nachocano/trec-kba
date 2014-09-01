@@ -1,5 +1,7 @@
 package edu.uw.nlp.treckba.plot
 
+import java.io.File
+
 import org.apache.commons.cli._
 import org.apache.commons.lang.Validate
 import org.sameersingh.scalaplot.Style
@@ -14,19 +16,19 @@ object PrecisionRecall {
   def main(args: Array[String]) {
 
     val options = new Options()
-    options.addOption("i", true, "input files")
+    options.addOption("i", true, "input dir")
     options.addOption("o", true, "output directory")
     options.addOption("f", true, "output filename")
 
     val parser = new BasicParser()
 
-    var inputFiles: Array[String] = null
+    var inputDir: String = null
     var outputDir: String = null
     var outFilename: String = null
     try {
       val line = parser.parse(options, args)
-      inputFiles = line.getOptionValue("i").split(",")
-      Validate.notNull(inputFiles)
+      inputDir = line.getOptionValue("i")
+      Validate.notNull(inputDir)
       outputDir = line.getOptionValue("o")
       Validate.notNull(outputDir)
       outFilename = line.getOptionValue("f")
@@ -40,22 +42,27 @@ object PrecisionRecall {
       }
     }
 
-    val lists : ArrayBuffer[ArrayBuffer[(Double, Boolean)]] = new ArrayBuffer[ArrayBuffer[(Double, Boolean)]]
-    for (file <- inputFiles) {
-      val list = new ArrayBuffer[(Double, Boolean)]
-      for (line <- Source.fromFile(file).getLines) {
-        val values = line.split(" ")
-        val prob = values(0).toDouble
-        var truth = false
-        if (values(1).toInt == 1)
-          truth = true
-        val tuple = (prob, truth)
-        list += tuple
-      }
-      lists += list
-    }
 
-    val names = Array("uw-aggregate-entity", "uw-embedding-multi", "uw-aggregate-multi")
+
+    val names = new ArrayBuffer[String]()
+    val lists : ArrayBuffer[ArrayBuffer[(Double, Boolean)]] = new ArrayBuffer[ArrayBuffer[(Double, Boolean)]]
+    val inputFiles = new File(inputDir).listFiles()
+    for (file <- inputFiles) {
+      if (!file.isDirectory()) {
+        names += file.getName()
+        val list = new ArrayBuffer[(Double, Boolean)]
+        for (line <- Source.fromFile(file).getLines) {
+          val values = line.split(" ")
+          val prob = values(0).toDouble
+          var truth = false
+          if (values(1).toInt == 1)
+            truth = true
+          val tuple = (prob, truth)
+          list += tuple
+        }
+        lists += list
+      }
+    }
 
     val length = lists.length
     val curve = new PrecRecallCurve(lists(0))

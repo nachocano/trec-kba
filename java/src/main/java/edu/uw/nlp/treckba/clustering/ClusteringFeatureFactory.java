@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -32,18 +33,7 @@ public class ClusteringFeatureFactory {
 		try {
 			final List<Future<ClusteringOutput>> futures = executor
 					.invokeAll(tasks);
-			int nounClusters = 0;
-			int verbClusters = 0;
-			for (final Future<ClusteringOutput> future : futures) {
-				final ClusteringOutput output = future.get();
-				if (output != null) {
-					nounClusters += output.getNounClusters().size();
-					verbClusters += output.getVerbClusters().size();
-				}
-			}
-
-			System.out.println("noun clusters " + nounClusters);
-			System.out.println("verb clusters " + verbClusters);
+			printClusterStats(futures);
 
 		} catch (final InterruptedException e) {
 			System.out.println(String.format(
@@ -55,8 +45,28 @@ public class ClusteringFeatureFactory {
 			executor.shutdown();
 		}
 
-		outputResults(train, outputTrainFile);
-		outputResults(test, outputTestFile);
+		// outputResults(train, outputTrainFile);
+		// outputResults(test, outputTestFile);
+	}
+
+	private void printClusterStats(final List<Future<ClusteringOutput>> futures)
+			throws InterruptedException, ExecutionException {
+		int nounClusters = 0;
+		int verbClusters = 0;
+		for (final Future<ClusteringOutput> future : futures) {
+			final ClusteringOutput output = future.get();
+			if (output != null) {
+				final int nounSize = output.getNounClusters().size();
+				final int verbSize = output.getVerbClusters().size();
+				nounClusters += nounSize;
+				verbClusters += verbSize;
+				System.out.println(String.format("%s,%d,%d",
+						output.getTargetId(), nounSize, verbSize));
+			}
+		}
+
+		System.out.println("noun clusters " + nounClusters);
+		System.out.println("verb clusters " + verbClusters);
 	}
 
 	private void outputResults(final Map<String, List<ClusterExample>> map,

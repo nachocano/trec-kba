@@ -227,6 +227,27 @@ def create_separate_global_data(filename):
     y_u = np.array(y_u_list).astype(int)
     return x_a, y_a, cxt_a, x_u, y_u, cxt_u
 
+
+def create_relevant_global_data(filename):
+    x_r_list = []
+    y_r_list = []
+    cxt_r = []
+    with open(filename) as f:
+        for line in f.read().splitlines():
+            instance = line.split()
+            streamid = instance[0]
+            targetid = instance[1]
+            date_hour = instance[2]
+            label = int(instance[3])
+            features = instance[4:]
+            if label == 1 or label == 2:
+                x_r_list.append(features)
+                y_r_list.append(label)
+                cxt_r.append('%s %s %s' % (streamid, targetid, date_hour))
+    x_r = np.array(x_r_list).astype(np.float32)
+    y_r = np.array(y_r_list).astype(int)
+    return x_r, y_r, cxt_r
+
 def create_global_data(filename):
     x_list = []
     y_list = []
