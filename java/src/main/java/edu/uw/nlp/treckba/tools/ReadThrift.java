@@ -24,7 +24,10 @@ public class ReadThrift {
 				final StreamItem item = new StreamItem();
 				item.read(protocol);
 				final String streamId = item.getStream_id();
-				System.out.println(streamId);
+				if ("1355400154-ad025327bee569bf8d3ff89414c7f5e0"
+						.equals(streamId)) {
+					System.out.println(item.getBody().getClean_visible());
+				}
 			}
 		} catch (final TTransportException te) {
 			if (te.getType() != TTransportException.END_OF_FILE) {

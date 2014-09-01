@@ -48,17 +48,13 @@ def main():
     elapsed = time.time() - start
     print 'read data and build lists finished, took %s' % elapsed
 
-    for targetid in targetids:
-        if "Mason" in targetid:
-            features_n_u = feature_lists(targetids[targetid]['nouns']['useful'])
-            features_n_v = feature_lists(targetids[targetid]['nouns']['vital'])
-            features_v_u = feature_lists(targetids[targetid]['verbs']['useful'])
-            features_v_v = feature_lists(targetids[targetid]['verbs']['vital'])
-            #print '%s\tnouns useful avg min:%s\tnouns vital avg min:%s' % (targetid, np.mean(features_n_u[0]), np.mean(features_n_v[0]))
-            #print '%s\tverbs useful avg min:%s\tverbs vital avg min:%s' % (targetid, np.mean(features_v_u[0]), np.mean(features_v_v[0]))
-            plot(targetid, features_n_u, features_n_v, features_v_u, features_v_v)
+    #feature_dist(targetids)
 
-    #run = read_run(args.run)
+    run = read_run(args.run)
+
+    print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r)
+
+
  
 def read_run(run_file):
     run = defaultdict(dict)
@@ -89,6 +85,37 @@ def feature_lists(array):
         times.append(e[2])
         zeros.append(e[3])
     return mins, avgs, times, zeros
+
+
+def print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r):
+    x = np.vstack((x_train_a_r, x_test_a_r))
+    y = np.hstack((y_train_a_r, y_test_a_r))
+    cxt = cxt_train_a_r + cxt_test_a_r
+    errors = defaultdict(list)
+    for xi, yi, ci in zip(x, y, cxt):
+        streamid, targetid, date_hour = ci.split()
+        if run[targetid].has_key(streamid):
+            truth_relevance = run[targetid][streamid]
+            if yi != truth_relevance:
+                errors[targetid].append((streamid, truth_relevance, yi))
+
+    total = 0
+    for targetid in errors:
+        total += len(errors[targetid])
+        print '%s %s' % (targetid, errors[targetid])
+    print 'total errors %s' % total
+
+def feature_dist(targetids):
+    for targetid in targetids:
+        if "Mason" in targetid:
+            features_n_u = feature_lists(targetids[targetid]['nouns']['useful'])
+            features_n_v = feature_lists(targetids[targetid]['nouns']['vital'])
+            features_v_u = feature_lists(targetids[targetid]['verbs']['useful'])
+            features_v_v = feature_lists(targetids[targetid]['verbs']['vital'])
+            #print '%s\tnouns useful avg min:%s\tnouns vital avg min:%s' % (targetid, np.mean(features_n_u[0]), np.mean(features_n_v[0]))
+            #print '%s\tverbs useful avg min:%s\tverbs vital avg min:%s' % (targetid, np.mean(features_v_u[0]), np.mean(features_v_v[0]))
+            plot(targetid, features_n_u, features_n_v, features_v_u, features_v_v)
+
 
 def plot(targetid, features_n_u, features_n_v, features_v_u, features_v_v):
     nr_useful_docs = np.arange(len(features_n_u[0])) + 1
