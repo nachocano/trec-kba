@@ -81,7 +81,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>edu.uw.nlp.treckba.feature.FeatureDriver</mainClass>
+							<mainClass>edu.uw.nlp.treckba.tools.ReadThrift</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
