@@ -95,9 +95,9 @@ def print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test
     for xi, yi, ci in zip(x, y, cxt):
         streamid, targetid, date_hour = ci.split()
         if run[targetid].has_key(streamid):
-            truth_relevance = run[targetid][streamid]
-            if yi != truth_relevance:
-                errors[targetid].append((streamid, truth_relevance, yi))
+            prediction = run[targetid][streamid]
+            if yi != prediction:
+                errors[targetid].append((streamid, yi, prediction))
 
     total = 0
     for targetid in errors:

@@ -33,7 +33,7 @@ public class ClusteringFeatureFactory {
 		try {
 			final List<Future<ClusteringOutput>> futures = executor
 					.invokeAll(tasks);
-			printClusterStats(futures);
+			// printClusterStats(futures);
 
 		} catch (final InterruptedException e) {
 			System.out.println(String.format(
@@ -45,8 +45,8 @@ public class ClusteringFeatureFactory {
 			executor.shutdown();
 		}
 
-		// outputResults(train, outputTrainFile);
-		// outputResults(test, outputTestFile);
+		outputResults(train, outputTrainFile);
+		outputResults(test, outputTestFile);
 	}
 
 	private void printClusterStats(final List<Future<ClusteringOutput>> futures)

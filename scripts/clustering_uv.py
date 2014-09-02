@@ -100,7 +100,7 @@ def main():
 
     start = time.time()
     print 'training uv classifier...'
-    clf_uv = ensemble.ExtraTreeClassifier()
+    clf_uv = ensemble.ExtraTreesClassifier()
     clf_uv = clf_uv.fit(x_train_a_r_multitask, y_train_a_r)
     elapsed = time.time() - start
     print 'finished training uv classifier, took %s' % elapsed

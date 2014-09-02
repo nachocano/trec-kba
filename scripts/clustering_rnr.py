@@ -75,7 +75,7 @@ def main():
 
     nr_file.close()
     rtr_file.close()
-    rtr_file.close()
+    rt_file.close()
 
 
 if __name__ == '__main__':
