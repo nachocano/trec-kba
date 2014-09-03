@@ -10,6 +10,7 @@ import argparse
 import numpy as np
 from sklearn import ensemble
 from collections import defaultdict
+from copy import deepcopy
 
 def do_predict(clf_uv, x, cxt, idxs_entities, recs):
     entity_number = len(idxs_entities)
@@ -63,7 +64,6 @@ def main():
     filter_run["run_info"] = {
         "num_entities": len(entities),
     }
-    filter_run["system_id"] = args.system_id
 
     idxs_entities = {}
     for i, entity in enumerate(entities):
@@ -98,41 +98,44 @@ def main():
 
     print x_train_a_r_multitask.shape
 
-    start = time.time()
-    print 'training uv classifier...'
-    clf_uv = ensemble.ExtraTreesClassifier()
-    clf_uv = clf_uv.fit(x_train_a_r_multitask, y_train_a_r)
-    elapsed = time.time() - start
-    print 'finished training uv classifier, took %s' % elapsed
+    estimators = [10, 100, 150, 200, 250, 300]
+    random_seed = 37
 
-    start = time.time()
-    print 'testing uv classifier...'
-    do_predict(clf_uv, x_test_r, cxt_test_r, idxs_entities, recs)
-    do_predict(clf_uv, x_train_u_r, cxt_train_u_r, idxs_entities, recs)
-    elapsed = time.time() - start
-    print 'finished testing on uv classifier, took %s' % elapsed
+    for estimator in estimators:
+        new_recs = deepcopy(recs)
+        start = time.time()
+        print 'training uv classifier with n_estimators=%d' % estimator
+        clf_uv = ensemble.ExtraTreesClassifier(n_estimators=estimator, random_state=random_seed)
+        clf_uv = clf_uv.fit(x_train_a_r_multitask, y_train_a_r)
+        elapsed = time.time() - start
+        print 'finished training uv classifier with n_estimators=%d, took %s' % (estimator, elapsed)
 
-    print len(recs)
+        start = time.time()
+        print 'testing uv classifier with n_estimators=%d' % estimator
+        do_predict(clf_uv, x_test_r, cxt_test_r, idxs_entities, new_recs)
+        do_predict(clf_uv, x_train_u_r, cxt_train_u_r, idxs_entities, new_recs)
+        elapsed = time.time() - start
+        print 'finished testing uv classifier with n_estimators=%d, took %s' % (estimator, elapsed)
+
+        filter_run["system_id"] = '%s_e%d' % (args.system_id, estimator)
+        
+        # generate output
+        output = open('%s_e%d' % (args.output_file, estimator), "w")
+        filter_run_json_string = json.dumps(filter_run)
+        output.write("#%s\n" % filter_run_json_string)
+
+        for rec in new_recs:
+            output.write("\t".join(map(str, rec)) + "\n")
+
+        #filter_run["run_info"]["elapsed_time"] = elapsed_run
+        filter_run["run_info"]["num_filter_results"] = len(new_recs)
+        filter_run_json_string = json.dumps(filter_run, indent=4, sort_keys=True)
+        filter_run_json_string = re.sub("\n", "\n#", filter_run_json_string)
+        output.write("#%s\n" % filter_run_json_string)
+        output.close()
 
     elapsed_run = time.time() - begin
     print 'all run took %s' % elapsed_run
-
-    # generate output
-    output = open(args.output_file, "w")
-    filter_run_json_string = json.dumps(filter_run)
-    output.write("#%s\n" % filter_run_json_string)
-
-    for rec in recs:
-        output.write("\t".join(map(str, rec)) + "\n")
-
-    
-    filter_run["run_info"]["elapsed_time"] = elapsed_run
-    filter_run["run_info"]["num_filter_results"] = len(recs)
-    filter_run_json_string = json.dumps(filter_run, indent=4, sort_keys=True)
-    filter_run_json_string = re.sub("\n", "\n#", filter_run_json_string)
-    output.write("#%s\n" % filter_run_json_string)
-
-    output.close()
 
 if __name__ == '__main__':
   #np.set_printoptions(threshold=np.nan, linewidth=1000000000000000, )

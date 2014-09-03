@@ -36,23 +36,24 @@ def main():
     assert len(y_train_a_r[y_train_a_r == 0]) == 0
     assert len(y_train_a_r[y_train_a_r == -10]) == 0
 
-    x_test_a_r, y_test_a_r, cxt_test_a_r = create_relevant_global_data(args.test_relevant)
+    #x_test_a_r, y_test_a_r, cxt_test_a_r = create_relevant_global_data(args.test_relevant)
 
-    assert len(y_test_a_r[y_test_a_r == -1]) == 0
-    assert len(y_test_a_r[y_test_a_r == 0]) == 0
-    assert len(y_test_a_r[y_test_a_r == -10]) == 0
+    #assert len(y_test_a_r[y_test_a_r == -1]) == 0
+    #assert len(y_test_a_r[y_test_a_r == 0]) == 0
+    #assert len(y_test_a_r[y_test_a_r == -10]) == 0
 
     targetids = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
     populate(targetids, x_train_a_r, y_train_a_r, cxt_train_a_r)
-    populate(targetids, x_test_a_r, y_test_a_r, cxt_test_a_r)
+    #populate(targetids, x_test_a_r, y_test_a_r, cxt_test_a_r)
     elapsed = time.time() - start
     print 'read data and build lists finished, took %s' % elapsed
 
+    timeliness_vs_min_distance(targetids)
     #feature_dist(targetids)
 
-    run = read_run(args.run)
+    #run = read_run(args.run)
 
-    print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r)
+    #print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r)
 
 
  
@@ -87,6 +88,55 @@ def feature_lists(array):
     return mins, avgs, times, zeros
 
 
+def timeliness_vs_min_distance(targetids):
+    features_n_u_min = []
+    features_n_v_min = []
+    features_v_u_min = []
+    features_v_v_min = []
+    features_n_u_avg = []
+    features_n_v_avg = []
+    features_v_u_avg = []
+    features_v_v_avg = []
+    features_n_u_time = []
+    features_n_v_time = []
+    features_v_u_time = []
+    features_v_v_time = []
+    for targetid in targetids:
+        features_n_u = feature_lists(targetids[targetid]['nouns']['useful'])
+        features_n_u_min.extend(features_n_u[0])
+        features_n_u_avg.extend(features_n_u[1])
+        features_n_u_time.extend(features_n_u[2])
+        features_n_v = feature_lists(targetids[targetid]['nouns']['vital'])
+        features_n_v_min.extend(features_n_v[0])
+        features_n_v_avg.extend(features_n_v[1])
+        features_n_v_time.extend(features_n_v[2])
+        features_v_u = feature_lists(targetids[targetid]['verbs']['useful'])
+        features_v_u_min.extend(features_v_u[0])
+        features_v_u_avg.extend(features_v_u[1])
+        features_v_u_time.extend(features_v_u[2])
+        features_v_v = feature_lists(targetids[targetid]['verbs']['vital'])
+        features_v_v_min.extend(features_v_v[0])
+        features_v_v_avg.extend(features_v_v[1])
+        features_v_v_time.extend(features_v_v[2])
+    plot_timeliness_vs_x("Min Distance", features_n_u_min, features_n_v_min, features_v_u_min, features_v_v_min, features_n_u_time, features_n_v_time, features_v_u_time, features_v_v_time)
+    plot_timeliness_vs_x("Avg Distance", features_n_u_avg, features_n_v_avg, features_v_u_avg, features_v_v_avg, features_n_u_time, features_n_v_time, features_v_u_time, features_v_v_time)
+
+
+def plot_timeliness_vs_x(vs, features_n_u_x, features_n_v_x, features_v_u_x, features_v_v_x, features_n_u_y, features_n_v_y, features_v_u_y, features_v_v_y):
+    f, axarr = plt.subplots(1, 2)
+    f.suptitle("Timeliness vs %s" % vs, fontsize=13, fontweight='bold')
+    axarr[0].scatter(features_n_u_x, features_n_u_y, c='b', label='useful')
+    axarr[0].scatter(features_n_v_x, features_n_v_y, c='r', label='vital')
+    axarr[0].set_title('Nouns')
+    axarr[1].scatter(features_v_u_x, features_v_u_y, c='b', label='useful')
+    axarr[1].scatter(features_v_v_x, features_v_v_y, c='r', label='vital')
+    axarr[1].set_title('Verbs')
+    plt.legend(loc="upper right")
+    plt.xlabel(vs.lower())
+    plt.ylabel('timeliness')
+    plt.show()
+
+
 def print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r):
     x = np.vstack((x_train_a_r, x_test_a_r))
     y = np.hstack((y_train_a_r, y_test_a_r))
@@ -114,10 +164,10 @@ def feature_dist(targetids):
             features_v_v = feature_lists(targetids[targetid]['verbs']['vital'])
             #print '%s\tnouns useful avg min:%s\tnouns vital avg min:%s' % (targetid, np.mean(features_n_u[0]), np.mean(features_n_v[0]))
             #print '%s\tverbs useful avg min:%s\tverbs vital avg min:%s' % (targetid, np.mean(features_v_u[0]), np.mean(features_v_v[0]))
-            plot(targetid, features_n_u, features_n_v, features_v_u, features_v_v)
+            plot_dist(targetid, features_n_u, features_n_v, features_v_u, features_v_v)
 
 
-def plot(targetid, features_n_u, features_n_v, features_v_u, features_v_v):
+def plot_dist(targetid, features_n_u, features_n_v, features_v_u, features_v_v):
     nr_useful_docs = np.arange(len(features_n_u[0])) + 1
     nr_vital_docs = np.arange(len(features_n_v[0])) + 1
     f, axarr = plt.subplots(2, 2)
