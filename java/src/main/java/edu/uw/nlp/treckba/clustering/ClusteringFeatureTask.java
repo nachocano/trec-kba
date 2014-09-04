@@ -101,9 +101,9 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 					nearestCluster.addExample(example);
 					nearestCluster.updateSum(exampleWordType.getArray());
 					nearestCluster.incrementCount();
-					updateTimeliness(clusters, nearestCluster, params);
 					exampleWordType.setTimeliness(nearestCluster
 							.getTimeliness());
+					updateTimeliness(clusters, nearestCluster, params);
 				} else {
 					// create a new cluster, and add the example to it
 					final Cluster c = new Cluster();

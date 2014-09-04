@@ -10,13 +10,19 @@ import numpy as np
 
 def populate(targetids, x_a_r, y_a_r, cxt_a_r):
     for x, y, cxt in zip(x_a_r, y_a_r, cxt_a_r):
+        nouns = x[625:629]
+        verbs = x[629:633]
+        assert nouns[2] >= 0 and nouns[2] <= 1
+        assert verbs[2] >= 0 and verbs[2] <= 1
+        #if nouns[2] < 0.5 and nouns[2] > 0:
+        #    print nouns[2]
         targetid = cxt.split()[1]
         if y == 1:
-            targetids[targetid]['nouns']['useful'].append(x[625:629])
-            targetids[targetid]['verbs']['useful'].append(x[629:633])
+            targetids[targetid]['nouns']['useful'].append(nouns)
+            targetids[targetid]['verbs']['useful'].append(verbs)
         elif y == 2:
-            targetids[targetid]['nouns']['vital'].append(x[625:629])
-            targetids[targetid]['verbs']['vital'].append(x[629:633])
+            targetids[targetid]['nouns']['vital'].append(nouns)
+            targetids[targetid]['verbs']['vital'].append(verbs)
         else:
             print 'invalid label, should be 1 or 2, is %s' % y
 
@@ -88,6 +94,110 @@ def feature_lists(array):
     return mins, avgs, times, zeros
 
 
+def print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r):
+    #x = np.vstack((x_train_a_r, x_test_a_r))
+    #y = np.hstack((y_train_a_r, y_test_a_r))
+    #cxt = cxt_train_a_r + cxt_test_a_r
+    counts_v = defaultdict(lambda: defaultdict(int))
+    print 'number test assessed relevant docs %s' % y_test_a_r.shape[0]
+    #errors = defaultdict(list)
+    for xi, yi, ci in zip(x_test_a_r, y_test_a_r, cxt_test_a_r):
+        streamid, targetid, date_hour = ci.split()
+        if run[targetid].has_key(streamid):
+            prediction = run[targetid][streamid]
+            vital_only(counts_v, targetid, yi, prediction)
+            #if yi != prediction:
+            #errors[targetid].append((streamid, yi, prediction))
+
+    tps = 0
+    tns = 0
+    fps = 0
+    fns = 0
+    for targetid in counts_v:
+        tps += counts_v[targetid]['TP']
+        fps += counts_v[targetid]['FP']
+        fns += counts_v[targetid]['FN']
+        tns += counts_v[targetid]['TN']
+
+    print 'TP %s' % tps
+    print 'TN %s' % tns
+    print 'FP %s' % fps
+    print 'FN %s' % fns
+
+    p = precision(tps, fps)
+    r = recall(tps, fns)
+    f1 = fscore(p, r)
+
+    print 'precision %s, recall %s, f1 %s' % (p, r, f1) 
+
+#    total = 0
+#    for targetid in errors:
+#        total += len(errors[targetid])
+#        print '%s %s' % (targetid, errors[targetid])
+#    print 'total errors %s' % total
+
+def precision(TP, FP):
+    if (TP+FP) > 0:
+        precision = float(TP) / (TP + FP)
+        return precision
+    else:
+        return 0.0
+
+def recall(TP, FN):
+    if (TP+FN) > 0:
+        recall = float(TP) / (TP + FN)
+        return recall
+    else:
+        return 0.0
+
+def fscore(precision=None, recall=None):
+    if precision + recall > 0:
+        return float(2 * precision * recall) / (precision + recall)
+    else:
+        return 0.0
+
+
+def feature_dist(targetids):
+    for targetid in targetids:
+        if "Mason" in targetid:
+            features_n_u = feature_lists(targetids[targetid]['nouns']['useful'])
+            features_n_v = feature_lists(targetids[targetid]['nouns']['vital'])
+            features_v_u = feature_lists(targetids[targetid]['verbs']['useful'])
+            features_v_v = feature_lists(targetids[targetid]['verbs']['vital'])
+            #print '%s\tnouns useful avg min:%s\tnouns vital avg min:%s' % (targetid, np.mean(features_n_u[0]), np.mean(features_n_v[0]))
+            #print '%s\tverbs useful avg min:%s\tverbs vital avg min:%s' % (targetid, np.mean(features_v_u[0]), np.mean(features_v_v[0]))
+            plot_dist(targetid, features_n_u, features_n_v, features_v_u, features_v_v)
+
+
+def plot_dist(targetid, features_n_u, features_n_v, features_v_u, features_v_v):
+    nr_useful_docs = np.arange(len(features_n_u[0])) + 1
+    nr_vital_docs = np.arange(len(features_n_v[0])) + 1
+    f, axarr = plt.subplots(2, 2)
+    f.suptitle(targetid, fontsize=13, fontweight='bold')
+    axarr[0, 0].plot(nr_useful_docs, features_n_u[0], 'r', nr_useful_docs, features_n_u[1], 'g')
+    axarr[0, 0].set_title('Nouns Useful')
+    axarr[0, 1].plot(nr_vital_docs, features_n_v[0], 'r', nr_vital_docs, features_n_v[1], 'g')
+    axarr[0, 1].set_title('Nouns Vital')
+    axarr[1, 0].plot(nr_useful_docs, features_v_u[0], 'r', nr_useful_docs, features_v_u[1], 'g')
+    axarr[1, 0].set_title('Verbs Useful')
+    axarr[1, 1].plot(nr_vital_docs, features_v_v[0], 'r', nr_vital_docs, features_v_v[1], 'g')
+    axarr[1, 1].set_title('Verbs Vital')
+    plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
+    #plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
+    plt.legend(('mins', 'avg'), loc="upper right")
+    plt.show()
+
+def vital_only(counts_v, targetid, truth, prediction):
+    if prediction == 2 and truth == 2:
+        counts_v[targetid]['TP'] += 1
+    elif prediction == 2 and truth != 2:
+        counts_v[targetid]['FP'] += 1
+    elif prediction != 2 and truth == 2:
+        counts_v[targetid]['FN'] += 1
+    elif prediction != 2 and truth != 2:
+        counts_v[targetid]['TN'] += 1
+
+
 def timeliness_vs_min_distance(targetids):
     features_n_u_min = []
     features_n_v_min = []
@@ -136,54 +246,6 @@ def plot_timeliness_vs_x(vs, features_n_u_x, features_n_v_x, features_v_u_x, fea
     plt.ylabel('timeliness')
     plt.show()
 
-
-def print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r):
-    x = np.vstack((x_train_a_r, x_test_a_r))
-    y = np.hstack((y_train_a_r, y_test_a_r))
-    cxt = cxt_train_a_r + cxt_test_a_r
-    errors = defaultdict(list)
-    for xi, yi, ci in zip(x, y, cxt):
-        streamid, targetid, date_hour = ci.split()
-        if run[targetid].has_key(streamid):
-            prediction = run[targetid][streamid]
-            if yi != prediction:
-                errors[targetid].append((streamid, yi, prediction))
-
-    total = 0
-    for targetid in errors:
-        total += len(errors[targetid])
-        print '%s %s' % (targetid, errors[targetid])
-    print 'total errors %s' % total
-
-def feature_dist(targetids):
-    for targetid in targetids:
-        if "Mason" in targetid:
-            features_n_u = feature_lists(targetids[targetid]['nouns']['useful'])
-            features_n_v = feature_lists(targetids[targetid]['nouns']['vital'])
-            features_v_u = feature_lists(targetids[targetid]['verbs']['useful'])
-            features_v_v = feature_lists(targetids[targetid]['verbs']['vital'])
-            #print '%s\tnouns useful avg min:%s\tnouns vital avg min:%s' % (targetid, np.mean(features_n_u[0]), np.mean(features_n_v[0]))
-            #print '%s\tverbs useful avg min:%s\tverbs vital avg min:%s' % (targetid, np.mean(features_v_u[0]), np.mean(features_v_v[0]))
-            plot_dist(targetid, features_n_u, features_n_v, features_v_u, features_v_v)
-
-
-def plot_dist(targetid, features_n_u, features_n_v, features_v_u, features_v_v):
-    nr_useful_docs = np.arange(len(features_n_u[0])) + 1
-    nr_vital_docs = np.arange(len(features_n_v[0])) + 1
-    f, axarr = plt.subplots(2, 2)
-    f.suptitle(targetid, fontsize=13, fontweight='bold')
-    axarr[0, 0].plot(nr_useful_docs, features_n_u[0], 'r', nr_useful_docs, features_n_u[1], 'g')
-    axarr[0, 0].set_title('Nouns Useful')
-    axarr[0, 1].plot(nr_vital_docs, features_n_v[0], 'r', nr_vital_docs, features_n_v[1], 'g')
-    axarr[0, 1].set_title('Nouns Vital')
-    axarr[1, 0].plot(nr_useful_docs, features_v_u[0], 'r', nr_useful_docs, features_v_u[1], 'g')
-    axarr[1, 0].set_title('Verbs Useful')
-    axarr[1, 1].plot(nr_vital_docs, features_v_v[0], 'r', nr_vital_docs, features_v_v[1], 'g')
-    axarr[1, 1].set_title('Verbs Vital')
-    plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
-    #plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
-    plt.legend(('mins', 'avg'), loc="upper right")
-    plt.show()
 
 if __name__ == '__main__':
   main()
