@@ -17,7 +17,7 @@ public class ClusterExample {
 	// should have used folder <= training_end_range instead of strictly <. Some
 	// unassessed test docs should be part of unassessed train.
 	private boolean discardFlag;
-	private float globalTimeliness;
+	private float entityTimeliness;
 
 	public ClusterExample(final String streamId, final String targetId,
 			final String dateHour, final int relevance) {
@@ -115,19 +115,19 @@ public class ClusterExample {
 		final String verbsArrayAsStr = verbs.arrayToString();
 		final String nounsFeaturesAsStr = nouns.featuresToString();
 		final String verbsFeaturesAsStr = verbs.featuresToString();
-		final String globalTimelinessAsStr = String.format("%.5f",
-				globalTimeliness);
+		final String entityTimelinessAsStr = String.format("%.5f",
+				entityTimeliness);
 
 		return String.format("%s %s %s %s %s %s", sb.toString(),
 				nounsArrayAsStr, verbsArrayAsStr, nounsFeaturesAsStr,
-				verbsFeaturesAsStr, globalTimelinessAsStr);
+				verbsFeaturesAsStr, entityTimelinessAsStr);
 	}
 
-	public float getGlobalTimeliness() {
-		return globalTimeliness;
+	public float getEntityTimeliness() {
+		return entityTimeliness;
 	}
 
-	public void setGlobalTimeliness(final float globalTimeliness) {
-		this.globalTimeliness = globalTimeliness;
+	public void setEntityTimeliness(final float globalTimeliness) {
+		this.entityTimeliness = globalTimeliness;
 	}
 }

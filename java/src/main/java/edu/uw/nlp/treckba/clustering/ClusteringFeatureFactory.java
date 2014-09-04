@@ -52,8 +52,8 @@ public class ClusteringFeatureFactory {
 
 		// using nouns params for increase/decrease, maybe should create new
 		// gammas
-		final CorpusTimeliness ct = new CorpusTimeliness(timestampNormalizer);
-		ct.computeTimeliness(wholeCorpus, nounsParams);
+		final EntityTimeliness et = new EntityTimeliness(timestampNormalizer);
+		et.computeTimeliness(wholeCorpus, nounsParams);
 
 		outputResults(train, outputTrainFile);
 		outputResults(test, outputTestFile);
