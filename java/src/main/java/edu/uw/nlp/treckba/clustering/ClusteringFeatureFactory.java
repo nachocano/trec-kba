@@ -45,6 +45,16 @@ public class ClusteringFeatureFactory {
 		} finally {
 			executor.shutdown();
 		}
+
+		final List<ClusterExample> wholeCorpus = ClusteringUtils.mergeAndSort(
+				train, test);
+		System.out.println(wholeCorpus.size());
+
+		// using nouns params for increase/decrease, maybe should create new
+		// gammas
+		final CorpusTimeliness ct = new CorpusTimeliness(timestampNormalizer);
+		ct.computeTimeliness(wholeCorpus, nounsParams);
+
 		outputResults(train, outputTrainFile);
 		outputResults(test, outputTestFile);
 	}

@@ -1,7 +1,6 @@
 package edu.uw.nlp.treckba.clustering;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -99,13 +98,7 @@ public class ClusteringDriver {
 		for (final String targetId : map.keySet()) {
 			final List<ClusterExample> examples = map.get(targetId);
 			count += examples.size();
-			Collections.sort(examples, new Comparator<ClusterExample>() {
-				@Override
-				public int compare(final ClusterExample o1,
-						final ClusterExample o2) {
-					return (int) (o1.getTimestamp() - o2.getTimestamp());
-				}
-			});
+			Collections.sort(examples, new TimestampComparator());
 		}
 		return count;
 	}

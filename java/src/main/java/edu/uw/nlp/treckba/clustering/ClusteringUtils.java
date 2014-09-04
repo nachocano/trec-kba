@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -96,5 +98,19 @@ public class ClusteringUtils {
 			norm += Math.pow(element, 2);
 		}
 		return (float) Math.sqrt(norm);
+	}
+
+	public static List<ClusterExample> mergeAndSort(
+			final Map<String, List<ClusterExample>> train,
+			final Map<String, List<ClusterExample>> test) {
+		System.out.println("merging and sorting");
+		final List<ClusterExample> result = new ArrayList<ClusterExample>();
+		for (final String targetId : train.keySet()) {
+			result.addAll(train.get(targetId));
+			result.addAll(test.get(targetId));
+		}
+		Collections.sort(result, new TimestampComparator());
+		System.out.println("sorted");
+		return result;
 	}
 }

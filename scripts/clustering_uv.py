@@ -98,30 +98,31 @@ def main():
 
     print x_train_a_r_multitask.shape
 
-    #estimators = [10, 100, 150, 200, 250, 300]
-    estimators = [150]
+    estimator = 150
+    min_samples_splits = [2, 10, 100, 1000, 10000]
     random_seed = 37
 
-    for estimator in estimators:
+    for min_sample in min_samples_splits:
+
+        filter_run["system_id"] = '%s_ms%d' % (args.system_id, min_sample)
+
         new_recs = deepcopy(recs)
         start = time.time()
-        print 'training uv classifier with n_estimators=%d' % estimator
-        clf_uv = ensemble.ExtraTreesClassifier(n_estimators=estimator, random_state=random_seed)
+        print 'training uv classifier with min_sample_split=%d' % min_sample
+        clf_uv = ensemble.ExtraTreesClassifier(n_estimators=estimator, random_state=random_seed, min_samples_split=min_sample)
         clf_uv = clf_uv.fit(x_train_a_r_multitask, y_train_a_r)
         elapsed = time.time() - start
-        print 'finished training uv classifier with n_estimators=%d, took %s' % (estimator, elapsed)
+        print 'finished training uv classifier with min_sample_split=%d, took %s' % (min_sample, elapsed)
 
         start = time.time()
-        print 'testing uv classifier with n_estimators=%d' % estimator
+        print 'testing uv classifier with min_sample_split=%d' % min_sample
         do_predict(clf_uv, x_test_r, cxt_test_r, idxs_entities, new_recs)
         do_predict(clf_uv, x_train_u_r, cxt_train_u_r, idxs_entities, new_recs)
         elapsed = time.time() - start
-        print 'finished testing uv classifier with n_estimators=%d, took %s' % (estimator, elapsed)
+        print 'finished testing uv classifier with min_sample_split=%d, took %s' % (min_sample, elapsed)
 
-        filter_run["system_id"] = '%s_e%d' % (args.system_id, estimator)
-        
         # generate output
-        output = open('%s_e%d' % (args.output_file, estimator), "w")
+        output = open('%s_m%d' % (args.output_file, min_sample), "w")
         filter_run_json_string = json.dumps(filter_run)
         output.write("#%s\n" % filter_run_json_string)
 
