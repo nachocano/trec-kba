@@ -27,6 +27,7 @@ public class ClusteringDriver {
 		options.addOption("gvd", true, "gamma verb decrease");
 		options.addOption("gni", true, "gamma noun increase");
 		options.addOption("gnd", true, "gamma noun decrease");
+		options.addOption("tn", true, "timestamp normalizer");
 
 		final CommandLineParser parser = new BasicParser();
 
@@ -40,6 +41,7 @@ public class ClusteringDriver {
 		float gammaVerbDecrease = 0;
 		float gammaNounIncrease = 0;
 		float gammaNounDecrease = 0;
+		long timestampNormalizer = 0;
 
 		try {
 			final CommandLine line = parser.parse(options, args);
@@ -63,6 +65,8 @@ public class ClusteringDriver {
 			Validate.isTrue(gammaNounIncrease != 0);
 			gammaNounDecrease = Float.parseFloat(line.getOptionValue("gnd"));
 			Validate.isTrue(gammaNounDecrease != 0);
+			timestampNormalizer = Long.parseLong(line.getOptionValue("tn"));
+			Validate.isTrue(timestampNormalizer != 0);
 
 		} catch (final Exception e) {
 			final HelpFormatter formatter = new HelpFormatter();
@@ -85,7 +89,7 @@ public class ClusteringDriver {
 
 		final ClusteringFeatureFactory cff = new ClusteringFeatureFactory();
 		cff.computeFeatures(train, test, outputTrain, outputTest, nounsParams,
-				verbsParams);
+				verbsParams, timestampNormalizer);
 		System.out.println(String.format("total time during processing %s",
 				(System.currentTimeMillis() - start) / 1000));
 	}
@@ -99,7 +103,7 @@ public class ClusteringDriver {
 				@Override
 				public int compare(final ClusterExample o1,
 						final ClusterExample o2) {
-					return o1.getStreamId().compareTo(o2.getStreamId());
+					return (int) (o1.getTimestamp() - o2.getTimestamp());
 				}
 			});
 		}

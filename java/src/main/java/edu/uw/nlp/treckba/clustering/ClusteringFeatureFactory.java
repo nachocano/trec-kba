@@ -18,7 +18,8 @@ public class ClusteringFeatureFactory {
 	public void computeFeatures(final Map<String, List<ClusterExample>> train,
 			final Map<String, List<ClusterExample>> test,
 			final String outputTrain, final String outputTest,
-			final HyperParams nounsParams, final HyperParams verbsParams) {
+			final HyperParams nounsParams, final HyperParams verbsParams,
+			final long timestampNormalizer) {
 
 		final File outputTrainFile = new File(outputTrain);
 		final File outputTestFile = new File(outputTest);
@@ -26,7 +27,7 @@ public class ClusteringFeatureFactory {
 		for (final String targetId : train.keySet()) {
 			final ClusteringFeatureTask t = new ClusteringFeatureTask(targetId,
 					train.get(targetId), test.get(targetId), nounsParams,
-					verbsParams);
+					verbsParams, timestampNormalizer);
 			tasks.add(t);
 		}
 
@@ -44,7 +45,6 @@ public class ClusteringFeatureFactory {
 		} finally {
 			executor.shutdown();
 		}
-
 		outputResults(train, outputTrainFile);
 		outputResults(test, outputTestFile);
 	}
@@ -72,12 +72,17 @@ public class ClusteringFeatureFactory {
 	private void outputResults(final Map<String, List<ClusterExample>> map,
 			final File outputFile) {
 		PrintWriter pw = null;
+		int discarded = 0;
 		try {
 			pw = new PrintWriter(outputFile);
 			for (final String targetId : map.keySet()) {
 				final List<ClusterExample> examples = map.get(targetId);
 				for (final ClusterExample example : examples) {
-					pw.println(example.toString());
+					if (!example.discard()) {
+						pw.println(example.toString());
+					} else {
+						discarded++;
+					}
 				}
 			}
 
@@ -88,8 +93,8 @@ public class ClusteringFeatureFactory {
 			if (pw != null) {
 				pw.close();
 			}
+			System.out.println("discarded: " + discarded);
 		}
-
 	}
 
 }

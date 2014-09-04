@@ -9,9 +9,14 @@ public class ClusterExample {
 	private final String targetId;
 	private final String dateHour;
 	private final int relevance;
+	private final long timestamp;
 	private float[] features;
 	private WordType verbs;
 	private WordType nouns;
+	// discard flag, not to include it in the output...
+	// should have used folder <= training_end_range instead of strictly <. Some
+	// unassessed test docs should be part of unassessed train.
+	private boolean discardFlag;
 
 	public ClusterExample(final String streamId, final String targetId,
 			final String dateHour, final int relevance) {
@@ -19,6 +24,7 @@ public class ClusterExample {
 		this.targetId = targetId;
 		this.dateHour = dateHour;
 		this.relevance = relevance;
+		this.timestamp = Long.valueOf(this.streamId.split("-")[0]);
 	}
 
 	public void setNouns(final WordType nouns) {
@@ -70,6 +76,10 @@ public class ClusterExample {
 		return relevance;
 	}
 
+	public long getTimestamp() {
+		return timestamp;
+	}
+
 	public float[] getFeatures() {
 		return features;
 	}
@@ -80,6 +90,14 @@ public class ClusterExample {
 
 	public WordType getNouns() {
 		return nouns;
+	}
+
+	public void setDiscardFlag(final boolean discardFlag) {
+		this.discardFlag = discardFlag;
+	}
+
+	public boolean discard() {
+		return this.discardFlag;
 	}
 
 	@Override

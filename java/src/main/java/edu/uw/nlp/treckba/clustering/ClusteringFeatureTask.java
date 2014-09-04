@@ -13,10 +13,12 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 	private final List<Cluster> nouns;
 	private final HyperParams nounsParams;
 	private final HyperParams verbsParams;
+	private final long timestampNormalizer;
 
 	public ClusteringFeatureTask(final String targetId,
 			final List<ClusterExample> train, final List<ClusterExample> test,
-			final HyperParams nounsParams, final HyperParams verbsParams) {
+			final HyperParams nounsParams, final HyperParams verbsParams,
+			final long timestampNormalizer) {
 		this.targetId = targetId;
 		this.train = train;
 		this.test = test;
@@ -24,6 +26,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 		this.nouns = new LinkedList<>();
 		this.nounsParams = nounsParams;
 		this.verbsParams = verbsParams;
+		this.timestampNormalizer = timestampNormalizer;
 	}
 
 	@Override
@@ -50,15 +53,17 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 			left -= 1;
 			System.out.println(String.format("processing %s for %s, %d left",
 					str, targetId, left));
-			populateFeatures(verbs, example, example.getVerbs(), verbsParams);
-			populateFeatures(nouns, example, example.getNouns(), nounsParams);
+			populateFeatures(verbs, example, example.getVerbs(), verbsParams,
+					timestampNormalizer);
+			populateFeatures(nouns, example, example.getNouns(), nounsParams,
+					timestampNormalizer);
 
 		}
 	}
 
 	private float[] populateFeatures(final List<Cluster> clusters,
 			final ClusterExample example, final WordType exampleWordType,
-			final HyperParams params) {
+			final HyperParams params, final long timestampNormalizer) {
 		if (exampleWordType.isZero()) {
 			// do not put it in any cluster
 			exampleWordType.setAllZeros(1);
@@ -69,12 +74,13 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 		} else {
 			if (clusters.isEmpty()) {
 				// create a new cluster, and add the example to it
-				final Cluster c = new Cluster();
+				final Cluster c = new Cluster(example.getTimestamp(),
+						timestampNormalizer);
 				c.updateSum(exampleWordType.getArray());
 				c.incrementCount();
 				c.addExample(example);
 				clusters.add(c);
-				// allZeros=0, minDistance=0, avgDistance=0
+				// allZeros=0, minDistance=0, avgDistance=0, timeliness=0.5
 				exampleWordType.setTimeliness(c.getTimeliness());
 			} else {
 				float maxSimilarity = Float.MIN_VALUE;
@@ -97,21 +103,30 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 				exampleWordType.setAvgDistance(avgDistance);
 
 				if (minDistance < params.getAlpha()) {
-					// put the example in an existent cluster
-					nearestCluster.addExample(example);
-					nearestCluster.updateSum(exampleWordType.getArray());
-					nearestCluster.incrementCount();
-					exampleWordType.setTimeliness(nearestCluster
-							.getTimeliness());
-					updateTimeliness(clusters, nearestCluster, params);
+					final float result = nearestCluster.decay(example, params);
+					// if result is -1 is because there were some unassessed
+					// test docs that should have been part of train,
+					// their timestamp is before
+					if (result == -1.0f) {
+						example.setDiscardFlag(true);
+					} else {
+						// put the example in an existent cluster
+						nearestCluster.addExample(example);
+						nearestCluster.updateSum(exampleWordType.getArray());
+						nearestCluster.incrementCount();
+						exampleWordType.setTimeliness(result);
+						nearestCluster.incrementTimeliness(result, params);
+						nearestCluster.setTimestamp(example.getTimestamp());
+					}
 				} else {
 					// create a new cluster, and add the example to it
-					final Cluster c = new Cluster();
+					final Cluster c = new Cluster(example.getTimestamp(),
+							timestampNormalizer);
 					c.updateSum(exampleWordType.getArray());
 					c.incrementCount();
 					c.addExample(example);
 					clusters.add(c);
-					// allZeros=0, minDistance=0, avgDistance=0
+					// allZeros=0, minDistance=0, avgDistance=0, timeliness=0.5
 					exampleWordType.setTimeliness(c.getTimeliness());
 				}
 			}
@@ -120,15 +135,4 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 		return null;
 	}
 
-	private void updateTimeliness(final List<Cluster> clusters,
-			final Cluster nearestCluster, final HyperParams params) {
-		for (final Cluster cluster : clusters) {
-			if (cluster.equals(nearestCluster)) {
-				cluster.incrementTimeliness(params.getGammaIncrease());
-			} else {
-				cluster.decrementTimeliness(params.getGammaDecrease());
-			}
-		}
-
-	}
 }
