@@ -98,7 +98,8 @@ def main():
 
     print x_train_a_r_multitask.shape
 
-    estimators = [10, 100, 150, 200, 250, 300]
+    #estimators = [10, 100, 150, 200, 250, 300]
+    estimators = [150]
     random_seed = 37
 
     for estimator in estimators:
