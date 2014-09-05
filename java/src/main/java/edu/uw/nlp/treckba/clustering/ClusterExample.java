@@ -1,5 +1,7 @@
 package edu.uw.nlp.treckba.clustering;
 
+import static edu.uw.nlp.treckba.clustering.ClusteringConstants.BUCKETS;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -18,6 +20,7 @@ public class ClusterExample {
 	// unassessed test docs should be part of unassessed train.
 	private boolean discardFlag;
 	private float entityTimeliness;
+	private final int[] preMentions;
 
 	public ClusterExample(final String streamId, final String targetId,
 			final String dateHour, final int relevance) {
@@ -26,6 +29,7 @@ public class ClusterExample {
 		this.dateHour = dateHour;
 		this.relevance = relevance;
 		this.timestamp = Long.valueOf(this.streamId.split("-")[0]);
+		this.preMentions = new int[BUCKETS];
 	}
 
 	public void setNouns(final WordType nouns) {
@@ -117,10 +121,19 @@ public class ClusterExample {
 		final String verbsFeaturesAsStr = verbs.featuresToString();
 		final String entityTimelinessAsStr = String.format("%.5f",
 				entityTimeliness);
+		final String preMentionsAsStr = preMentionsToString();
 
-		return String.format("%s %s %s %s %s %s", sb.toString(),
+		return String.format("%s %s %s %s %s %s %s", sb.toString(),
 				nounsArrayAsStr, verbsArrayAsStr, nounsFeaturesAsStr,
-				verbsFeaturesAsStr, entityTimelinessAsStr);
+				verbsFeaturesAsStr, entityTimelinessAsStr, preMentionsAsStr);
+	}
+
+	private String preMentionsToString() {
+		final StringBuilder sb = new StringBuilder().append(preMentions[0]);
+		for (int i = 1; i < preMentions.length; i++) {
+			sb.append(ClusteringConstants.WHITE_SPACE).append(preMentions[i]);
+		}
+		return sb.toString();
 	}
 
 	public float getEntityTimeliness() {
@@ -129,5 +142,9 @@ public class ClusterExample {
 
 	public void setEntityTimeliness(final float globalTimeliness) {
 		this.entityTimeliness = globalTimeliness;
+	}
+
+	public void updatePreMention(final int bucket, final int value) {
+		this.preMentions[bucket] += value;
 	}
 }

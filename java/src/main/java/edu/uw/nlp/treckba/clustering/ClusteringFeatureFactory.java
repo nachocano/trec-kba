@@ -55,6 +55,9 @@ public class ClusteringFeatureFactory {
 		final EntityTimeliness et = new EntityTimeliness(timestampNormalizer);
 		et.computeTimeliness(wholeCorpus, nounsParams);
 
+		final PreMentions pms = new PreMentions(train, test);
+		pms.computePreMentions();
+
 		outputResults(train, outputTrainFile);
 		outputResults(test, outputTestFile);
 	}

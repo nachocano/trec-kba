@@ -42,24 +42,25 @@ def main():
     assert len(y_train_a_r[y_train_a_r == 0]) == 0
     assert len(y_train_a_r[y_train_a_r == -10]) == 0
 
-    #x_test_a_r, y_test_a_r, cxt_test_a_r = create_relevant_global_data(args.test_relevant)
+    x_test_a_r, y_test_a_r, cxt_test_a_r = create_relevant_global_data(args.test_relevant)
 
-    #assert len(y_test_a_r[y_test_a_r == -1]) == 0
-    #assert len(y_test_a_r[y_test_a_r == 0]) == 0
-    #assert len(y_test_a_r[y_test_a_r == -10]) == 0
+    assert len(y_test_a_r[y_test_a_r == -1]) == 0
+    assert len(y_test_a_r[y_test_a_r == 0]) == 0
+    assert len(y_test_a_r[y_test_a_r == -10]) == 0
 
-    targetids = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
-    populate(targetids, x_train_a_r, y_train_a_r, cxt_train_a_r)
+    #targetids = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    #populate(targetids, x_train_a_r, y_train_a_r, cxt_train_a_r)
     #populate(targetids, x_test_a_r, y_test_a_r, cxt_test_a_r)
     elapsed = time.time() - start
     print 'read data and build lists finished, took %s' % elapsed
 
-    timeliness_vs_min_distance(targetids)
+    #timeliness_vs_min_distance(targetids)
     #feature_dist(targetids)
 
     #run = read_run(args.run)
-
     #print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r)
+
+    timeliness_per_entity(x_test_a_r, y_test_a_r, cxt_test_a_r)
 
 
  
@@ -118,7 +119,9 @@ def print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test
         fps += counts_v[targetid]['FP']
         fns += counts_v[targetid]['FN']
         tns += counts_v[targetid]['TN']
+        print '%s TP=%s  FP=%s  FN=%s  TN=%s' % (targetid, counts_v[targetid]['TP'], counts_v[targetid]['FP'], counts_v[targetid]['FN'], counts_v[targetid]['TN'])
 
+    print ''
     print 'TP %s' % tps
     print 'TN %s' % tns
     print 'FP %s' % fps
@@ -196,6 +199,46 @@ def vital_only(counts_v, targetid, truth, prediction):
         counts_v[targetid]['FN'] += 1
     elif prediction != 2 and truth != 2:
         counts_v[targetid]['TN'] += 1
+
+
+def timeliness_per_entity(x_test_a_r, y_test_a_r, cxt_test_a_r):
+    timeliness_p_e = defaultdict(list)
+    timestamps_p_e = defaultdict(list)
+    timeliness_u_p_e = defaultdict(list)
+    timestamps_u_p_e = defaultdict(list)
+    timeliness_v_p_e = defaultdict(list)
+    timestamps_v_p_e = defaultdict(list)
+    for xi, yi, ci in zip(x_test_a_r, y_test_a_r, cxt_test_a_r):
+        streamid, targetid, date_hour = ci.split()
+        timestamp = streamid.split("-")[0]
+        timeliness_p_e[targetid].append(xi[633])
+        timestamps_p_e[targetid].append(timestamp)
+        if yi == 1:
+            timeliness_u_p_e[targetid].append(xi[633]) 
+            timestamps_u_p_e[targetid].append(timestamp)
+        elif yi == 2:
+            timeliness_v_p_e[targetid].append(xi[633]) 
+            timestamps_v_p_e[targetid].append(timestamp)
+        else:
+            print 'error'
+            exit()
+
+
+    plot_timeliness_per_entity(timeliness_p_e, timestamps_p_e, timeliness_u_p_e, timestamps_u_p_e, timeliness_v_p_e, timestamps_v_p_e)
+
+def plot_timeliness_per_entity(timeliness_p_e, timestamps_p_e, timeliness_u_p_e, timestamps_u_p_e, timeliness_v_p_e, timestamps_v_p_e):
+    for targetid in timeliness_p_e:
+        if "Missing_Women_Commission_of_Inquiry" in targetid:
+            fig = plt.figure()
+            fig.suptitle("timeliness vs. time, entity %s" % targetid, fontsize=13, fontweight='bold')
+            plt.plot(timestamps_p_e[targetid], timeliness_p_e[targetid], 'k')
+            plt.plot(timestamps_u_p_e[targetid], timeliness_u_p_e[targetid], 'r.', label='useful')
+            plt.plot(timestamps_v_p_e[targetid], timeliness_v_p_e[targetid], 'g.', label='vital')
+            plt.xlabel("timestamp")
+            plt.ylabel("timeliness")
+            plt.legend(loc='lower right')
+            plt.show()
+            exit()
 
 
 def timeliness_vs_min_distance(targetids):
