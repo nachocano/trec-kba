@@ -121,11 +121,15 @@ public class ClusterExample {
 		final String verbsFeaturesAsStr = verbs.featuresToString();
 		final String entityTimelinessAsStr = String.format("%.5f",
 				entityTimeliness);
-		final String preMentionsAsStr = preMentionsToString();
+		// final String preMentionsAsStr = preMentionsToString();
 
-		return String.format("%s %s %s %s %s %s %s", sb.toString(),
+		return String.format("%s %s %s %s %s %s", sb.toString(),
 				nounsArrayAsStr, verbsArrayAsStr, nounsFeaturesAsStr,
-				verbsFeaturesAsStr, entityTimelinessAsStr, preMentionsAsStr);
+				verbsFeaturesAsStr, entityTimelinessAsStr);
+
+		// return String.format("%s %s %s %s %s %s %s", sb.toString(),
+		// nounsArrayAsStr, verbsArrayAsStr, nounsFeaturesAsStr,
+		// verbsFeaturesAsStr, entityTimelinessAsStr, preMentionsAsStr);
 	}
 
 	private String preMentionsToString() {
