@@ -99,45 +99,42 @@ def main():
     print x_train_a_r_multitask.shape
 
     estimator = 150
-    min_samples_splits = [2, 10, 100, 1000, 10000]
     random_seed = 37
 
-    for min_sample in min_samples_splits:
+    filter_run["system_id"] = args.system_id
 
-        filter_run["system_id"] = '%s_ms%d' % (args.system_id, min_sample)
+    start = time.time()
+    print 'training uv classifier'
+    clf_uv = ensemble.ExtraTreesClassifier(n_estimators=estimator, random_state=random_seed)
+    clf_uv = clf_uv.fit(x_train_a_r_multitask, y_train_a_r)
+    elapsed = time.time() - start
+    print 'finished training uv classifier, took %s' % elapsed
 
-        new_recs = deepcopy(recs)
-        start = time.time()
-        print 'training uv classifier with min_sample_split=%d' % min_sample
-        clf_uv = ensemble.ExtraTreesClassifier(n_estimators=estimator, random_state=random_seed, min_samples_split=min_sample)
-        clf_uv = clf_uv.fit(x_train_a_r_multitask, y_train_a_r)
-        elapsed = time.time() - start
-        print 'finished training uv classifier with min_sample_split=%d, took %s' % (min_sample, elapsed)
+    start = time.time()
+    print 'testing uv classifier'
+    do_predict(clf_uv, x_test_r, cxt_test_r, idxs_entities, recs)
+    do_predict(clf_uv, x_train_u_r, cxt_train_u_r, idxs_entities, recs)
+    elapsed = time.time() - start
+    print 'finished testing uv classifier, took %s' % elapsed
 
-        start = time.time()
-        print 'testing uv classifier with min_sample_split=%d' % min_sample
-        do_predict(clf_uv, x_test_r, cxt_test_r, idxs_entities, new_recs)
-        do_predict(clf_uv, x_train_u_r, cxt_train_u_r, idxs_entities, new_recs)
-        elapsed = time.time() - start
-        print 'finished testing uv classifier with min_sample_split=%d, took %s' % (min_sample, elapsed)
+    # generate output
+    output = open(args.output_file, "w")
+    filter_run_json_string = json.dumps(filter_run)
+    output.write("#%s\n" % filter_run_json_string)
 
-        # generate output
-        output = open('%s_m%d' % (args.output_file, min_sample), "w")
-        filter_run_json_string = json.dumps(filter_run)
-        output.write("#%s\n" % filter_run_json_string)
-
-        for rec in new_recs:
-            output.write("\t".join(map(str, rec)) + "\n")
-
-        #filter_run["run_info"]["elapsed_time"] = elapsed_run
-        filter_run["run_info"]["num_filter_results"] = len(new_recs)
-        filter_run_json_string = json.dumps(filter_run, indent=4, sort_keys=True)
-        filter_run_json_string = re.sub("\n", "\n#", filter_run_json_string)
-        output.write("#%s\n" % filter_run_json_string)
-        output.close()
+    for rec in recs:
+        output.write("\t".join(map(str, rec)) + "\n")
 
     elapsed_run = time.time() - begin
     print 'all run took %s' % elapsed_run
+
+    filter_run["run_info"]["elapsed_time"] = elapsed_run
+    filter_run["run_info"]["num_filter_results"] = len(recs)
+    filter_run_json_string = json.dumps(filter_run, indent=4, sort_keys=True)
+    filter_run_json_string = re.sub("\n", "\n#", filter_run_json_string)
+    output.write("#%s\n" % filter_run_json_string)
+    output.close()
+
 
 if __name__ == '__main__':
   #np.set_printoptions(threshold=np.nan, linewidth=1000000000000000, )
