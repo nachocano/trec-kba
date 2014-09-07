@@ -12,7 +12,7 @@ def main():
                   -tr ../../../clustering/outputs/train_r_clu_dyn_a08_gd%s_gi%s_exp_global.tsv \
                   -t ../../../clustering/outputs/test_r_clu_dyn_a08_gd%s_gi%s_exp_global.tsv \
                   -r ../../../clustering/outputs/uw-clu_dyn_a08_gd%s_gi%s \
-                  -o ../../../clustering/plots/uw-clu_dyn_a08_gd%s_gi%s' % (gamma_decrease, gamma_increase, gamma_decrease, gamma_increase, gamma_decrease, gammas_increase, gamma_decrease, gammas_increase)
+                  -o ../../../clustering/plots/uw-clu_dyn_a08_gd%s_gi%s' % (gamma_decrease, gamma_increase, gamma_decrease, gamma_increase, gamma_decrease, gamma_increase, gamma_decrease, gamma_increase)
       print debugging
       os.system(debugging)
 
