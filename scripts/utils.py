@@ -240,10 +240,10 @@ def create_relevant_global_data(filename):
             date_hour = instance[2]
             label = int(instance[3])
             features = instance[4:]
-            if label == 1 or label == 2:
-                x_r_list.append(features)
-                y_r_list.append(label)
-                cxt_r.append('%s %s %s' % (streamid, targetid, date_hour))
+            #if label == 1 or label == 2:
+            x_r_list.append(features)
+            y_r_list.append(label)
+            cxt_r.append('%s %s %s' % (streamid, targetid, date_hour))
     x_r = np.array(x_r_list).astype(np.float32)
     y_r = np.array(y_r_list).astype(int)
     return x_r, y_r, cxt_r
