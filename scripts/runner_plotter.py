@@ -3,9 +3,9 @@ import os
 
 def main():
 
-  gammas_decrease = ['02', '04', '06','08','1','2','5','10','20']
-  gammas_increase = ['01','04']
-  
+  gammas_increase = ['01', '05', '09']
+  gammas_decrease = ['100', '200', '500']
+
   for gamma_decrease in gammas_decrease:
     for gamma_increase in gammas_increase:
       debugging = 'nohup ../../../../py_virtual/bin/python -u debugging.py \
