@@ -5,6 +5,8 @@ import static edu.uw.nlp.treckba.clustering.ClusteringConstants.BUCKETS;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import edu.uw.nlp.treckba.utils.Utils;
+
 public class ClusterExample {
 
 	private final String streamId;
@@ -21,6 +23,7 @@ public class ClusterExample {
 	private boolean discardFlag;
 	private float entityTimeliness;
 	private final int[] preMentions;
+	private final int[] dayOfWeek;
 
 	public ClusterExample(final String streamId, final String targetId,
 			final String dateHour, final int relevance) {
@@ -30,6 +33,7 @@ public class ClusterExample {
 		this.relevance = relevance;
 		this.timestamp = Long.valueOf(this.streamId.split("-")[0]);
 		this.preMentions = new int[BUCKETS];
+		this.dayOfWeek = new int[7];
 	}
 
 	public void setNouns(final WordType nouns) {
@@ -121,15 +125,17 @@ public class ClusterExample {
 		final String verbsFeaturesAsStr = verbs.featuresToString();
 		final String entityTimelinessAsStr = String.format("%.5f",
 				entityTimeliness);
-		// final String preMentionsAsStr = preMentionsToString();
+		final String preMentionsAsStr = preMentionsToString();
+		final String dayOfWeekAsString = dayOfWeekToString();
 
-		return String.format("%s %s %s %s %s %s", sb.toString(),
-				nounsArrayAsStr, verbsArrayAsStr, nounsFeaturesAsStr,
-				verbsFeaturesAsStr, entityTimelinessAsStr);
-
-		// return String.format("%s %s %s %s %s %s %s", sb.toString(),
+		// return String.format("%s %s %s %s %s %s", sb.toString(),
 		// nounsArrayAsStr, verbsArrayAsStr, nounsFeaturesAsStr,
-		// verbsFeaturesAsStr, entityTimelinessAsStr, preMentionsAsStr);
+		// verbsFeaturesAsStr, entityTimelinessAsStr);
+
+		return String.format("%s %s %s %s %s %s %s %s", sb.toString(),
+				nounsArrayAsStr, verbsArrayAsStr, nounsFeaturesAsStr,
+				verbsFeaturesAsStr, entityTimelinessAsStr, preMentionsAsStr,
+				dayOfWeekAsString);
 	}
 
 	private String preMentionsToString() {
@@ -150,5 +156,15 @@ public class ClusterExample {
 
 	public void updatePreMention(final int bucket, final int value) {
 		this.preMentions[bucket] += value;
+	}
+
+	public String dayOfWeekToString() {
+		this.dayOfWeek[Utils.dayOfWeek(timestamp)] = 1;
+		final StringBuilder sb = new StringBuilder().append(dayOfWeek[0]);
+		for (int i = 1; i < dayOfWeek.length; i++) {
+			sb.append(ClusteringConstants.WHITE_SPACE).append(dayOfWeek[i]);
+		}
+		return sb.toString();
+
 	}
 }

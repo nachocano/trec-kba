@@ -15,6 +15,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
 import edu.uw.nlp.treckba.feature.ExampleKey;
 import edu.uw.nlp.treckba.feature.ExampleValue;
 
@@ -414,5 +417,16 @@ public class Utils {
 			}
 		}
 		return set;
+	}
+
+	public static int dayOfWeek(final long timestamp) {
+		final DateTime dateTime = new DateTime(timestamp, DateTimeZone.UTC);
+		final int dayOfWeek = dateTime.getDayOfWeek();
+		// 1 Monday - 7 Sunday
+		return dayOfWeek - 1;
+	}
+
+	public static void main(final String[] args) {
+		System.out.println(Utils.dayOfWeek(1350048017L * 1000));
 	}
 }
