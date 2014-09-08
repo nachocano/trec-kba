@@ -420,13 +420,14 @@ public class Utils {
 	}
 
 	public static int dayOfWeek(final long timestamp) {
-		final DateTime dateTime = new DateTime(timestamp, DateTimeZone.UTC);
+		final DateTime dateTime = new DateTime(timestamp * 1000,
+				DateTimeZone.UTC);
 		final int dayOfWeek = dateTime.getDayOfWeek();
 		// 1 Monday - 7 Sunday
 		return dayOfWeek - 1;
 	}
 
 	public static void main(final String[] args) {
-		System.out.println(Utils.dayOfWeek(1350048017L * 1000));
+		System.out.println(Utils.dayOfWeek(1350048017L));
 	}
 }
