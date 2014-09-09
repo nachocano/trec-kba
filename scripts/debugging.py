@@ -40,15 +40,15 @@ def main():
     print 'reading data and building lists'
     x_train_a_r, y_train_a_r, cxt_train_a_r = create_relevant_global_data(args.train_relevant)
 
-    assert len(y_train_a_r[y_train_a_r == -1]) == 0
-    assert len(y_train_a_r[y_train_a_r == 0]) == 0
-    assert len(y_train_a_r[y_train_a_r == -10]) == 0
+    #assert len(y_train_a_r[y_train_a_r == -1]) == 0
+    #assert len(y_train_a_r[y_train_a_r == 0]) == 0
+    #assert len(y_train_a_r[y_train_a_r == -10]) == 0
 
     x_test_a_r, y_test_a_r, cxt_test_a_r = create_relevant_global_data(args.test_relevant)
 
-    assert len(y_test_a_r[y_test_a_r == -1]) == 0
-    assert len(y_test_a_r[y_test_a_r == 0]) == 0
-    assert len(y_test_a_r[y_test_a_r == -10]) == 0
+    #assert len(y_test_a_r[y_test_a_r == -1]) == 0
+    #assert len(y_test_a_r[y_test_a_r == 0]) == 0
+    #assert len(y_test_a_r[y_test_a_r == -10]) == 0
 
     #targetids = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
     #populate(targetids, x_train_a_r, y_train_a_r, cxt_train_a_r)
@@ -62,9 +62,9 @@ def main():
     run = read_run(args.run)
     #print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r)
 
-    print_fp_per_entity(args.output, run, x_test_a_r, y_test_a_r, cxt_test_a_r)
+    #print_fp_per_entity(args.output, run, x_test_a_r, y_test_a_r, cxt_test_a_r)
 
-    #timeliness_per_entity(x_test_a_r, y_test_a_r, cxt_test_a_r, run, args.output)
+    timeliness_per_entity(x_test_a_r, y_test_a_r, cxt_test_a_r, run, args.output)
 
 
  
@@ -230,44 +230,38 @@ def timeliness_per_entity(x_test_a_r, y_test_a_r, cxt_test_a_r, run, output):
     timestamps_u_p_e = defaultdict(list)
     timeliness_v_p_e = defaultdict(list)
     timestamps_v_p_e = defaultdict(list)
-    timeliness_gn_p_e = defaultdict(list)
-    timestamps_gn_p_e = defaultdict(list)
-    timeliness_una_p_e = defaultdict(list)
-    timestamps_una_p_e = defaultdict(list)
+    timeliness_u_p_e_w = defaultdict(list)
+    timestamps_u_p_e_w = defaultdict(list)
+    timeliness_v_p_e_w = defaultdict(list)
+    timestamps_v_p_e_w = defaultdict(list)
 
     for xi, yi, ci in zip(x_test_a_r, y_test_a_r, cxt_test_a_r):
         streamid, targetid, date_hour = ci.split()
         timestamp = streamid.split("-")[0]
         timeliness_p_e[targetid].append(xi[633])
         timestamps_p_e[targetid].append(timestamp)
-        if yi == 1:
-            timeliness_u_p_e[targetid].append(xi[633]) 
-            timestamps_u_p_e[targetid].append(timestamp)
-        elif yi == 2:
-            timeliness_v_p_e[targetid].append(xi[633]) 
-            timestamps_v_p_e[targetid].append(timestamp)
-        elif yi == -1 or yi == 0:
-            timeliness_gn_p_e[targetid].append(xi[633]) 
-            timestamps_gn_p_e[targetid].append(timestamp)
-        elif yi == -10:
-            #if run[targetid].has_key(streamid):
-            #    rel = run[targetid][streamid]
-            #    if rel == 1:
-            #        timeliness_u_p_e[targetid].append(xi[633]) 
-            #        timestamps_u_p_e[targetid].append(timestamp)
-            #    elif rel == 2:
-            #        timeliness_v_p_e[targetid].append(xi[633]) 
-            #        timestamps_v_p_e[targetid].append(timestamp)
-            timeliness_una_p_e[targetid].append(xi[633])
-            timestamps_una_p_e[targetid].append(timestamp)
+
+        truth = run[targetid][streamid]
+
+        if truth == yi:
+            if yi == 1:
+                timeliness_u_p_e[targetid].append(xi[633]) 
+                timestamps_u_p_e[targetid].append(timestamp)
+            elif yi == 2:
+                timeliness_v_p_e[targetid].append(xi[633]) 
+                timestamps_v_p_e[targetid].append(timestamp)
         else:
-            print 'error in here'
-            exit()
+            if yi == 1:
+                timeliness_u_p_e_w[targetid].append(xi[633]) 
+                timestamps_u_p_e_w[targetid].append(timestamp)
+            elif yi == 2:
+                timeliness_v_p_e_w[targetid].append(xi[633]) 
+                timestamps_v_p_e_w[targetid].append(timestamp)
 
 
-    plot_timeliness_per_entity(output, timeliness_p_e, timestamps_p_e, timeliness_u_p_e, timestamps_u_p_e, timeliness_v_p_e, timestamps_v_p_e, timeliness_gn_p_e, timestamps_gn_p_e, timeliness_una_p_e, timestamps_una_p_e)
+    plot_timeliness_per_entity(output, timeliness_p_e, timestamps_p_e, timeliness_u_p_e, timestamps_u_p_e, timeliness_v_p_e, timestamps_v_p_e, timeliness_u_p_e_w, timestamps_u_p_e_w, timeliness_v_p_e_w, timestamps_v_p_e_w)
 
-def plot_timeliness_per_entity(output, timeliness_p_e, timestamps_p_e, timeliness_u_p_e, timestamps_u_p_e, timeliness_v_p_e, timestamps_v_p_e, timeliness_gn_p_e, timestamps_gn_p_e, timeliness_una_p_e, timestamps_una_p_e):
+def plot_timeliness_per_entity(output, timeliness_p_e, timestamps_p_e, timeliness_u_p_e, timestamps_u_p_e, timeliness_v_p_e, timestamps_v_p_e, timeliness_u_p_e_w, timestamps_u_p_e_w, timeliness_v_p_e_w, timestamps_v_p_e_w):
     for targetid in timeliness_p_e:
         if "Missing_Women_Commission_of_Inquiry" in targetid or "Shawn_Atleo" in targetid or "Theresa_Spence" in targetid or "Rick_Hansen" in targetid or "Jessie_Kaech" in targetid:
             name = targetid[targetid.rfind('/')+1:]
@@ -275,13 +269,13 @@ def plot_timeliness_per_entity(output, timeliness_p_e, timestamps_p_e, timelines
             fig = plt.figure()
             fig.suptitle("timeliness vs. time, entity %s" % targetid, fontsize=13, fontweight='bold')
             plt.plot(timestamps_p_e[targetid], timeliness_p_e[targetid], 'b')
-            plt.plot(timestamps_u_p_e[targetid], timeliness_u_p_e[targetid], 'r.', label='useful')
-            plt.plot(timestamps_v_p_e[targetid], timeliness_v_p_e[targetid], 'g.', label='vital')
-            #plt.plot(timestamps_gn_p_e[targetid], timeliness_gn_p_e[targetid], 'b.', label='neutral-garbage')
-            #plt.plot(timestamps_una_p_e[targetid], timeliness_una_p_e[targetid], 'm.', label='unassessed')
+            plt.plot(timestamps_u_p_e[targetid], timeliness_u_p_e[targetid], 'r.', label='useful right')
+            plt.plot(timestamps_v_p_e[targetid], timeliness_v_p_e[targetid], 'g.', label='vital right')
+            plt.plot(timestamps_u_p_e_w[targetid], timeliness_u_p_e_w[targetid], 'k.', label='useful wrong')
+            plt.plot(timestamps_v_p_e_w[targetid], timeliness_v_p_e_w[targetid], 'm.', label='vital wrong')
             plt.xlabel("timestamp")
             plt.ylabel("timeliness")
-            plt.legend(loc='lower right')
+            plt.legend(loc='upper left')
             plt.savefig(filepath)
 
 

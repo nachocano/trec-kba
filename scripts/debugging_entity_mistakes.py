@@ -12,7 +12,7 @@ def main():
     args = parser.parse_args()
 
     target = 'https://kb.diffeo.com/' + args.entity_text_file[args.entity_text_file.rfind('/')+6:]
-    print target
+    #print target
 
     streamid_text = {}
     with open(args.entity_text_file) as f:
@@ -56,6 +56,7 @@ def main():
                 entity_timeliness = instance[637]
                 features[streamid] = (fixed_features, nouns_embeddings, verbs_embeddings, clustering_nouns, clustering_verbs, entity_timeliness)
 
+    sorted(streamid_text, key=lambda key: streamid_text[key])
     for streamid in streamid_text:
         print 'streamid %s' % streamid
         feat = features[streamid]
