@@ -29,7 +29,7 @@ def main():
   for line in open(args.train_or_test_tsv_file).read().splitlines():
     delimiter = line.find('[')
     two_arrays = line[delimiter:]
-    nouns = two_arrays[1:two_arrays.find(']')-1].split(',')
+    nouns = two_arrays[1:two_arrays.find(']')].split(',')
     nouns = filter(lambda x: x != '', nouns)
     verbs = two_arrays[two_arrays.rfind('[')+1:-1].split(',')
     verbs = filter(lambda x: x != '', verbs)

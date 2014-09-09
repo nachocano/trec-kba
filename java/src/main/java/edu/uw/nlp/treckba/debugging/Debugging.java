@@ -52,7 +52,7 @@ public class Debugging {
 							lemmasForStreamId.add(lemmas.toString());
 						}
 					}
-					pw.println(String.format("%s %s", streamId,
+					pw.println(String.format("%s\t%s", streamId,
 							Arrays.toString(lemmasForStreamId.toArray())));
 				}
 			}

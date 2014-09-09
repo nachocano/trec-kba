@@ -38,17 +38,17 @@ def main():
 
     start = time.time()
     print 'reading data and building lists'
-    #x_train_a_r, y_train_a_r, cxt_train_a_r = create_relevant_global_data(args.train_relevant)
+    x_train_a_r, y_train_a_r, cxt_train_a_r = create_relevant_global_data(args.train_relevant)
 
-    #assert len(y_train_a_r[y_train_a_r == -1]) == 0
-    #assert len(y_train_a_r[y_train_a_r == 0]) == 0
-    #assert len(y_train_a_r[y_train_a_r == -10]) == 0
+    assert len(y_train_a_r[y_train_a_r == -1]) == 0
+    assert len(y_train_a_r[y_train_a_r == 0]) == 0
+    assert len(y_train_a_r[y_train_a_r == -10]) == 0
 
     x_test_a_r, y_test_a_r, cxt_test_a_r = create_relevant_global_data(args.test_relevant)
 
-    #assert len(y_test_a_r[y_test_a_r == -1]) == 0
-    #assert len(y_test_a_r[y_test_a_r == 0]) == 0
-    #assert len(y_test_a_r[y_test_a_r == -10]) == 0
+    assert len(y_test_a_r[y_test_a_r == -1]) == 0
+    assert len(y_test_a_r[y_test_a_r == 0]) == 0
+    assert len(y_test_a_r[y_test_a_r == -10]) == 0
 
     #targetids = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
     #populate(targetids, x_train_a_r, y_train_a_r, cxt_train_a_r)
@@ -62,7 +62,9 @@ def main():
     run = read_run(args.run)
     #print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r)
 
-    timeliness_per_entity(x_test_a_r, y_test_a_r, cxt_test_a_r, run, args.output)
+    print_fp_per_entity(args.output, run, x_test_a_r, y_test_a_r, cxt_test_a_r)
+
+    #timeliness_per_entity(x_test_a_r, y_test_a_r, cxt_test_a_r, run, args.output)
 
 
  
@@ -97,6 +99,24 @@ def feature_lists(array):
     return mins, avgs, times, zeros
 
 
+def print_fp_per_entity(output, run, x_test_a_r, y_test_a_r, cxt_test_a_r):
+    values = defaultdict(list)
+    for xi, yi, ci in zip(x_test_a_r, y_test_a_r, cxt_test_a_r):
+        streamid, targetid, date_hour = ci.split()
+        if "Jessie_Kaech" in targetid or "Theresa_Spence" in targetid or "Jeff_Mangum" in targetid or "Missing_Women_Commission_of_Inquiry" in targetid or "Shawn_Atleo" in targetid:
+            if run[targetid].has_key(streamid):
+                prediction = run[targetid][streamid]
+                # FP
+                if prediction == 2 and yi != 2:
+                    values[targetid].append(streamid)
+    for targetid in values:
+        name = targetid[targetid.rfind('/')+1:]
+        filename = os.path.join(output, name)
+        f = open(filename, 'w')
+        for v in values[targetid]:
+            f.write("%s\n" % v)
+        f.close()
+            
 def print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r):
     #x = np.vstack((x_train_a_r, x_test_a_r))
     #y = np.hstack((y_train_a_r, y_test_a_r))

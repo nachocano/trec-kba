@@ -427,6 +427,33 @@ public class Utils {
 		return dayOfWeek - 1;
 	}
 
+	public static List<String> readFalsePositives(final String falsePositiveFile) {
+		final List<String> streamIds = new ArrayList<>();
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(new File(falsePositiveFile)));
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				streamIds.add(line.trim());
+			}
+		} catch (final FileNotFoundException e) {
+			System.out.println("file not found exception " + falsePositiveFile);
+		} catch (final IOException e) {
+			System.out.println("io exception " + falsePositiveFile);
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (final IOException e) {
+					System.out
+							.println("unexpected io exception while closing br "
+									+ falsePositiveFile);
+				}
+			}
+		}
+		return streamIds;
+	}
+
 	public static void main(final String[] args) {
 		System.out.println(Utils.dayOfWeek(1350048017L));
 	}
