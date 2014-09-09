@@ -22,7 +22,8 @@ import edu.uw.nlp.treckba.utils.Utils;
 public class Debugging {
 
 	public void debug(final String inputFile, final String outputFile,
-			final List<String> streamIds, final List<String> entityNames) {
+			final List<ResultStreamIdPair> streamIds,
+			final List<String> entityNames) {
 		final String fullMatch = Utils.fullMatch(entityNames);
 		final Pattern full = Pattern.compile(fullMatch);
 		TTransport transport = null;
@@ -37,23 +38,27 @@ public class Debugging {
 				final StreamItem item = new StreamItem();
 				item.read(protocol);
 				final String streamId = item.getStream_id();
-				if (streamIds.contains(streamId)) {
-					final List<Sentence> sentences = item.getBody()
-							.getSentences().get("serif");
-					final List<String> lemmasForStreamId = new ArrayList<>();
-					for (final Sentence sentence : sentences) {
-						final List<Token> tokens = sentence.getTokens();
-						final StringBuilder lemmas = new StringBuilder();
-						for (final Token token : tokens) {
-							final String lemma = token.getLemma();
-							lemmas.append(lemma).append(" ");
+				for (final ResultStreamIdPair pair : streamIds) {
+					if (pair.getStreamId().equals(streamId)) {
+						final List<Sentence> sentences = item.getBody()
+								.getSentences().get("serif");
+						final List<String> lemmasForStreamId = new ArrayList<>();
+						for (final Sentence sentence : sentences) {
+							final List<Token> tokens = sentence.getTokens();
+							final StringBuilder lemmas = new StringBuilder();
+							for (final Token token : tokens) {
+								final String lemma = token.getLemma();
+								lemmas.append(lemma).append(" ");
+							}
+							if (full.matcher(lemmas.toString()).find()) {
+								lemmasForStreamId.add(lemmas.toString());
+							}
 						}
-						if (full.matcher(lemmas.toString()).find()) {
-							lemmasForStreamId.add(lemmas.toString());
-						}
+						pw.println(String.format("%s\t%s\t%s", streamId,
+								pair.getResult(),
+								Arrays.toString(lemmasForStreamId.toArray())));
+						break;
 					}
-					pw.println(String.format("%s\t%s", streamId,
-							Arrays.toString(lemmasForStreamId.toArray())));
 				}
 			}
 		} catch (final TTransportException te) {

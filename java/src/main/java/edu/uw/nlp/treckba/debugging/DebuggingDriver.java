@@ -16,22 +16,23 @@ public class DebuggingDriver {
 	public static void main(final String[] args) throws Exception {
 		final Options options = new Options();
 		options.addOption("i", true, "input entity bin file");
-		options.addOption("fp", true, "false positives entity file");
+		options.addOption("fptp", true,
+				"false positives and true positives entity file");
 		options.addOption("o", true, "output file");
 		options.addOption("e", true, "entitites file with surface forms");
 
 		final CommandLineParser parser = new BasicParser();
 
 		String inputEntityBinFile = null;
-		String falsePositiveFile = null;
+		String falseAndTruePositivesFile = null;
 		String outputFile = null;
 		String entitiesFile = null;
 		try {
 			final CommandLine line = parser.parse(options, args);
 			inputEntityBinFile = line.getOptionValue("i");
 			Validate.notNull(inputEntityBinFile);
-			falsePositiveFile = line.getOptionValue("fp");
-			Validate.notNull(falsePositiveFile);
+			falseAndTruePositivesFile = line.getOptionValue("fptp");
+			Validate.notNull(falseAndTruePositivesFile);
 			outputFile = line.getOptionValue("o");
 			Validate.notNull(outputFile);
 			entitiesFile = line.getOptionValue("e");
@@ -44,8 +45,8 @@ public class DebuggingDriver {
 		}
 
 		final long start = System.currentTimeMillis();
-		final List<String> streamIds = Utils
-				.readFalsePositives(falsePositiveFile);
+		final List<ResultStreamIdPair> streamIds = Utils
+				.readFalseAndTruePositives(falseAndTruePositivesFile);
 		final String filename = inputEntityBinFile.substring(
 				inputEntityBinFile.lastIndexOf("/") + 1,
 				inputEntityBinFile.length());
