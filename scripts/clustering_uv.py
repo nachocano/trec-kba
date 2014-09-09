@@ -101,39 +101,53 @@ def main():
     estimator = 150
     random_seed = 37
 
-    filter_run["system_id"] = args.system_id
+    max_depths = [3, 6, 10, 20]
+    subsamples = [0.3, 0.5, 0.7, 1]
+    subsamples_names = [03,05,07,1]
+    learning_rates = [0.1, 0.3, 0.5]
+    learning_rates_names = [01, 03, 05]
 
-    start = time.time()
-    print 'training uv classifier'
-    clf_uv = ensemble.ExtraTreesClassifier(n_estimators=estimator, random_state=random_seed)
-    clf_uv = clf_uv.fit(x_train_a_r_multitask, y_train_a_r)
-    elapsed = time.time() - start
-    print 'finished training uv classifier, took %s' % elapsed
+    for max_depth in max_depths:
+        for subsample, subsample_name in zip(subsamples, subsamples_names):
+            for l_rate, l_rate_name in zip(learning_rates, learning_rates_names):
+                filter_run["system_id"] = '%s_%s_%s_%s' % (args.system_id, max_depth, subsample_name, l_rate_name)
 
-    start = time.time()
-    print 'testing uv classifier'
-    do_predict(clf_uv, x_test_r, cxt_test_r, idxs_entities, recs)
-    do_predict(clf_uv, x_train_u_r, cxt_train_u_r, idxs_entities, recs)
-    elapsed = time.time() - start
-    print 'finished testing uv classifier, took %s' % elapsed
+                newrecs = deepcopy(recs)
 
-    # generate output
-    output = open(args.output_file, "w")
-    filter_run_json_string = json.dumps(filter_run)
-    output.write("#%s\n" % filter_run_json_string)
+                start = time.time()
+                print 'training uv classifier with max_depth %s, subsample %s and learn rate %s' % (max_depth, subsample, l_rate)
+                clf_uv = ensemble.GradientBoostingClassifier(n_estimators=estimator, max_depth=max_depth, learning_rate=l_rate, random_state=random_seed)
+                clf_uv = clf_uv.fit(x_train_a_r_multitask, y_train_a_r)
+                elapsed = time.time() - start
+                print 'finished training uv classifier with max_depth %s, subsample %s and learn rate %s, took %s' % (max_depth, subsample, l_rate, elapsed) 
 
-    for rec in recs:
-        output.write("\t".join(map(str, rec)) + "\n")
+                start = time.time()
+                print 'testing uv classifier with max_depth %s, subsample %s and learn rate %s' % (max_depth, subsample, l_rate)
+                #do_predict(clf_uv, x_train_a_r, cxt_train_a_r, idxs_entities, recs)
+                do_predict(clf_uv, x_test_r, cxt_test_r, idxs_entities, newrecs)
+                do_predict(clf_uv, x_train_u_r, cxt_train_u_r, idxs_entities, newrecs)
+                elapsed = time.time() - start
+                print 'finished testing uv classifier with max_depth %s, subsample %s and learn rate %s, took %s' % (max_depth, subsample, l_rate, elapsed) 
 
+                # generate output
+                out_file = '%s_%s_%s_%s' % (args.output_file, max_depth, subsample_name, l_rate_name)
+                output = open(out_file, "w")
+                filter_run_json_string = json.dumps(filter_run)
+                output.write("#%s\n" % filter_run_json_string)
+
+                for rec in newrecs:
+                    output.write("\t".join(map(str, rec)) + "\n")
+
+
+                filter_run["run_info"]["num_filter_results"] = len(newrecs)
+                filter_run_json_string = json.dumps(filter_run, indent=4, sort_keys=True)
+                filter_run_json_string = re.sub("\n", "\n#", filter_run_json_string)
+                output.write("#%s\n" % filter_run_json_string)
+                output.close()
+    
     elapsed_run = time.time() - begin
     print 'all run took %s' % elapsed_run
 
-    filter_run["run_info"]["elapsed_time"] = elapsed_run
-    filter_run["run_info"]["num_filter_results"] = len(recs)
-    filter_run_json_string = json.dumps(filter_run, indent=4, sort_keys=True)
-    filter_run_json_string = re.sub("\n", "\n#", filter_run_json_string)
-    output.write("#%s\n" % filter_run_json_string)
-    output.close()
 
 
 if __name__ == '__main__':
