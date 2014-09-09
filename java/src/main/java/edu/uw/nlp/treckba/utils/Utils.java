@@ -18,6 +18,7 @@ import java.util.Set;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import edu.uw.nlp.treckba.debugging.ResultStreamIdPair;
 import edu.uw.nlp.treckba.feature.ExampleKey;
 import edu.uw.nlp.treckba.feature.ExampleValue;
 
@@ -427,14 +428,16 @@ public class Utils {
 		return dayOfWeek - 1;
 	}
 
-	public static List<String> readFalsePositives(final String falsePositiveFile) {
-		final List<String> streamIds = new ArrayList<>();
+	public static List<ResultStreamIdPair> readFalseAndTruePositives(
+			final String falsePositiveFile) {
+		final List<ResultStreamIdPair> streamIds = new ArrayList<>();
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(new FileReader(new File(falsePositiveFile)));
 			String line = null;
 			while ((line = br.readLine()) != null) {
-				streamIds.add(line.trim());
+				final String[] values = line.trim().split(" ");
+				streamIds.add(new ResultStreamIdPair(values[0], values[1]));
 			}
 		} catch (final FileNotFoundException e) {
 			System.out.println("file not found exception " + falsePositiveFile);

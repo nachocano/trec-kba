@@ -62,9 +62,9 @@ def main():
     run = read_run(args.run)
     #print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r)
 
-    #print_fp_per_entity(args.output, run, x_test_a_r, y_test_a_r, cxt_test_a_r)
+    print_fp_tp_per_entity(args.output, run, x_test_a_r, y_test_a_r, cxt_test_a_r)
 
-    timeliness_per_entity(x_test_a_r, y_test_a_r, cxt_test_a_r, run, args.output)
+    #timeliness_per_entity(x_test_a_r, y_test_a_r, cxt_test_a_r, run, args.output)
 
 
  
@@ -99,7 +99,7 @@ def feature_lists(array):
     return mins, avgs, times, zeros
 
 
-def print_fp_per_entity(output, run, x_test_a_r, y_test_a_r, cxt_test_a_r):
+def print_fp_tp_per_entity(output, run, x_test_a_r, y_test_a_r, cxt_test_a_r):
     values = defaultdict(list)
     for xi, yi, ci in zip(x_test_a_r, y_test_a_r, cxt_test_a_r):
         streamid, targetid, date_hour = ci.split()
@@ -108,13 +108,16 @@ def print_fp_per_entity(output, run, x_test_a_r, y_test_a_r, cxt_test_a_r):
                 prediction = run[targetid][streamid]
                 # FP
                 if prediction == 2 and yi != 2:
-                    values[targetid].append(streamid)
-    for targetid in values:
+                    values[targetid].append((streamid, "fp"))
+                elif prediction == 2 and yi == 2:
+                    values[targetid].append((streamid, "tp"))
+
+    for targetid in fp_values:
         name = targetid[targetid.rfind('/')+1:]
         filename = os.path.join(output, name)
         f = open(filename, 'w')
         for v in values[targetid]:
-            f.write("%s\n" % v)
+            f.write("%s %s\n" % (v[0], v[1]))
         f.close()
             
 def print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r):

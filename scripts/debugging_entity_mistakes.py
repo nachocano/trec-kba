@@ -56,8 +56,8 @@ def main():
                 entity_timeliness = instance[637]
                 features[streamid] = (fixed_features, nouns_embeddings, verbs_embeddings, clustering_nouns, clustering_verbs, entity_timeliness)
 
-    sorted(streamid_text, key=lambda key: streamid_text[key])
-    for streamid in streamid_text:
+    #sorted(streamid_text, key=lambda key: streamid_text[key])
+    for streamid, text in sorted(streamid_text.iteritems(), key=lambda k : k):
         print 'streamid %s' % streamid
         feat = features[streamid]
         nouns = streamid_pos['nouns'][streamid]
@@ -68,7 +68,7 @@ def main():
         print 'fixed_features %s' % feat[0]
         print 'nouns %s' % nouns
         print 'verbs %s' % verbs
-        print 'text %s' % streamid_text[streamid]
+        print 'text %s' % text
         print ''
 
 
