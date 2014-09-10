@@ -138,6 +138,7 @@ public class CreateFeaturesTask implements Callable<Void> {
 							"serif");
 					final Set<String> nounLemmas = new HashSet<>();
 					final Set<String> verbLemmas = new HashSet<>();
+					final Set<String> properNounLemmas = new HashSet<>();
 					// only find lemmas on full matches, otherwise I may be
 					// adding irrelevant words (e.g. john lennon will match john
 					// tillman)
@@ -145,35 +146,49 @@ public class CreateFeaturesTask implements Callable<Void> {
 						for (final Sentence sentence : sentences) {
 							final Set<String> nounCandidateLemmas = new HashSet<>();
 							final Set<String> verbCandidateLemmas = new HashSet<>();
+							final List<Compound> properNounsCandidates = new ArrayList<>();
 							final List<Token> tokens = sentence.getTokens();
 							final StringBuilder lemmas = new StringBuilder();
 							for (final Token token : tokens) {
+
 								final String lemma = token.getLemma();
 								lemmas.append(lemma).append(WHITESPACE);
+
 								final String pos = token.getPos();
 								// take the verbs
 								if (pos != null && pos.startsWith("V")) {
-									final String removedNonWords = lemma
-											.replaceAll("[^a-zA-Z ]", "");
-									if (removedNonWords.length() > 1) {
-										verbCandidateLemmas
-												.add(removedNonWords);
+									final String word = filter(lemma);
+									if (word.length() > 1) {
+										verbCandidateLemmas.add(word);
 									}
+
 								} else if (pos != null
 										&& !pos.startsWith("NNP")
 										&& token.getMention_type() != MentionType.NAME
 										&& pos.startsWith("N")) {
-									// take the nouns
-									final String nonWords = lemma.replaceAll(
-											"[^a-zA-Z ]", "");
-									if (nonWords.length() > 1) {
-										nounCandidateLemmas.add(nonWords);
+									final String word = filter(lemma);
+									if (word.length() > 1) {
+										nounCandidateLemmas.add(word);
+									}
+
+								} else if (pos != null
+										&& pos.startsWith("NNP")
+										&& (token.getMention_type() == MentionType.NAME || token
+												.getMention_type() == MentionType.NOM)) {
+									final String word = filter(lemma);
+									if (word.length() > 1) {
+										properNounsCandidates.add(new Compound(
+												word, token.getMention_id()));
 									}
 								}
 							}
+
 							if (full.matcher(lemmas.toString()).find()) {
 								nounLemmas.addAll(nounCandidateLemmas);
 								verbLemmas.addAll(verbCandidateLemmas);
+								properNounLemmas
+										.addAll(Compound
+												.compoundsToString(properNounsCandidates));
 							}
 						}
 					}
@@ -192,13 +207,13 @@ public class CreateFeaturesTask implements Callable<Void> {
 					final ExampleValue truthValue = values.get(tk);
 
 					final String features = String.format(
-							"%s %s %s %s %s %s %s %s %s %s",
+							"%s %s %s %s %s %s %s %s %s %s %s",
 							item.getStream_id(), targetId,
 							truthValue.getDateHour(),
 							truthValue.getRelevance(), Utils.toString(sources),
 							logDocLength, fullMatchesFeatures,
 							partialMatchesFeatures, nounLemmas.toString(),
-							verbLemmas.toString());
+							verbLemmas.toString(), properNounLemmas.toString());
 					queue.add(features);
 				}
 			}
@@ -218,5 +233,13 @@ public class CreateFeaturesTask implements Callable<Void> {
 			System.out.println("finished processing... " + targetId);
 		}
 		return null;
+	}
+
+	private String filter(final String lemma) {
+		final String words = lemma.replaceAll("[^a-zA-Z]", "");
+		if (Utils.HTML_TAGS.matcher(words).find()) {
+			return "";
+		}
+		return words;
 	}
 }

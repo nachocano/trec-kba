@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -27,6 +28,12 @@ public class Utils {
 	public static final int UNKNOWN_RELEVANCE = -10;
 	public static final String DIFFEO_URL = "https://kb.diffeo.com/";
 	public static final String CORPUS_URL = "http://s3.amazonaws.com/aws-publicdatasets/trec/kba/kba-streamcorpus-2014-v0_3_0-kba-filtered/";
+	public static final Pattern HTML_TAGS = Pattern
+			.compile("^(title|div|class|td|ref|href|diffchange|src|alt|style|color|background|span|abbrev|acronym|address|applet|area|au|author|b|banner|base|"
+					+ "basefont|bgsound|big|blink|blockquote|bq|body|br|caption|center|cite|code|col|colgroup|credit|del|dfn|dir|dl|dt|dd|em|"
+					+ "embed|fig|fn|font|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|hr|html|i|iframe|img|input|ins|isindex|kbd|lang|lh|li|link|"
+					+ "listing|map|marquee|math|menu|meta|multicol|nobr|noframes|note|ol|overlay|p|param|person|plaintext|pre|q|range|samp|script|"
+					+ "select|smaller|spacer|spot|sub|sup|tab|table|tbody|td|textarea|textflow|tfoot|th|thead|title|tr|tt|u|ul|var|wbr|xmp|cfc)$");
 
 	public static String toString(final int[] sources) {
 		final StringBuilder sb = new StringBuilder();
