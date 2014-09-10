@@ -17,6 +17,7 @@ public class ClusterExample {
 	private float[] features;
 	private WordType verbs;
 	private WordType nouns;
+	private WordType properNouns;
 	// discard flag, not to include it in the output...
 	// should have used folder <= training_end_range instead of strictly <. Some
 	// unassessed test docs should be part of unassessed train.
@@ -38,6 +39,14 @@ public class ClusterExample {
 
 	public void setNouns(final WordType nouns) {
 		this.nouns = nouns;
+	}
+
+	public WordType getProperNouns() {
+		return properNouns;
+	}
+
+	public void setProperNouns(final WordType properNouns) {
+		this.properNouns = properNouns;
 	}
 
 	public void setVerbs(final WordType verbs) {
@@ -121,16 +130,19 @@ public class ClusterExample {
 		}
 		final String nounsArrayAsStr = nouns.arrayToString();
 		final String verbsArrayAsStr = verbs.arrayToString();
+		final String properNounsArrayAsStr = properNouns.arrayToString();
 		final String nounsFeaturesAsStr = nouns.featuresToString();
 		final String verbsFeaturesAsStr = verbs.featuresToString();
+		final String properNounsFeaturesAsStr = properNouns.featuresToString();
 		final String entityTimelinessAsStr = String.format("%.5f",
 				entityTimeliness);
 		// final String preMentionsAsStr = preMentionsToString();
 		// final String dayOfWeekAsString = dayOfWeekToString();
 
-		return String.format("%s %s %s %s %s %s", sb.toString(),
-				nounsArrayAsStr, verbsArrayAsStr, nounsFeaturesAsStr,
-				verbsFeaturesAsStr, entityTimelinessAsStr);
+		return String.format("%s %s %s %s %s %s %s %s", sb.toString(),
+				nounsArrayAsStr, verbsArrayAsStr, properNounsArrayAsStr,
+				nounsFeaturesAsStr, verbsFeaturesAsStr,
+				properNounsFeaturesAsStr, entityTimelinessAsStr);
 
 		// return String.format("%s %s %s %s %s %s %s %s", sb.toString(),
 		// nounsArrayAsStr, verbsArrayAsStr, nounsFeaturesAsStr,

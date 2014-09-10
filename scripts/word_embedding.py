@@ -28,11 +28,15 @@ def main():
 
   for line in open(args.train_or_test_tsv_file).read().splitlines():
     delimiter = line.find('[')
-    two_arrays = line[delimiter:]
-    nouns = two_arrays[1:two_arrays.find(']')].split(',')
+    three_arrays = line[delimiter:]
+    nouns_delimiter = three_arrays.find(']')
+    nouns = three_arrays[1:nouns_delimiter].split(',')
     nouns = filter(lambda x: x != '', nouns)
-    verbs = two_arrays[two_arrays.rfind('[')+1:-1].split(',')
+    two_arrays = three_arrays[nouns_delimiter+2:]
+    verbs = two_arrays[1:two_arrays.find(']')].split(',')
     verbs = filter(lambda x: x != '', verbs)
+    proper_nouns = two_arrays[two_arrays.rfind('[')+1:-1].split(',')
+    proper_nouns = filter(lambda x: x != '', proper_nouns)
     fixed = line[:delimiter-1]
     targetid = fixed.split()[1]
     
@@ -48,6 +52,12 @@ def main():
       if model.__contains__(verb_lemma):
         verb_embeddings.append(matutils.unitvec(model.syn0[model.vocab[verb_lemma].index]))
 
+    proper_noun_embeddings = []
+    for proper_noun in proper_nouns:
+      proper_noun_lemma = proper_noun.strip()
+      if model.__contains__(proper_noun_lemma):
+        proper_noun_embeddings.append(matutils.unitvec(model.syn0[model.vocab[proper_noun_lemma].index]))
+
     if len(noun_embeddings) > 0:
       noun_embeddings = matutils.unitvec(np.array(noun_embeddings).mean(axis=0)).astype(np.float32)
     else:
@@ -58,9 +68,15 @@ def main():
     else:
       verb_embeddings = np.zeros(args.embeddings_dimension).astype(np.float32)
     
+    if len(proper_noun_embeddings) > 0:
+      proper_noun_embeddings = matutils.unitvec(np.array(proper_noun_embeddings).mean(axis=0)).astype(np.float32)
+    else:
+      proper_noun_embeddings = np.zeros(args.embeddings_dimension).astype(np.float32)
+
     noun_embeddings_as_str = ' '.join(str(e) for e in noun_embeddings)
     verb_embeddings_as_str = ' '.join(str(e) for e in verb_embeddings)
-    print '%s %s %s' % (fixed, noun_embeddings_as_str, verb_embeddings_as_str)
+    proper_noun_embeddings_as_str = ' '.join(str(e) for e in proper_noun_embeddings)
+    print '%s %s %s %s' % (fixed, noun_embeddings_as_str, verb_embeddings_as_str, proper_noun_embeddings_as_str)
 
 if __name__ == '__main__':
   main()

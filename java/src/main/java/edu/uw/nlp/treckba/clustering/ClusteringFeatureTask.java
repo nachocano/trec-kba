@@ -11,6 +11,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 	private final String targetId;
 	private final List<Cluster> verbs;
 	private final List<Cluster> nouns;
+	private final List<Cluster> properNouns;
 	private final HyperParams nounsParams;
 	private final HyperParams verbsParams;
 	private final long timestampNormalizer;
@@ -24,6 +25,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 		this.test = test;
 		this.verbs = new LinkedList<>();
 		this.nouns = new LinkedList<>();
+		this.properNouns = new LinkedList<>();
 		this.nounsParams = nounsParams;
 		this.verbsParams = verbsParams;
 		this.timestampNormalizer = timestampNormalizer;
@@ -57,6 +59,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 					timestampNormalizer);
 			populateFeatures(nouns, example, example.getNouns(), nounsParams,
 					timestampNormalizer);
+			populateFeatures(properNouns, example, example.getProperNouns(),
+					nounsParams, timestampNormalizer);
 
 		}
 	}
