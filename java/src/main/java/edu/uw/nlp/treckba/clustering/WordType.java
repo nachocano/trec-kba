@@ -84,12 +84,9 @@ public class WordType {
 	}
 
 	public String featuresToString() {
-		final StringBuilder sb = new StringBuilder()
-				.append(String.format("%.5f", minDistance))
-				.append(ClusteringConstants.WHITE_SPACE)
-				.append(String.format("%.5f", avgDistance))
-				.append(ClusteringConstants.WHITE_SPACE)
-				.append(String.format("%.5f", timeliness))
+		final StringBuilder sb = new StringBuilder().append(minDistance)
+				.append(ClusteringConstants.WHITE_SPACE).append(avgDistance)
+				.append(ClusteringConstants.WHITE_SPACE).append(timeliness)
 				.append(ClusteringConstants.WHITE_SPACE).append(allZeros);
 		return sb.toString();
 
