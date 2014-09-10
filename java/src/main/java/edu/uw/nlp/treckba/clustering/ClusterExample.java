@@ -9,6 +9,10 @@ import edu.uw.nlp.treckba.utils.Utils;
 
 public class ClusterExample {
 
+	public static enum PreMentionType {
+		GENERAL, NOUN, VERB, PROPER_NOUN;
+	}
+
 	private final String streamId;
 	private final String targetId;
 	private final String dateHour;
@@ -26,6 +30,10 @@ public class ClusterExample {
 	private final int[] preMentions;
 	private final int[] dayOfWeek;
 
+	private final int[] preMentionsNouns;
+	private final int[] preMentionsVerbs;
+	private final int[] preMentionsProperNouns;
+
 	public ClusterExample(final String streamId, final String targetId,
 			final String dateHour, final int relevance) {
 		this.streamId = streamId;
@@ -34,6 +42,9 @@ public class ClusterExample {
 		this.relevance = relevance;
 		this.timestamp = Long.valueOf(this.streamId.split("-")[0]);
 		this.preMentions = new int[BUCKETS];
+		this.preMentionsNouns = new int[BUCKETS];
+		this.preMentionsVerbs = new int[BUCKETS];
+		this.preMentionsProperNouns = new int[BUCKETS];
 		this.dayOfWeek = new int[7];
 	}
 
@@ -136,24 +147,26 @@ public class ClusterExample {
 		final String properNounsFeaturesAsStr = properNouns.featuresToString();
 		final String entityTimelinessAsStr = String.format("%.5f",
 				entityTimeliness);
-		// final String preMentionsAsStr = preMentionsToString();
-		// final String dayOfWeekAsString = dayOfWeekToString();
+		final String dayOfWeekAsString = dayOfWeekToString();
+		final String preMentionsGeneralAsStr = preMentionsArrayToString(preMentions);
+		final String preMentionsNounsAsStr = preMentionsArrayToString(preMentionsNouns);
+		final String preMentionsVerbsAsStr = preMentionsArrayToString(preMentionsVerbs);
+		final String preMentionsProperNounsAsStr = preMentionsArrayToString(preMentionsProperNouns);
 
-		return String.format("%s %s %s %s %s %s %s %s", sb.toString(),
-				nounsArrayAsStr, verbsArrayAsStr, properNounsArrayAsStr,
-				nounsFeaturesAsStr, verbsFeaturesAsStr,
-				properNounsFeaturesAsStr, entityTimelinessAsStr);
+		return String.format("%s %s %s %s %s %s %s %s %s %s %s %s %s",
+				sb.toString(), nounsArrayAsStr, verbsArrayAsStr,
+				properNounsArrayAsStr, nounsFeaturesAsStr, verbsFeaturesAsStr,
+				properNounsFeaturesAsStr, entityTimelinessAsStr,
+				dayOfWeekAsString, preMentionsGeneralAsStr,
+				preMentionsNounsAsStr, preMentionsVerbsAsStr,
+				preMentionsProperNounsAsStr);
 
-		// return String.format("%s %s %s %s %s %s %s %s", sb.toString(),
-		// nounsArrayAsStr, verbsArrayAsStr, nounsFeaturesAsStr,
-		// verbsFeaturesAsStr, entityTimelinessAsStr, preMentionsAsStr,
-		// dayOfWeekAsString);
 	}
 
-	private String preMentionsToString() {
-		final StringBuilder sb = new StringBuilder().append(preMentions[0]);
-		for (int i = 1; i < preMentions.length; i++) {
-			sb.append(ClusteringConstants.WHITE_SPACE).append(preMentions[i]);
+	private String preMentionsArrayToString(final int[] array) {
+		final StringBuilder sb = new StringBuilder().append(array[0]);
+		for (int i = 1; i < array.length; i++) {
+			sb.append(ClusteringConstants.WHITE_SPACE).append(array[i]);
 		}
 		return sb.toString();
 	}
@@ -166,8 +179,25 @@ public class ClusterExample {
 		this.entityTimeliness = globalTimeliness;
 	}
 
-	public void updatePreMention(final int bucket, final int value) {
-		this.preMentions[bucket] += value;
+	public void updatePreMention(final int bucket, final int value,
+			final PreMentionType type) {
+		switch (type) {
+		case GENERAL:
+			this.preMentions[bucket] += value;
+			break;
+		case VERB:
+			this.preMentionsVerbs[bucket] += value;
+			break;
+		case NOUN:
+			this.preMentionsNouns[bucket] += value;
+			break;
+		case PROPER_NOUN:
+			this.preMentionsProperNouns[bucket] += value;
+			break;
+		default:
+			throw new RuntimeException("invalid mention type");
+		}
+
 	}
 
 	public String dayOfWeekToString() {

@@ -46,7 +46,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 					targetId, (System.currentTimeMillis() - start) / 1000));
 
 		}
-		return new ClusteringOutput(targetId, nouns, verbs);
+		return new ClusteringOutput(targetId, nouns, verbs, properNouns);
 	}
 
 	private void doProcess(final List<ClusterExample> set, final String str) {

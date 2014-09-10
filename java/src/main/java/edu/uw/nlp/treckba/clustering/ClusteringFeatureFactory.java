@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -31,10 +32,11 @@ public class ClusteringFeatureFactory {
 			tasks.add(t);
 		}
 
+		List<ClusteringOutput> clusteringOutputs = null;
 		try {
 			final List<Future<ClusteringOutput>> futures = executor
 					.invokeAll(tasks);
-			printClusterStats(futures);
+			clusteringOutputs = printClusterStats(futures);
 
 		} catch (final InterruptedException e) {
 			System.out.println(String.format(
@@ -55,31 +57,43 @@ public class ClusteringFeatureFactory {
 		final EntityTimeliness et = new EntityTimeliness(timestampNormalizer);
 		et.computeTimeliness(wholeCorpus, nounsParams);
 
-		// final PreMentions pms = new PreMentions(train, test);
-		// pms.computePreMentions();
+		final PreMentions pms = new PreMentions();
+		pms.computePreMentions(train, test);
+		pms.computePreMentions(clusteringOutputs);
 
 		outputResults(train, outputTrainFile);
 		outputResults(test, outputTestFile);
 	}
 
-	private void printClusterStats(final List<Future<ClusteringOutput>> futures)
+	private List<ClusteringOutput> printClusterStats(
+			final List<Future<ClusteringOutput>> futures)
 			throws InterruptedException, ExecutionException {
+		final List<ClusteringOutput> cOutputs = new LinkedList<>();
 		int nounClusters = 0;
 		int verbClusters = 0;
+		int properNounClusters = 0;
 		for (final Future<ClusteringOutput> future : futures) {
 			final ClusteringOutput output = future.get();
+			cOutputs.add(output);
 			if (output != null) {
 				final int nounSize = output.getNounClusters().size();
 				final int verbSize = output.getVerbClusters().size();
+				final int properNounSize = output.getProperNounClusters()
+						.size();
 				nounClusters += nounSize;
 				verbClusters += verbSize;
-				System.out.println(String.format("%s,%d,%d",
-						output.getTargetId(), nounSize, verbSize));
+				properNounClusters += properNounSize;
+				System.out.println(String.format("%s,%d,%d,%d",
+						output.getTargetId(), nounSize, verbSize,
+						properNounSize));
 			}
 		}
 
 		System.out.println("noun clusters " + nounClusters);
 		System.out.println("verb clusters " + verbClusters);
+		System.out.println("proper noun clusters " + properNounClusters);
+
+		return cOutputs;
 	}
 
 	private void outputResults(final Map<String, List<ClusterExample>> map,

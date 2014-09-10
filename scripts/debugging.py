@@ -112,7 +112,7 @@ def print_fp_tp_per_entity(output, run, x_test_a_r, y_test_a_r, cxt_test_a_r):
                 elif prediction == 2 and yi == 2:
                     values[targetid].append((streamid, "tp"))
 
-    for targetid in fp_values:
+    for targetid in values:
         name = targetid[targetid.rfind('/')+1:]
         filename = os.path.join(output, name)
         f = open(filename, 'w')

@@ -51,6 +51,10 @@ public class Cluster {
 		this.timestamp = timestamp;
 	}
 
+	public List<ClusterExample> getExamples() {
+		return this.examples;
+	}
+
 	public float decay(final ClusterExample example, final HyperParams params) {
 		// perform the decay
 		final long t = example.getTimestamp();
