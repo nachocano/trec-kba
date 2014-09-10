@@ -4,12 +4,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.Validate;
 
 import edu.uw.nlp.treckba.clustering.ClusterExample.PreMentionType;
 
 public class PreMentions {
+
+	private final ExecutorService executor = Executors.newFixedThreadPool(15);
 
 	private Map<String, List<ClusterExample>> merge(
 			final Map<String, List<ClusterExample>> train,
@@ -50,15 +55,20 @@ public class PreMentions {
 		// examples are in order be in order
 		if (examples.size() > 0) {
 			// leave the first example empty...
-			for (int i = 1; i < examples.size(); i++) {
+			for (int i = examples.size() - 1; i > 0; i--) {
 				final ClusterExample currentExample = examples.get(i);
 				if (!currentExample.discard()) {
 					final long currentTimestamp = currentExample.getTimestamp();
-					for (int j = 0; j < i; j++) {
+					for (int j = i - 1; j >= 0; j--) {
 						final long pastTimestamp = examples.get(j)
 								.getTimestamp();
 						final long diffInSeconds = currentTimestamp
 								- pastTimestamp;
+						if (diffInSeconds > ClusteringConstants.SECONDS_IN_WEEK) {
+							// won't be in any other, so I break and continue
+							// with the next. Should speed things up
+							break;
+						}
 						currentExample
 								.updatePreMention(
 										ClusteringConstants.ONE_HOUR_BUCKET,
@@ -102,34 +112,61 @@ public class PreMentions {
 
 	public void computePreMentions(
 			final List<ClusteringOutput> clusteringOutputs) {
-		System.out.println("computing pre mentions for clusters...");
-		final long start = System.currentTimeMillis();
-		for (final ClusteringOutput output : clusteringOutputs) {
-			computePreMentionsForClusters(output.getNounClusters(),
-					PreMentionType.NOUN);
-			computePreMentionsForClusters(output.getVerbClusters(),
-					PreMentionType.VERB);
-			computePreMentionsForClusters(output.getProperNounClusters(),
-					PreMentionType.PROPER_NOUN);
-		}
-		final long end = System.currentTimeMillis();
-		System.out.println(String.format(
-				"pre mentions for clusters computed, took %s ...",
-				(end - start) / 1000));
 
+		final List<PreMentionTask> tasks = new ArrayList<>();
+		for (final ClusteringOutput out : clusteringOutputs) {
+			tasks.add(new PreMentionTask(out));
+		}
+
+		try {
+			executor.invokeAll(tasks);
+
+		} catch (final InterruptedException e) {
+			System.out.println(String.format(
+					"error: interrupted exception: %s", e.getMessage()));
+		} catch (final Exception e) {
+			System.out.println(String.format("error: exception: %s",
+					e.getMessage()));
+		} finally {
+			executor.shutdown();
+		}
 	}
 
 	private void computePreMentionsForClusters(final List<Cluster> clusters,
 			final PreMentionType type) {
-		System.out.println("computing pre mentions for " + type.toString());
-		final long start = System.currentTimeMillis();
 		for (final Cluster c : clusters) {
 			updatePreMention(c.getExamples(), type);
 		}
-		final long end = System.currentTimeMillis();
-		System.out.println(String.format(
-				"pre mentions for %s computed, took %s ...", type.toString(),
-				(end - start) / 1000));
+	}
+
+	private final class PreMentionTask implements Callable<Void> {
+
+		private final ClusteringOutput cOut;
+
+		public PreMentionTask(final ClusteringOutput out) {
+			this.cOut = out;
+		}
+
+		@Override
+		public Void call() throws Exception {
+
+			final long start = System.currentTimeMillis();
+			System.out.println("computing pre mentions for clusters of target "
+					+ cOut.getTargetId());
+			computePreMentionsForClusters(cOut.getNounClusters(),
+					PreMentionType.NOUN);
+			computePreMentionsForClusters(cOut.getVerbClusters(),
+					PreMentionType.VERB);
+			computePreMentionsForClusters(cOut.getProperNounClusters(),
+					PreMentionType.PROPER_NOUN);
+			final long end = System.currentTimeMillis();
+			System.out
+					.println(String
+							.format("pre mentions for clusters of target %s computed, took %s ...",
+									cOut.getTargetId(), (end - start) / 1000));
+
+			return null;
+		}
 	}
 
 }
