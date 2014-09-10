@@ -57,13 +57,13 @@ public class ClusteringDriver {
 			alphaNoun = Float.parseFloat(line.getOptionValue("an"));
 			Validate.isTrue(alphaNoun != 0);
 			gammaVerbIncrease = Float.parseFloat(line.getOptionValue("gvi"));
-			Validate.isTrue(gammaVerbIncrease != 0);
+			// Validate.isTrue(gammaVerbIncrease != 0);
 			gammaVerbDecrease = Float.parseFloat(line.getOptionValue("gvd"));
-			Validate.isTrue(gammaVerbDecrease != 0);
+			// Validate.isTrue(gammaVerbDecrease != 0);
 			gammaNounIncrease = Float.parseFloat(line.getOptionValue("gni"));
-			Validate.isTrue(gammaNounIncrease != 0);
+			// Validate.isTrue(gammaNounIncrease != 0);
 			gammaNounDecrease = Float.parseFloat(line.getOptionValue("gnd"));
-			Validate.isTrue(gammaNounDecrease != 0);
+			// Validate.isTrue(gammaNounDecrease != 0);
 			timestampNormalizer = Long.parseLong(line.getOptionValue("tn"));
 			Validate.isTrue(timestampNormalizer != 0);
 
