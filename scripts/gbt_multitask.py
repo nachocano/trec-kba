@@ -84,10 +84,14 @@ def main():
     
     print x_train_a_uv.shape
 
+    estimators = 150
+    random_seed = 37
+    max_depth = 110
+
     # train uv
     print 'training uv...'
     start = time.time()
-    clf_uv = ensemble.GradientBoostingClassifier()
+    clf_uv = ensemble.ExtraTreesClassifier(n_estimators=estimators, max_depth=max_depth, random_state=random_seed)
     clf_uv = clf_uv.fit(x_train_a_uv, y_train_a_uv)
     print 'trained uv, took %s' % (time.time() - start)
 

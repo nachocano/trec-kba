@@ -16,17 +16,20 @@ def main():
 
   for line in open(args.train_or_test_tsv_file).read().splitlines():
     delimiter = line.find('[')
-    two_arrays = line[delimiter:]
-    nouns = two_arrays[1:two_arrays.find(']')].split(',')
+    three_arrays = line[delimiter:]
+    nouns_delimiter = three_arrays.find(']')
+    nouns = three_arrays[1:nouns_delimiter].split(',')
     nouns = filter(lambda x: x != '', nouns)
-    verbs = two_arrays[two_arrays.rfind('[')+1:-1].split(',')
+    two_arrays = three_arrays[nouns_delimiter+2:]
+    verbs = two_arrays[1:two_arrays.find(']')].split(',')
     verbs = filter(lambda x: x != '', verbs)
+    proper_nouns = two_arrays[two_arrays.rfind('[')+1:-1].split(',')
+    proper_nouns = filter(lambda x: x != '', proper_nouns)
     fixed = line[:delimiter-1]
-    targetid = fixed.split()[1]
     nouns.extend(verbs)
+    nouns.extend(proper_nouns)
     print '%s %s' % (fixed, ('[' + ', '.join(nouns) + ']'))
     
-
 if __name__ == '__main__':
   main()
 

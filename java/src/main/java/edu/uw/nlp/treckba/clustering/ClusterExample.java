@@ -147,19 +147,28 @@ public class ClusterExample {
 		final String properNounsFeaturesAsStr = properNouns.featuresToString();
 		final String entityTimelinessAsStr = String.format("%.5f",
 				entityTimeliness);
-		final String dayOfWeekAsString = dayOfWeekToString();
-		final String preMentionsGeneralAsStr = preMentionsArrayToString(preMentions);
-		final String preMentionsNounsAsStr = preMentionsArrayToString(preMentionsNouns);
-		final String preMentionsVerbsAsStr = preMentionsArrayToString(preMentionsVerbs);
-		final String preMentionsProperNounsAsStr = preMentionsArrayToString(preMentionsProperNouns);
+		// final String dayOfWeekAsString = dayOfWeekToString();
+		// final String preMentionsGeneralAsStr =
+		// preMentionsArrayToString(preMentions);
+		// final String preMentionsNounsAsStr =
+		// preMentionsArrayToString(preMentionsNouns);
+		// final String preMentionsVerbsAsStr =
+		// preMentionsArrayToString(preMentionsVerbs);
+		// final String preMentionsProperNounsAsStr =
+		// preMentionsArrayToString(preMentionsProperNouns);
 
-		return String.format("%s %s %s %s %s %s %s %s %s %s %s %s %s",
-				sb.toString(), nounsArrayAsStr, verbsArrayAsStr,
-				properNounsArrayAsStr, nounsFeaturesAsStr, verbsFeaturesAsStr,
-				properNounsFeaturesAsStr, entityTimelinessAsStr,
-				dayOfWeekAsString, preMentionsGeneralAsStr,
-				preMentionsNounsAsStr, preMentionsVerbsAsStr,
-				preMentionsProperNounsAsStr);
+		// return String.format("%s %s %s %s %s %s %s %s %s %s %s %s %s",
+		// sb.toString(), nounsArrayAsStr, verbsArrayAsStr,
+		// properNounsArrayAsStr, nounsFeaturesAsStr, verbsFeaturesAsStr,
+		// properNounsFeaturesAsStr, entityTimelinessAsStr,
+		// dayOfWeekAsString, preMentionsGeneralAsStr,
+		// preMentionsNounsAsStr, preMentionsVerbsAsStr,
+		// preMentionsProperNounsAsStr);
+
+		return String.format("%s %s %s %s %s %s %s %s", sb.toString(),
+				nounsArrayAsStr, verbsArrayAsStr, properNounsArrayAsStr,
+				nounsFeaturesAsStr, verbsFeaturesAsStr,
+				properNounsFeaturesAsStr, entityTimelinessAsStr);
 
 	}
 

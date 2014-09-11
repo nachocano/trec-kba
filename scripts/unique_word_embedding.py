@@ -31,6 +31,7 @@ def main():
     fixed = line[:delimiter-1]
     arrays = line[delimiter:]
     lemmas = arrays[1:arrays.find(']')].split(',')
+    lemmas = filter(lambda x: x != '', lemmas)
 
     lemma_embeddings = []
     for lemma in lemmas:

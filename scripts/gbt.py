@@ -44,11 +44,15 @@ def main():
     print x_train_u.shape
     print x_test_u.shape
 
+    estimators = 150
+    random_seed = 37
+    max_depth = 110
+
     clf_rnr = None
     if args.rnr_load_model_file:
         clf_rnr = load_model(args.rnr_load_model_file)
     else:
-        clf_rnr = ensemble.GradientBoostingClassifier()
+        clf_rnr = ensemble.ExtraTreesClassifier(n_estimators=estimators, max_depth=max_depth, random_state=random_seed)
         clf_rnr = clf_rnr.fit(x_train_a, y_train_a_rnr)
         if args.rnr_save_model_file:
             save_model(args.rnr_save_model_file, clf_rnr)
@@ -83,7 +87,7 @@ def main():
     assert x_test_u_uv_from_train.shape[0] == len(pred_rnr_u_from_train[pred_rnr_u_from_train == 1])
     assert x_test_u_uv.shape[0] == len(pred_rnr_u[pred_rnr_u == 1])
 
-    clf_uv = ensemble.GradientBoostingClassifier()
+    clf_uv = ensemble.ExtraTreesClassifier(n_estimators=estimators, max_depth=max_depth, random_state=random_seed)
     clf_uv = clf_uv.fit(x_train_a_uv, y_train_a_uv)
 
 
