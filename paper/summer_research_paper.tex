@@ -46,22 +46,20 @@ In this paper we introduce a distributed, non-parametric representation of docum
 \section{Introduction}
 \label{intro}
 
-doc classification, vital filtering task in gral.
-word embeddings (cite)
-clustering (cite) 
-non param clustering (cite)
+doc classification, vital filtering task in gral. cite some previous year papers...
+word embeddings (cite) quick overview.
+clustering (cite), non param clustering (cite)
 timeliness (see how to put it here)
 
-The rest of this paper is organized as follows. In section \ref{background}, we introduce the notation and the problem setup. Then, in section \ref{approach} we review our method, and evaluate it in \ref{evaluation} with TRECKBA14 corpus. 
-In section \ref{related}, we briefly discuss the relevant literature.
+The rest of this paper is organized as follows. In section \ref{background}, we introduce the notation and the problem setup. In section \ref{approach} we describe our method, and evaluate it in \ref{evaluation} with TRECKBA14 corpus. Section \ref{related} briefly discusses the relevant literature and section \ref{conclusion} lists the conclusions.
 
 \section{Background}
 \label{background} 
 
-We assume a set of target entities {\tt E} and a set of streaming documents {\tt D}. The documents in {\tt D} arrive in chronological order.
+We assume a set of target entities $E$ and a set of streaming documents $D$. The documents in $D$ arrive in chronological order.
 
-The task at hand is to filter {\it vital} documents from {\tt D} that refer to entities in {\tt E}.
-The term {\it vital} means that the document contains information that at the time it enters the stream, it would drive an update to the entity's dossier with timely, new information about the entity's current state, actions or situation. The new information must motivate a change to an already up-to-date knowledge base article.
+The task at hand is to filter $vital$ documents from $D$ that refer to entities in $E$.
+The term $vital$ means that the document contains information that at the time it enters the stream, it would drive an update to the entity's dossier with timely, new information about the entity's current state, actions or situation. The new information must motivate a change to an already up-to-date knowledge base article.
 
 To this end, we first describe the constituent parts of our proposed method.
 
@@ -72,13 +70,24 @@ The learned vectors computed using neural networks are very attractive because t
 
 \subsection{Non-parametric Clustering}
 
-Clustering is a ubiquitous task in exploratory data analysis, data mining, and several other application domains \cite{KrishnamurthyBXS12}.
-We assume an online setting where the clustering algorithm must provide the items' partitions at time {\it t} before seeing the items at time {\it t+1}.
-We assume each document corresponds to a single cluster. In order to assign documents to clusters, we introduce the hyperparameter $\alpha$.
+Clustering is a ubiquitous task in exploratory data analysis, data mining, and several other application domains. %\cite{KrishnamurthyBXS12}.
+Traditionally, the clustering problem is defined in the following way. For a set $X$ of $n$ nodes, a clustering result is a partition $\left\{ {X_1, ..., X_k}\right\}$ of the nodes in $X$ such that $X=\cup_{l=1}^{k}{X_l}$ and $X_r \cap X_s = \emptyset$ for $1 \leq r,s \leq k, r \ne s$ \cite{ChiSZHT07}.
+
+Assuming the $i$-th node in $X$ is a $d$-dimensional vector $\vec{x_i} \in \mathbf{R}^m$, the $k$-means clustering problem is to find a partition $\left\{ {X_1, ..., X_k}\right\}$ that minimizes the following measure
+\begin{equation}
+\sum_{l=1}^{k} \sum_{i \in X_l} d(\vec{x_i},\vec{\mu_l})
+\end{equation}
+where $d(\cdot,\cdot)$ is a distance measure and $\vec{\mu_l}$ is the mean vector of the $l$-th cluster, i.e., $\vec{\mu_l} = \sum_{j \in X_l}{\vec{x_j}/|X_l|}$.
+In our setting, $d$ is the cosine distance
+\begin{equation}
+d(x,y) = 1 - \cos(x,y) = 1 - \frac{\dot(x,y)}{||x||||y||}
+\end{equation}
+and $k$ is not fixed beforehand.
+We assume an online setting where the clustering algorithm must provide the items' partitions at time $t$ before seeing the items at time $t+1$. We further introduce the decision variable used for cluster creation, $\alpha$, an hyperparameter of the model, $0 \leq \alpha \leq 1$.
 
 \subsubsection{Timeless}
 
-As mentioned in \ref{background}, the notion of {\it vitality} has to do with the timeliness of the new information. We introduce a timeless feature in every cluster. It follows the aging method, where the clusters are associated with weights that decrease over time, according to an exponential decay model (cite)
+As mentioned in \ref{background}, the notion of $vitality$ has to do with the timeliness of the new information. We introduce a timeless feature in every cluster. It follows the aging method, where the clusters are associated with weights that decrease over time, according to an exponential decay model (cite)
 
 In most applications very old data points are considered less useful and relevant than more recent data. Thus it is necessary that old or stale data does not overly influence the statistics or models that are built from the analysis. There are two common approaches to deal with the problem of staleness of historical data. One method is aging, data elements are associated with weigths that decrease over time. In most algorithms that use aging, the weights decrease according to the computationally-simple exponential decay model. ()
 
@@ -124,6 +133,7 @@ cite paper of sameer's friend.
 
 
 \section{Conclusion}
+\label{conclusion}
 
 This combination of non-parametric clustering, timeless, and distributed word embeddings provides an efficient yet accurate representation of entity context that can be updated in a streaming manner, thus addressing the requirements from document exploration on large streams of documents.
 TODO...
@@ -134,3 +144,5 @@ TODO...
 \bibliographystyle{icml2014}
 
 \end{document} 
+
+
