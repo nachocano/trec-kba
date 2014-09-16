@@ -73,30 +73,38 @@ The learned vectors computed using neural networks are very attractive because t
 Clustering is a ubiquitous task in exploratory data analysis, data mining, and several other application domains. %\cite{KrishnamurthyBXS12}.
 Traditionally, the clustering problem is defined in the following way. For a set $X$ of $n$ nodes, a clustering result is a partition $\left\{ {X_1, ..., X_k}\right\}$ of the nodes in $X$ such that $X=\cup_{l=1}^{k}{X_l}$ and $X_r \cap X_s = \emptyset$ for $1 \leq r,s \leq k, r \ne s$ \cite{ChiSZHT07}.
 
-Assuming the $i$-th node in $X$ is a $d$-dimensional vector $\vec{x_i} \in \mathbf{R}^m$, the $k$-means clustering problem is to find a partition $\left\{ {X_1, ..., X_k}\right\}$ that minimizes the following measure
+Assuming the $i$-th node in $X$ is a $d$-dimensional vector $\vec{x_i} \in \mathbf{R}^d$, the $k$-means clustering problem is to find a partition $\left\{ {X_1, ..., X_k}\right\}$ that minimizes the following measure
 \begin{equation}
 \sum_{l=1}^{k} \sum_{i \in X_l} d(\vec{x_i},\vec{\mu_l})
 \end{equation}
 where $d(\cdot,\cdot)$ is a distance measure and $\vec{\mu_l}$ is the mean vector of the $l$-th cluster, i.e., $\vec{\mu_l} = \sum_{j \in X_l}{\vec{x_j}/|X_l|}$.
-In our setting, $d$ is the cosine distance
+In our setting, $d(\cdot,\cdot)$ is the cosine distance
 \begin{equation}
 d(x,y) = 1 - \cos(x,y) = 1 - \frac{\dot(x,y)}{||x||||y||}
 \end{equation}
 and $k$ is not fixed beforehand.
+
 We assume an online setting where the clustering algorithm must provide the items' partitions at time $t$ before seeing the items at time $t+1$. We further introduce the decision variable used for cluster creation, $\alpha$, an hyperparameter of the model, $0 \leq \alpha \leq 1$.
 
 \subsubsection{Timeless}
 
-As mentioned in \ref{background}, the notion of $vitality$ has to do with the timeliness of the new information. We introduce a timeless feature in every cluster. It follows the aging method, where the clusters are associated with weights that decrease over time, according to an exponential decay model (cite)
+As mentioned in \ref{background}, the notion of $vitalness$ is closely related to the timeliness of the new information. We include a timeless feature $\lambda_t$ in every cluster, which is dinamically updated over time, and $0 \leq \lambda_t \leq 1$. Low timeless, i.e. high timeliness, aims to represent vitalness.
 
-In most applications very old data points are considered less useful and relevant than more recent data. Thus it is necessary that old or stale data does not overly influence the statistics or models that are built from the analysis. There are two common approaches to deal with the problem of staleness of historical data. One method is aging, data elements are associated with weigths that decrease over time. In most algorithms that use aging, the weights decrease according to the computationally-simple exponential decay model. ()
+The cluster timeless update is a two-step process, an exponential decrease followed by a constant increase.
+The timeless decrease is controlled by the hyperparameter $\gamma_d$ and follows an exponential decay model
+\begin{equation}
+\label{decrease}
+\lambda_t = \lambda_{t-1} \exp{(-\gamma_d \frac{(t-(t\mathord{-}1))}{T})}
+\end{equation}
+where $\lambda_{t-1}$ is the timeless at time $t-1$, $\gamma_d \geq 0$, $t$ is the document's timestamp at time $t$, $t-1$ is the document's timestamp at time $t-1$, and $T$ is a normalizing constant.
 
+On the other hand, the timeless increase is regulated by $\gamma_i$ according to the following expression
+\begin{equation}
+\lambda_t = 1 - (1 - \lambda_t) \gamma_i
+\end{equation}
+where $\lambda_t$ in the right side of the equation is taken from \ref{decrease}, and $0 \leq \gamma_i \leq 1$.
 
-problem, document filtering in an online fashion, 
-relevant non relevant definitions.
-vital useful definitions.
-clustering loss function, alpha, gamma, what they mean.
-timeliness (maybe timeless is better to use)
+The timeless reported at time $t$ is $\lambda_t$ before the increase.
 
 \section{Approach}
 \label{approach}
@@ -118,7 +126,9 @@ similarity metric.
 \section{Evaluation}
 \label{evaluation}
 
+relevant non relevant definitions.
 trec kba 2014 filtered corpus.
+2 classifiers
 around 20M docs in 2M chunks. Filtered based on exact partial matching of entity names.
 assessed / unassessed documents.
 plots on the different baselines, explanations of all of them.
