@@ -2,7 +2,8 @@
 
 \usepackage{times}
 \usepackage{graphicx}
-\usepackage{subfigure} 
+\usepackage{subfigure}
+\usepackage{mdwlist}
 
 \usepackage{natbib}
 
@@ -17,12 +18,12 @@
 \usepackage[accepted]{icml2014}
 
 
-\icmltitlerunning{Streaming Document Filtering using Distributed, Non-Parametric Representations}
+\icmltitlerunning{Streaming Document Classification using Distributed Non-Parametric Representations}
 
 \begin{document} 
 
 \twocolumn[
-\icmltitle{Streaming Document Filtering using Distributed, Non-Parametric Representations}
+\icmltitle{Streaming Document Classification using Distributed \\ Non-Parametric Representations}
 
 \icmlauthor{Ignacio Cano}{icano@cs.washington.edu}
 \icmladdress{University of Washington, P. Allen Center, 185 Stevens Way, Seattle, WA 98195 USA}
@@ -38,20 +39,25 @@
 
 \begin{abstract} 
 
-Most studies in filtering large corpuses of text documents have focused on identifying references to target entities as well as studying their prominence and topics evolution over time. However, a major problem with this kind of application appears in streaming settings. Current systems are quite restrictive for this domain; they are unable to handle streaming data, they do not partition the entity references according to their topics, and they do not identify the vitalness of the references.
-In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. We propose a distributed word embedding representation of entity contexts. Each context is described by topic clusters that are estimated in a non-parametric manner. Furthermore, we associate a timeless measure to each topic cluster, which dynamically estimates the relevance of the entity based on document frequencies.
+Most studies that deal with large corpuses of text documents have focused on identifying references to target entities as well as studying their prominence and topics evolution over time. However, current systems are quite restrictive for this setting; they are unable to handle streaming data, they do not partition the entity references according to their topics, and they do not identify the references vitalness.
+In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. We propose a distributed word embedding representation of entity contexts. Each context is described by topic clusters that are estimated in a non-parametric manner. Furthermore, we associate a timeless measure to each topic cluster, which dynamically estimates the relevance of the entity context based on document frequencies.
 
 \end{abstract} 
 
 \section{Introduction}
 \label{intro}
 
-doc classification, vital filtering task in gral. cite some previous year papers...
-word embeddings (cite) quick overview.
-clustering (cite), non param clustering (cite)
-timeliness (see how to put it here)
+Traditionally, when processing a large corpus of text documents, practitioners are often concerned in finding references to entities of interest \cite{RaoMD10, choi2007}, and studying their importance and topics distributions over time \cite{blei12}. Current tools are somewhat limited; they do not handle online settings, and they do not partition the entity references according to the topics nor identify the references relevance.
 
-The rest of this paper is organized as follows. In section \ref{background}, we introduce the notation and the problem setup. In section \ref{approach} we describe our method, and evaluate it in \ref{evaluation} with TRECKBA14 corpus. Section \ref{related} briefly discusses the relevant literature and section \ref{conclusion} lists the conclusions.
+With the exponential increase of information on the web, it becomes critical to detect relevant documents and incorporate their information to entities in a timely manner \cite{jingang13}. Therefore, filtering streaming documents plays a crucial role in the maintenance and update of knowledge bases, in order to accelerate users filling knowledge gaps.
+
+\cite{frank12} observed a considerable time lag between the publication date of cited articles and the date of the corresponding citations created in Wikipedia. The median time is over a year, and the distribution has a long and heavy tail. This gap could be drastically reduced if automatic systems could suggest relevant documents to editors as soon as they are published.
+
+Recent studies have centered their attention on solving the above problems using supervised methods \cite{xitong13, bouvier13, efron13, zhang13, bellogin13}. However, by using unlabelled data to reduce data sparsity in the labeled training data, semi-supervised approaches improve generalization accuracy \cite{Turian10wordrepresentations}. 
+
+In this paper, we introduce a semi-supervised approach suitable for streaming settings that uses a distributed word embedding and a non-parametric topic cluster representation of entity contexts. Further, we include a time sensitive measure to each topic cluster that approximates the relevance of each entity context according to document frequencies.
+
+The rest of this paper is organized as follows. In section \ref{background}, we introduce the notation and the problem setup. In section \ref{approach} we describe our method, and evaluate it in \ref{evaluation} with TRECKBA14 corpus. Section \ref{related} briefly discusses the relevant literature and section \ref{conclusion} outlines the conclusions.
 
 \section{Background}
 \label{background} 
@@ -67,6 +73,8 @@ To this end, we first describe the constituent parts of our proposed method.
 
 A word embedding is a dense, low-dimensional, and real-valued vector associated with a word. Each dimension of the embedding represents a latent feature of the word, and hopefully captures useful syntactic and semantic properties \cite{Turian10wordrepresentations}.
 The learned vectors computed using neural networks are very attractive because they explicitly encode many linguistic regularities and patterns. Many of these patterns can be represented with simple algebraic operations. For example, the result of $\vec{v_{paris}} - \vec{v_{france}} + \vec{v_{germany}}$ is closer to $\vec{v_{berlin}}$ than to any other word vector \cite{mikolovChen,mikolovYih}.
+
+more stuff
 
 \subsection{Non-parametric Clustering}
 
@@ -84,7 +92,7 @@ d(x,y) = 1 - \cos(x,y) = 1 - \frac{\dot(x,y)}{||x||||y||}
 \end{equation}
 and $k$ is not fixed beforehand.
 
-We assume an online setting where the clustering algorithm must provide the items' partitions at time $t$ before seeing the items at time $t+1$. We further introduce the decision variable used for cluster creation, $\alpha$, an hyperparameter of the model, $0 \leq \alpha \leq 1$.
+We assume an online setting where the clustering algorithm must provide the items partitions at time $t$ before seeing the items at time $t+1$. We further introduce the decision variable used for cluster creation, $\alpha$, an hyperparameter of the model, $0 \leq \alpha \leq 1$.
 
 \subsubsection{Timeless}
 
@@ -102,51 +110,109 @@ On the other hand, the timeless increase is regulated by $\gamma_i$ according to
 \begin{equation}
 \lambda_t = 1 - (1 - \lambda_t) \gamma_i
 \end{equation}
-where $\lambda_t$ in the right side of the equation is taken from \ref{decrease}, and $0 \leq \gamma_i \leq 1$.
+where $\lambda_t$ on the right side of the equation is computed in \ref{decrease}, and $0 \leq \gamma_i \leq 1$.
 
 The timeless reported at time $t$ is $\lambda_t$ before the increase.
 
 \section{Approach}
 \label{approach}
 
-
-By using unlabelled data to reduce data sparsity in the labeled training data, semi-supervised approaches improve generalization accuracy.
-One approach that is becoming popular is to use unsupervised methods to induce word features -or to download word features that have already been induced- plug these word features into an existing system, and observe a significant increase in accuracy.
-
-
-focus on vital - useful classification.
-exponential decay, followed by increase in timeliness.
-
-We use a streaming clustering algorithm to create entity clusters as follows.
+TODO 
+We use a streaming clustering algorithm to create entity clusters as follows...
 
 candidate clusters (all, we need efficient methods to select candidate clusters)
 similarity metric.
 
+some of sameer things
+Each entity context is represented by topic clusters, that are estimated in a non-parametric manner by assuming that the context of each entity in a single document belongs to a single topic. To address the lexical sparsity and generalize to unseen documents, each document is represented by its mean word embedding, while each topic cluster is represented by the mean embedding vector of the documents in the cluster. Further, we associate a timeliness measure to each topic cluster, dynamically estimating the relevance of each entity based on document frequencies. We update the topic identities, number of topics, and the timeliness of topics in an online fashion, observing only a single document at a time. 
+
+picture obama senator, president clusters... evolution over time as a toy example to generate intuition. It may go in section 2 and section 3 contains the formulas... 
 
 \section{Evaluation}
 \label{evaluation}
 
-relevant non relevant definitions.
-trec kba 2014 filtered corpus.
-2 classifiers
-around 20M docs in 2M chunks. Filtered based on exact partial matching of entity names.
-assessed / unassessed documents.
-plots on the different baselines, explanations of all of them.
-features table.
+To assess our method we use TRECKBA14 stream corpus. It has around 20M documents annotated with BBN's Serif NLP tools, including within-doc coref and dependency parse trees. Further, we use 71 target entities given by TRECKBA14 organizers for the Vital Filtering task. Among the 20M documents, around 28K have truth labels. We preprocess the corpus to filter the documents that contain exact mentions to the entities names, including canonical and surface form names.
+
+TRECKBA14 Vital Filtering task has the following four document rating levels
+
+\begin{itemize*}
+  \item \textbf{Vital} - means that the entity took action or experienced action, e.g. scored a goal, defended his PhD dissertation.
+  \item \textbf{Useful} - a document that you might use when building an initial profile, means that the document is possibly citable but not timely, e.g. background bio.
+  \item \textbf{Neutral} - means that the entity is mentioned in a confusing context or fragment such that one cannot decide with confidence whether this is the target entity.
+  \item \textbf{Garbage} - means that the document contains no information about the target entity, e.g. a surface form name appears and the context confirms that it is a different entity.
+\end{itemize*}
+
+We therefore use two tree ensembles classifiers in cascade. The first ensemble distinguishes between $relevant$, i.e. vital and useful, and $non\mathord{-}relevant$, i.e. neutral and garbage, documents, we call it $rnr$. The second classifier further discriminates the $relevant$ documents into vital or useful categories, we call it $uv$.
+
+Both $rnr$ and $uv$ are extremely randomized tree ensembles \cite{GEW06a} with 100 weaker classifiers, each of depth 150.
+Every run uses the same $rnr$ model, an extremely randomized tree ensemble, which is trained with the following basic features, borrowed from \cite{jingang13}.
+
+\begin{itemize*}
+    \item \textbf{Document Features}
+    \begin{itemize*}
+        \item $log(length)$: log of document length
+        \item $source$: discretized document source
+    \end{itemize*}
+    \item \textbf{Document-Entity Features}
+    \begin{itemize*}
+        \item $N(D,E)$: \# of occurrences of the target entity E in document D
+        \item $N(D,Ep)$: \# of occurrences of the partial name of target entity E in document D
+        \item $FPOS(D,E)$: position of first occurrence of entity E in document D
+        \item $FPOSn(D,E)$: $FPOS(D,E)$ normalized by document length
+        \item $FPOS(D,Ep)$: position of first occurrence of partial name of entity E in document D
+        \item $FPOSn(D,Ep)$: $FPOS(D,Ep)$ normalized by document length
+        \item $LPOS(D,E)$: position of last occurrence of entity E in document D
+        \item $LPOSn(D,E)$: $LPOS(D,E)$ normalized by document length
+        \item $LPOS(D,Ep)$: position of last occurrence of partial name of entity E in document D
+        \item $LPOSn(D,Ep)$: $LPOS(D,Ep)$ normalized by document length
+        \item $Spread(D,E)$: $LPOS(D,E) - FPOS(D,E)$
+        \item $Spreadn(D,E)$: $Spread(D,E)$ normalized by document length
+        \item $Spread(D,Ep)$: $LPOS(D,Ep)\mathord{-}FPOS(D,Ep)$
+        \item $Spreadn(D,Ep)$: $Spread(D,Ep)$ normalized by document length
+    \end{itemize*}
+\end{itemize*}
+
+We provide the following $uv$ baselines to compare to our method.
+TODO enumerate an explain them
+
+\begin{table}[H]
+\center
+\begin{tabular}{|c|c|c|} \hline
+\textbf{RunId} & \textbf{F1} \\ \hline\hline
+$f\_basic\_single$ & 0.355 \\ \hline
+$f\_basic\_multi$ & 0.492 \\ \hline
+$f\_emb\_comb$ & 0.534 \\ \hline
+$f\_emb\_pos$ & 0.498 \\ \hline
+$f\_mean\_stat$ & 0.520 \\ \hline
+$f\_mean\_dyn$ & 0.524 \\ \hline
+$f\_clust\_stat$ & 0.527 \\ \hline
+$f\_clust\_dyn$ & 0.518 \\ \hline
+\end{tabular}
+\caption{TRECKBA14 Vital Filtering scores}
+\label{f1}
+\end{table}
+
+Table \ref{f1} shows the micro F1 results computed using KBA oficial scorer tool.
+short explanation of results.
 
 \section{Related Work}
 \label{related}
 
+TODO 
+cite paper of sameer's friend.
 last year competition papers. result reports.
 cite some papers on non parametric evolutionary clustering.
-cite paper of sameer's friend.
 
+Representing words by dense, real-valued vector embeddings, commonly called distributed representations, helps address the curse of dimensionality
+There is rising interest in vector-space word embeddings and their use in NLP, especially given recent methods for their fast estimation at very large scale. (sameer friend)
+
+One approach that is becoming popular is to use unsupervised methods to induce word features -or to download word features that have already been induced- plug these word features into an existing system, and observe a significant increase in accuracy.
 
 \section{Conclusion}
 \label{conclusion}
 
 This combination of non-parametric clustering, timeless, and distributed word embeddings provides an efficient yet accurate representation of entity context that can be updated in a streaming manner, thus addressing the requirements from document exploration on large streams of documents.
-TODO...
+more...
 
 \section*{Acknowledgments} 
  
