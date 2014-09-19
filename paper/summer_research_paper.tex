@@ -65,18 +65,35 @@ This combination of distributed word embeddings, non-parametric clustering, and 
 We present experimental results demonstrating the benefits of our method and show that it surpasses previous supervised approaches in TRECKBA14 Vital Filtering task.
 
 \section{Background}
-\label{background} 
+\label{background}
 
-We assume a set of target entities $E$ and a set of streaming documents $D$. The documents in $D$ arrive in chronological order.
+\subsection{Problem Setup}
+\label{setup}
 
-The task at hand is to filter $vital$ documents from $D$ that refer to entities in $E$.
-The term $vital$ means that the document contains information that at the time it enters the stream, it would drive an update to the entity's dossier with timely, new information about the entity's current state, actions or situation. The new information must motivate a change to an already up-to-date knowledge base article.
+We assume a set of $m$ target entities $E = \left\{ {e_1, ..., e_m}\right\}$, e.g. $e_i$ = Barack Obama, and a set of $n$ documents $D = \left\{ {d_1, ..., d_n}\right\}$ that arrive in chronological order, e.g. $d_1$ = ``\dots Obama took an active role in the Senate's drive for improved border security and immigration reform \dots'', $d_2$ = ``Barack Hussein Obama has been elected as President of the United States, he is the first African American to hold the office \dots''.
 
-To this end, we first describe the constituent parts of our proposed method.
+The task at hand is to predict the truth category of unseen documents in $D$.
+
+We assume an online setting, i.e. the algorithm should provide predictions for documents arriving at time $t$ before seeing documents arriving at time $t+1$.
+
+\subsection{Document Categories}
+
+Documents in $D$ may or may not refer to entities in $E$. In some cases, a candidate mention may have so little context that even a human cannot decide if it refers to the entity or not. Therefore, we use the same document categories stated in TRECKBA14 assessor guidelines
+
+\begin{itemize*}
+  \item $Referent$: the document refers to an entity in $E$
+    \begin{itemize*}
+      \item Vital: the document contains information that at the time it enters the stream, it drives an update to an entity in $E$ with timely, new information about the entity's current state, actions or situation, e.g. ``\dots Barack Obama has been elected President \dots''
+      \item Useful: the document contains information that you can use when building an initial profile of an entity in $E$, it means that the document is possibly citable but the information is not timely, e.g. ``\dots Barack Obama was born on August 4th, 1961 \dots''
+    \end{itemize*}
+  \item $Unknown$: the context is so ambiguous that you cannot decide whether the mention refers to an entity in $E$ or not, e.g. ``\dots Barack is a great father and a better husband \dots''. The mention ``Barack'' may refer to any married parent named Barack.
+  \item $Non\mathord{-}referent$: the document doesn't refer to any entity in $E$, e.g. ``\dots Barack Ferrazzano provides a wide range of business-oriented legal \dots''.
+\end{itemize*}
 
 \subsection{Word Embeddings}
 
 A word embedding is a dense, low-dimensional, and real-valued vector associated with a word. Each dimension of the embedding represents a latent feature of the word, and hopefully captures useful syntactic and semantic properties \cite{Turian10wordrepresentations}.
+
 The learned vectors computed using neural networks are very attractive because they explicitly encode many linguistic regularities and patterns. Many of these patterns can be represented with simple algebraic operations. For example, the result of $\vec{v_{paris}} - \vec{v_{france}} + \vec{v_{germany}}$ is closer to $\vec{v_{berlin}}$ than to any other word vector \cite{mikolovChen,mikolovYih}.
 
 more stuff
