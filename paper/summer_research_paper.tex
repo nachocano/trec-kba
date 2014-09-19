@@ -77,6 +77,7 @@ The task at hand is to predict the truth category of unseen documents in $D$.
 We assume an online setting, i.e. the algorithm should provide predictions for documents arriving at time $t$ before seeing documents arriving at time $t+1$.
 
 \subsection{Document Categories}
+\label{categories}
 
 Documents in $D$ may or may not refer to entities in $E$. In some cases, a candidate mention may have so little context that even a human cannot decide if it refers to the entity or not. Therefore, we use the same document categories stated in TRECKBA14 assessor guidelines
 
@@ -92,13 +93,25 @@ Documents in $D$ may or may not refer to entities in $E$. In some cases, a candi
 
 \subsection{Word Embeddings}
 
+There is rising interest in vector-space word embeddings and their use in NLP, especially given recent methods for their fast estimation at very large scale \cite{Arvind14}.
+
 A word embedding is a dense, low-dimensional, and real-valued vector associated with a word. Each dimension of the embedding represents a latent feature of the word, and hopefully captures useful syntactic and semantic properties \cite{Turian10wordrepresentations}.
 
 The learned vectors computed using neural networks are very attractive because they explicitly encode many linguistic regularities and patterns. Many of these patterns can be represented with simple algebraic operations. For example, the result of $\vec{v_{paris}} - \vec{v_{france}} + \vec{v_{germany}}$ is closer to $\vec{v_{berlin}}$ than to any other word vector \cite{mikolovChen,mikolovYih}.
 
-more stuff
+\section{Approach}
+\label{approach}
+
+\subsection{Word Embeddings}
 
 \subsection{Non-parametric Clustering}
+
+some of sameer things
+Each entity context is represented by topic clusters, that are estimated in a non-parametric manner by assuming that the context of each entity in a single document belongs to a single topic. To address the lexical sparsity and generalize to unseen documents, each document is represented by its mean word embedding, while each topic cluster is represented by the mean embedding vector of the documents in the cluster. Further, we associate a timeliness measure to each topic cluster, dynamically estimating the relevance of each entity based on document frequencies. We update the topic identities, number of topics, and the timeliness of topics in an online fashion, observing only a single document at a time. 
+
+picture obama senator, president clusters... evolution over time as a toy example to generate intuition. It may go in section 2 and section 3 contains the formulas... 
+
+We use a streaming clustering algorithm to create entity clusters as follows
 
 Clustering is a ubiquitous task in exploratory data analysis, data mining, and several other application domains. %\cite{KrishnamurthyBXS12}.
 Traditionally, the clustering problem is defined in the following way. For a set $X$ of $n$ nodes, a clustering result is a partition $\left\{ {X_1, ..., X_k}\right\}$ of the nodes in $X$ such that $X=\cup_{l=1}^{k}{X_l}$ and $X_r \cap X_s = \emptyset$ for $1 \leq r,s \leq k, r \ne s$ \cite{ChiSZHT07}.
@@ -116,86 +129,91 @@ and $k$ is not fixed beforehand.
 
 We assume an online setting where the clustering algorithm must provide the items partitions at time $t$ before seeing the items at time $t+1$. We further introduce the decision variable used for cluster creation, $\alpha$, an hyperparameter of the model, $0 \leq \alpha \leq 1$.
 
-\subsubsection{Timeless}
+\subsection{Novelty}
+\label{novelty}
 
-As mentioned in \ref{background}, the notion of $vitalness$ is closely related to the timeliness of the new information. We include a timeless feature $\lambda_t$ in every cluster, which is dinamically updated over time, and $0 \leq \lambda_t \leq 1$. Low timeless, i.e. high timeliness, aims to represent vitalness.
+As mentioned in section \ref{categories}, the notion of $vitalness$ is closely related to the timeliness of the new information. We include a novelty feature $\lambda_t$ in every cluster, which is dinamically updated over time, and $0 \leq \lambda_t \leq 1$. High timeliness aims to represent vital documents.
 
-The cluster timeless update is a two-step process, an exponential decrease followed by a constant increase.
-The timeless decrease is controlled by the hyperparameter $\gamma_d$ and follows an exponential decay model
+The cluster novelty update is a two-step process, an exponential decrease followed by a constant increase.
+The novelty decrease is controlled by the hyperparameter $\gamma_d$ and follows an exponential decay model
 \begin{equation}
 \label{decrease}
-\lambda_t = \lambda_{t-1} \exp{(-\gamma_d \frac{(t-(t\mathord{-}1))}{T})}
+\lambda_t = 1 - (\lambda_{t'} \exp{(-\gamma_d \frac{t-t'}{T})})
 \end{equation}
-where $\lambda_{t-1}$ is the timeless at time $t-1$, $\gamma_d \geq 0$, $t$ is the document's timestamp at time $t$, $t-1$ is the document's timestamp at time $t-1$, and $T$ is a normalizing constant.
+where $\lambda_{t'}$ is the novelty at time $t-1$, $\gamma_d \geq 0$, $t$ is the document's timestamp at time $t$, $t'$ is the document's timestamp at time $t-1$, and $T$ is a normalizing constant.
 
-On the other hand, the timeless increase is regulated by $\gamma_i$ according to the following expression
+On the other hand, the novelty increase is regulated by $\gamma_i$ according to the following expression
 \begin{equation}
 \lambda_t = 1 - (1 - \lambda_t) \gamma_i
 \end{equation}
 where $\lambda_t$ on the right side of the equation is computed in \ref{decrease}, and $0 \leq \gamma_i \leq 1$.
 
-The timeless reported at time $t$ is $\lambda_t$ before the increase.
-
-\section{Approach}
-\label{approach}
-
-TODO 
-We use a streaming clustering algorithm to create entity clusters as follows...
-
-candidate clusters (all, we need efficient methods to select candidate clusters)
-similarity metric.
-
-some of sameer things
-Each entity context is represented by topic clusters, that are estimated in a non-parametric manner by assuming that the context of each entity in a single document belongs to a single topic. To address the lexical sparsity and generalize to unseen documents, each document is represented by its mean word embedding, while each topic cluster is represented by the mean embedding vector of the documents in the cluster. Further, we associate a timeliness measure to each topic cluster, dynamically estimating the relevance of each entity based on document frequencies. We update the topic identities, number of topics, and the timeliness of topics in an online fashion, observing only a single document at a time. 
-
-picture obama senator, president clusters... evolution over time as a toy example to generate intuition. It may go in section 2 and section 3 contains the formulas... 
+The novelty reported at time $t$ is $\lambda_t$ before the increase.
 
 \section{Evaluation}
 \label{evaluation}
 
-To assess our method we use TRECKBA14 stream corpus. It has around 20M documents annotated with BBN's Serif NLP tools, including within-doc coref and dependency parse trees. Further, we use 71 target entities given by TRECKBA14 organizers for the Vital Filtering task. Among the 20M documents, around 28K have truth labels. We preprocess the corpus to filter the documents that contain exact mentions to the entities names, including canonical and surface form names.
+\subsection{Data}
 
-TRECKBA14 Vital Filtering task has the following four document rating levels
+To assess our method we use TRECKBA14 stream corpus. It has around 20M documents annotated with BBN's Serif NLP tools, including within-doc coref and dependency parse trees. Further, we use the 71 target entities given by TRECKBA14 organizers for the Vital Filtering task. Among the 20M documents, around 28K have truth labels. From these, only 8K are training instances while the rest are test examples.
 
-\begin{itemize*}
-  \item \textbf{Vital} - means that the entity took action or experienced action, e.g. scored a goal, defended his PhD dissertation.
-  \item \textbf{Useful} - a document that you might use when building an initial profile, means that the document is possibly citable but not timely, e.g. background bio.
-  \item \textbf{Neutral} - means that the entity is mentioned in a confusing context or fragment such that one cannot decide with confidence whether this is the target entity.
-  \item \textbf{Garbage} - means that the document contains no information about the target entity, e.g. a surface form name appears and the context confirms that it is a different entity.
-\end{itemize*}
+\subsubsection{Preprocess}
 
-We therefore use two tree ensembles classifiers in cascade. The first ensemble distinguishes between $relevant$, i.e. vital and useful, and $non\mathord{-}relevant$, i.e. neutral and garbage, documents, we call it $rnr$. The second classifier further discriminates the $relevant$ documents into vital or useful categories, we call it $uv$.
+We preprocess the corpus to filter the documents that contain exact string matches to the target entities names, including canonical and surface form names.
 
-Both $rnr$ and $uv$ are extremely randomized tree ensembles \cite{GEW06a} with 100 weaker classifiers, each of depth 150.
-Every run uses the same $rnr$ model, an extremely randomized tree ensemble, which is trained with the following basic features, borrowed from \cite{jingang13}.
+\subsection{Classifiers}
+
+We use two extremely randomized tree ensembles classifiers \cite{GEW06a} in cascade, each composed of 100 weak learners. Each tree in the ensembles has depth 150.
 
 \begin{itemize*}
-    \item \textbf{Document Features}
+    \item $rnr$: classifies between $referent$ and $non\mathord{-}referent$ or $unkown$ documents
+    \item $uv$: discriminates the $referent$ documents into vital or useful categories
+\end{itemize*}
+
+\subsection{Features}
+
+We use the following basic features, borrowed from \cite{jingang13}.
+Every run uses the same $rnr$ model, an extremely randomized tree ensemble, which is trained with 
+
+\begin{itemize*}
+  \item \textbf{Basic}
     \begin{itemize*}
-        \item $log(length)$: log of document length
-        \item $source$: discretized document source
+      \item $Document$
+        \begin{itemize*}
+            \item $log(length)$: log of document length
+            \item $source$: discretized document source
+        \end{itemize*}
+      \item $Document-Entity$
+        \begin{itemize*}
+            \item $N(D,E)$: \# of occurrences of the target entity E in document D
+            \item $N(D,Ep)$: \# of occurrences of the partial name of target entity E in document D
+            \item $FPOS(D,E)$: position of first occurrence of entity E in document D
+            \item $FPOSn(D,E)$: $FPOS(D,E)$ normalized by document length
+            \item $FPOS(D,Ep)$: position of first occurrence of partial name of entity E in document D
+            \item $FPOSn(D,Ep)$: $FPOS(D,Ep)$ normalized by document length
+            \item $LPOS(D,E)$: position of last occurrence of entity E in document D
+            \item $LPOSn(D,E)$: $LPOS(D,E)$ normalized by document length
+            \item $LPOS(D,Ep)$: position of last occurrence of partial name of entity E in document D
+            \item $LPOSn(D,Ep)$: $LPOS(D,Ep)$ normalized by document length
+            \item $Spread(D,E)$: $LPOS(D,E) - FPOS(D,E)$
+            \item $Spreadn(D,E)$: $Spread(D,E)$ normalized by document length
+            \item $Spread(D,Ep)$: $LPOS(D,Ep)\mathord{-}FPOS(D,Ep)$
+            \item $Spreadn(D,Ep)$: $Spread(D,Ep)$ normalized by document length
+        \end{itemize*}
     \end{itemize*}
-    \item \textbf{Document-Entity Features}
+  \item \textbf{Embeddings}
     \begin{itemize*}
-        \item $N(D,E)$: \# of occurrences of the target entity E in document D
-        \item $N(D,Ep)$: \# of occurrences of the partial name of target entity E in document D
-        \item $FPOS(D,E)$: position of first occurrence of entity E in document D
-        \item $FPOSn(D,E)$: $FPOS(D,E)$ normalized by document length
-        \item $FPOS(D,Ep)$: position of first occurrence of partial name of entity E in document D
-        \item $FPOSn(D,Ep)$: $FPOS(D,Ep)$ normalized by document length
-        \item $LPOS(D,E)$: position of last occurrence of entity E in document D
-        \item $LPOSn(D,E)$: $LPOS(D,E)$ normalized by document length
-        \item $LPOS(D,Ep)$: position of last occurrence of partial name of entity E in document D
-        \item $LPOSn(D,Ep)$: $LPOS(D,Ep)$ normalized by document length
-        \item $Spread(D,E)$: $LPOS(D,E) - FPOS(D,E)$
-        \item $Spreadn(D,E)$: $Spread(D,E)$ normalized by document length
-        \item $Spread(D,Ep)$: $LPOS(D,Ep)\mathord{-}FPOS(D,Ep)$
-        \item $Spreadn(D,Ep)$: $Spread(D,Ep)$ normalized by document length
+        \item $\vec{\mu(pos)}$: mean word embedding of part of speech tag in the entity context
+    \end{itemize*}
+  \item \textbf{Non-parametric Clustering}
+    \begin{itemize*}
+        \item $min\hspace{1mm} distance$: minimum distance to existent clusters
+        \item $avg\hspace{1 mm}distance$: avg distance to existent clusters
+        \item $novelty$: computed in section \ref{novelty}
+        \item $zero$: flag activated in case $\vec{\mu(pos)} = \vec{0}$
     \end{itemize*}
 \end{itemize*}
 
-We provide the following $uv$ baselines to compare to our method.
-TODO enumerate an explain them
 
 \begin{table}[H]
 \center
