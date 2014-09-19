@@ -39,25 +39,30 @@
 
 \begin{abstract} 
 
-Most studies that deal with large corpuses of text documents have focused on identifying references to target entities as well as studying their prominence and topics evolution over time. However, current systems are quite restrictive for this setting; they are unable to handle streaming data, they do not partition the entity references according to their topics, and they do not identify the references vitalness.
-In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. We propose a distributed word embedding representation of entity contexts. Each context is described by topic clusters that are estimated in a non-parametric manner. Furthermore, we associate a timeless measure to each topic cluster, which dynamically estimates the relevance of the entity context based on document frequencies.
+Most studies that deal with large corpuses of text documents have focused on identifying references to target entities as well as studying their topics evolution over time. However, current systems are unable to handle streaming data, they do not partition the entity references according to their topics, and they do not identify the references vitalness.
+In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. We propose a distributed word embedding representation of entity contexts. Each context is described by topic clusters that are estimated in a non-parametric manner. Further, we associate a novelty measure to each topic cluster, dynamically estimating the relevance of each entity based on document frequencies.
+This approach of distributed word embeddings, non-parametric clustering, and novelty measure provides an accurate representation of entity context appropiate for streaming settings that addresses the aforementioned restrictions.
+
 
 \end{abstract} 
 
 \section{Introduction}
 \label{intro}
 
-Traditionally, when processing a large corpus of text documents, practitioners are often concerned in finding references to entities of interest \cite{RaoMD10, choi2007}, and studying their importance and topics distributions over time \cite{blei12}. Current tools are somewhat limited; they do not handle online settings, and they do not partition the entity references according to the topics nor identify the references relevance.
-
-With the exponential increase of information on the web, it becomes critical to detect relevant documents and incorporate their information to entities in a timely manner \cite{jingang13}. Therefore, filtering streaming documents plays a crucial role in the maintenance and update of knowledge bases, in order to accelerate users filling knowledge gaps.
+Filtering streaming documents to accelerate users filling knowledge gaps plays a crucial role in the maintenance and update of knowledge bases.
+With the exponential increase of information on the web, it becomes critical to detect relevant documents and incorporate their information to entities in a timely manner \cite{jingang13}.
 
 \cite{frank12} observed a considerable time lag between the publication date of cited articles and the date of the corresponding citations created in Wikipedia. The median time is over a year, and the distribution has a long and heavy tail. This gap could be drastically reduced if automatic systems could suggest relevant documents to editors as soon as they are published.
 
-Recent studies have centered their attention on solving the above problems using supervised methods \cite{xitong13, bouvier13, efron13, zhang13, bellogin13}. However, by using unlabelled data to reduce data sparsity in the labeled training data, semi-supervised approaches improve generalization accuracy \cite{Turian10wordrepresentations}. 
+However, when processing a large corpus of text documents, practitioners are often concerned in finding references to entities of interest \cite{RaoMD10, choi2007}, and studying their topics distributions over time \cite{blei12}. Current tools are somewhat limited; they do not handle online settings, and they do not cluster the entity references according to topics nor identify their importance levels.
 
-In this paper, we introduce a semi-supervised approach suitable for streaming settings that uses a distributed word embedding and a non-parametric topic cluster representation of entity contexts. Further, we include a time sensitive measure to each topic cluster that approximates the relevance of each entity context according to document frequencies.
+Recent studies \cite{xitong13, bouvier13, efron13, zhang13, bellogin13} have centered their attention on solving the above problems with supervised methods, using mainly document, document-entity and temporal level features. By using unlabelled examples to reduce data sparsity in the labeled training data, semi-supervised approaches can improve the generalization accuracy of those supervised systems \cite{Turian10wordrepresentations}.
 
-The rest of this paper is organized as follows. In section \ref{background}, we introduce the notation and the problem setup. In section \ref{approach} we describe our method, and evaluate it in \ref{evaluation} with TRECKBA14 corpus. Section \ref{related} briefly discusses the relevant literature and section \ref{conclusion} outlines the conclusions.
+We therefore introduce a semi-supervised approach suitable for streaming settings that uses a distributed word embedding and a non-parametric topic cluster representation of entity contexts. We also include a novelty measure that approximates the relevance of each entity according to document frequencies. Further, we update the topic identities, number of topics, and the topics novelty in an online fashion, observing only a single document at a time.
+
+This combination of distributed word embeddings, non-parametric clustering, and novelty measure provides an efficient yet accurate representation of entity context that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
+
+We present experimental results demonstrating the benefits of our method and show that it surpasses previous supervised approaches in TRECKBA14 Vital Filtering task.
 
 \section{Background}
 \label{background} 
@@ -211,7 +216,6 @@ One approach that is becoming popular is to use unsupervised methods to induce w
 \section{Conclusion}
 \label{conclusion}
 
-This combination of non-parametric clustering, timeless, and distributed word embeddings provides an efficient yet accurate representation of entity context that can be updated in a streaming manner, thus addressing the requirements from document exploration on large streams of documents.
 more...
 
 \section*{Acknowledgments} 
