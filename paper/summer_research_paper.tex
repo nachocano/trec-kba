@@ -4,6 +4,7 @@
 \usepackage{graphicx}
 \usepackage{subfigure}
 \usepackage{mdwlist}
+\usepackage{bbm}
 
 \usepackage{natbib}
 
@@ -70,7 +71,7 @@ We present experimental results demonstrating the benefits of our method and sho
 \subsection{Problem Setup}
 \label{setup}
 
-We assume a set of $m$ target entities $E = \left\{ {e_1, ..., e_m}\right\}$, e.g. $e_i$ = Barack Obama, and a set of $n$ documents $D = \left\{ {d_1, ..., d_n}\right\}$ that arrive in chronological order, e.g. $d_1$ = ``\dots Obama took an active role in the Senate's drive for improved border security and immigration reform \dots'', $d_2$ = ``Barack Hussein Obama has been elected as President of the United States, he is the first African American to hold the office \dots''.
+We assume a set of $m$ target entities $E = \left\{ {e_1, ..., e_m}\right\}$, e.g. $e_1$ = Barack Obama, and a set of $n$ documents $D = \left\{ {d_1, ..., d_n}\right\}$ that arrive in chronological order, e.g. $d_1$ = ``\dots Obama took an active role in the Senate's drive for improved border security and immigration reform \dots'', $d_2$ = ``Barack Obama has been elected as President of the United States, he is the first African American to hold the office \dots'', $d_3$ = ``Obama is the 44th and current President of the United States \dots''.
 
 The task at hand is to predict the truth category of unseen documents in $D$.
 
@@ -79,13 +80,13 @@ We assume an online setting, i.e. the algorithm should provide predictions for d
 \subsection{Document Categories}
 \label{categories}
 
-Documents in $D$ may or may not refer to entities in $E$. In some cases, a candidate mention may have so little context that even a human cannot decide if it refers to the entity or not. Therefore, we use the same document categories stated in TRECKBA14 assessor guidelines
+Documents in $D$ may or may not refer to entities in $E$. In some cases, a candidate mention may have so little context that even a human cannot decide if it refers to the entity or not. Therefore, we use the same document categories stated in TRECKBA14 assessor guidelines.
 
 \begin{itemize*}
   \item $Referent$: the document refers to an entity in $E$
     \begin{itemize*}
-      \item Vital: the document contains information that at the time it enters the stream, it drives an update to an entity in $E$ with timely, new information about the entity's current state, actions or situation, e.g. ``\dots Barack Obama has been elected President \dots''
-      \item Useful: the document contains information that you can use when building an initial profile of an entity in $E$, it means that the document is possibly citable but the information is not timely, e.g. ``\dots Barack Obama was born on August 4th, 1961 \dots''
+      \item Vital: the document contains information that at the time it enters the stream, it drives an update to an entity in $E$ with timely, new information about the entity's current state, actions or situation, e.g. ``\dots Barack Obama has been elected President \dots''.
+      \item Useful: the document contains information that you can use when building an initial profile of an entity in $E$, it means that the document is possibly citable but the information is not timely, e.g. ``\dots Barack Obama was born on August 4th, 1961 \dots''.
     \end{itemize*}
   \item $Unknown$: the context is so ambiguous that you cannot decide whether the mention refers to an entity in $E$ or not, e.g. ``\dots Barack is a great father and a better husband \dots''. The mention ``Barack'' may refer to any married parent named Barack.
   \item $Non\mathord{-}referent$: the document doesn't refer to any entity in $E$, e.g. ``\dots Barack Ferrazzano provides a wide range of business-oriented legal \dots''.
@@ -99,56 +100,101 @@ A word embedding is a dense, low-dimensional, and real-valued vector associated 
 
 The learned vectors computed using neural networks are very attractive because they explicitly encode many linguistic regularities and patterns. Many of these patterns can be represented with simple algebraic operations. For example, the result of $\vec{v_{paris}} - \vec{v_{france}} + \vec{v_{germany}}$ is closer to $\vec{v_{berlin}}$ than to any other word vector \cite{mikolovChen,mikolovYih}.
 
-\section{Approach}
+\section{Method}
 \label{approach}
 
-\subsection{Word Embeddings}
+\subsection{Document Word Embedding}
+\label{docwordemb}
+
+To address the lexical sparsity and generalize to unseen documents, each document in $D$ is represented by its mean word embedding vector computed from lemmas that appear in sentences mentioning entities in $E$. The process is shown in Algorithm \ref{wordembedding}. 
+
+As an example, let's suppose we extract the following lemmas from document $d_2$ for entity $e_1$ shown in section \ref{setup}, conditioning on nouns and verbs: [barack obama, elected, president, united states, first, african american, hold, office]. For every lemma extracted, we then compute its word embedding and add them up in an aggregate vector. We finally take the mean of the aggregate vector, which constitutes the distributed word embedding representation of the document.
+
+\begin{algorithm}[tb]
+   \caption{Document Word Embedding}
+   \label{wordembedding}
+\begin{algorithmic}
+   \STATE {\bfseries Input:} document $d$, entity $e$, condition $c$
+   \STATE {\bfseries Output:} document word embedding mean vector
+   \STATE {\bfseries Body:}
+   \STATE Initialize $aggregate = \vec{0}$
+   \STATE $lemmas = extract(d, e, c)$
+   \FOR{$lemma$ {\bfseries in} $lemmas$}
+   \STATE $aggregate += word\_embedding(lemma)$
+   \ENDFOR
+   \STATE $aggregate /= len(lemmas)$
+   \STATE return $aggregate$
+\end{algorithmic}
+\end{algorithm}
+
 
 \subsection{Non-parametric Clustering}
 
-some of sameer things
-Each entity context is represented by topic clusters, that are estimated in a non-parametric manner by assuming that the context of each entity in a single document belongs to a single topic. To address the lexical sparsity and generalize to unseen documents, each document is represented by its mean word embedding, while each topic cluster is represented by the mean embedding vector of the documents in the cluster. Further, we associate a timeliness measure to each topic cluster, dynamically estimating the relevance of each entity based on document frequencies. We update the topic identities, number of topics, and the timeliness of topics in an online fashion, observing only a single document at a time. 
+Each entity context is represented by topic clusters, which are estimated in a non-parametric manner by assuming that the context of each entity in a single document belongs to a single topic. As mentioned in section \ref{docwordemb}, each document is represented by its mean word embedding. Here, each topic cluster of an entity context is represented by the mean embedding vector of the documents in that cluster.
 
-picture obama senator, president clusters... evolution over time as a toy example to generate intuition. It may go in section 2 and section 3 contains the formulas... 
+Our approach is closely related to the online non-parametric clustering procedure described in \cite{Arvind14}.
+We use Algorithm \ref{nonparamclustering} to create topic clusters for entity contexts.
 
-We use a streaming clustering algorithm to create entity clusters as follows
+The number of topic clusters for an entity context is unkown beforehand. Initially, entity contexts do not have topic clusters. We create the first topic cluster for an entity context on its first occurrence in the training data. After creating the first topic cluster for an entity context, a new topic cluster is created when the cosine distance between the word embedding representation of the new arriving document with every topic cluster center of the same entity is greater than or equal to $\alpha$, where $\alpha$ is an hyperparameter of the model, and $0 \leq \alpha \leq 1$. In case the distance is less than $\alpha$, we add the new document to the closest topic cluster and update its center.
 
-Clustering is a ubiquitous task in exploratory data analysis, data mining, and several other application domains. %\cite{KrishnamurthyBXS12}.
-Traditionally, the clustering problem is defined in the following way. For a set $X$ of $n$ nodes, a clustering result is a partition $\left\{ {X_1, ..., X_k}\right\}$ of the nodes in $X$ such that $X=\cup_{l=1}^{k}{X_l}$ and $X_r \cap X_s = \emptyset$ for $1 \leq r,s \leq k, r \ne s$ \cite{ChiSZHT07}.
+\begin{algorithm}[tb]
+   \caption{Non-parametric Clustering}
+   \label{nonparamclustering}
+\begin{algorithmic}
+   \STATE {\bfseries Input:} $doc=doc\_word\_embedding(d, e, c)$, and topic clusters list $tcs$ for entity $e$
+   \STATE {\bfseries Output:} new or updated topic cluster $tc$
+   \STATE {\bfseries Body:}
+   \STATE Initialize $tc = nil$
+   \IF{$tcs$ {\bfseries is empty}}
+    \STATE $tc = create\_topic\_cluster(center\mathord{=}doc)$
+    \STATE $tcs.append(tc)$
+   \ELSE
+     \STATE $dist, i \mathord{=} \min_{\forall{i \in tcs}}{cosine\_dist(tcs[i].center, doc)}$
+     \IF{$dist >= \alpha$ }
+        \STATE $tc = create\_topic\_cluster(center\mathord{=}doc)$
+        \STATE $tcs.append(tc)$
+     \ELSE
+        \STATE $tcs[i].center = update\_center(tcs[i].elems, doc)$
+        \STATE $tc = tcs[i]$
+     \ENDIF
+   \ENDIF
+   \STATE return $tc$
+\end{algorithmic}
+\end{algorithm}
 
-Assuming the $i$-th node in $X$ is a $d$-dimensional vector $\vec{x_i} \in \mathbf{R}^d$, the $k$-means clustering problem is to find a partition $\left\{ {X_1, ..., X_k}\right\}$ that minimizes the following measure
-\begin{equation}
-\sum_{l=1}^{k} \sum_{i \in X_l} d(\vec{x_i},\vec{\mu_l})
-\end{equation}
-where $d(\cdot,\cdot)$ is a distance measure and $\vec{\mu_l}$ is the mean vector of the $l$-th cluster, i.e., $\vec{\mu_l} = \sum_{j \in X_l}{\vec{x_j}/|X_l|}$.
-In our setting, $d(\cdot,\cdot)$ is the cosine distance
-\begin{equation}
-d(x,y) = 1 - \cos(x,y) = 1 - \frac{\dot(x,y)}{||x||||y||}
-\end{equation}
-and $k$ is not fixed beforehand.
+As an example, let's assume we see the documents mentioned in section \ref{setup}. Document $d1$ appears first, it talks about the days Barack Obama was a Senator. As is the first document refering to the entity Obama, we create a new topic cluster $senator$ and add $d1$ to it. Then, document $d2$ appears in the stream. It refers to Obama as being elected President of the United States. The distance with the previous cluster $senator$ is greater than $\alpha$, therefore the algorithm proceeds to create a new topic cluster $president$ and adds $d2$ to it. Finally, $d3$ enters the stream. It talks about Obama as the current President of the U.S. The algorithm compares its distance to the previous clusters and finds that is closest to the $president$ cluster. The distance is less than $\alpha$, hence it adds $d3$ to the $president$ cluster and updates its center.
 
-We assume an online setting where the clustering algorithm must provide the items partitions at time $t$ before seeing the items at time $t+1$. We further introduce the decision variable used for cluster creation, $\alpha$, an hyperparameter of the model, $0 \leq \alpha \leq 1$.
+%\begin{figure}[h!]
+%\centering
+%\includegraphics[width=.5\textwidth]{kmeans.png}
+%\label{clusteringFig}
+%\end{figure}
 
 \subsection{Novelty}
 \label{novelty}
 
-As mentioned in section \ref{categories}, the notion of $vitalness$ is closely related to the timeliness of the new information. We include a novelty feature $\lambda_t$ in every cluster, which is dinamically updated over time, and $0 \leq \lambda_t \leq 1$. High timeliness aims to represent vital documents.
+As mentioned in section \ref{categories}, the notion of $vitalness$ is closely related to the timeliness of the new information. We include a novelty feature $\lambda_i$, which is dinamically updated over time, and $0 \leq \lambda_i \leq 1$. High novelty aims to represent vital documents.
 
-The cluster novelty update is a two-step process, an exponential decrease followed by a constant increase.
+This novelty measure can be used both for entities and topic clusters.
+
+The novelty update is a two-step process, an exponential decrease followed by a constant increase.
 The novelty decrease is controlled by the hyperparameter $\gamma_d$ and follows an exponential decay model
 \begin{equation}
 \label{decrease}
-\lambda_t = 1 - (\lambda_{t'} \exp{(-\gamma_d \frac{t-t'}{T})})
+\lambda_i = \lambda_{i-1} \exp{(-\gamma_d \frac{t_i-t_{i-1}}{T})}
 \end{equation}
-where $\lambda_{t'}$ is the novelty at time $t-1$, $\gamma_d \geq 0$, $t$ is the document's timestamp at time $t$, $t'$ is the document's timestamp at time $t-1$, and $T$ is a normalizing constant.
+where $\gamma_d \geq 0$, $t_i$ is the $i$-th document timestamp, $t_{i-1}$ is the $i-1$ document timestamp, and $T$ is a normalizing constant.
+In case we use novelty as an entity measure, $\lambda_{i-1}$ alludes to the previous document in the stream that refers to the same entity as document $i$.
+If we use novelty as a topic cluster measure, $\lambda_{i-1}$ refers to the previous document that belongs to the same topic cluster as document $i$.
 
 On the other hand, the novelty increase is regulated by $\gamma_i$ according to the following expression
 \begin{equation}
-\lambda_t = 1 - (1 - \lambda_t) \gamma_i
+\lambda_i = 1 - (1 - \lambda_i) \gamma_i
 \end{equation}
-where $\lambda_t$ on the right side of the equation is computed in \ref{decrease}, and $0 \leq \gamma_i \leq 1$.
+where $\lambda_i$ on the right side is computed in equation \ref{decrease}, and $0 \leq \gamma_i \leq 1$.
 
-The novelty reported at time $t$ is $\lambda_t$ before the increase.
+The $i$-th novelty reported is $\lambda_i$ before the increase.
+
 
 \section{Evaluation}
 \label{evaluation}
@@ -166,14 +212,14 @@ We preprocess the corpus to filter the documents that contain exact string match
 We use two extremely randomized tree ensembles classifiers \cite{GEW06a} in cascade, each composed of 100 weak learners. Each tree in the ensembles has depth 150.
 
 \begin{itemize*}
-    \item $rnr$: classifies between $referent$ and $non\mathord{-}referent$ or $unkown$ documents
-    \item $uv$: discriminates the $referent$ documents into vital or useful categories
+    \item $rnr$: classifies between $referent$ and $non\mathord{-}referent$ or $unkown$ documents.
+    \item $uv$: discriminates the $referent$ documents into vital or useful categories.
 \end{itemize*}
 
 \subsection{Features}
+\label{feat}
 
-We use the following basic features, borrowed from \cite{jingang13}.
-Every run uses the same $rnr$ model, an extremely randomized tree ensemble, which is trained with 
+A summary of the features used in this paper is presented below. Basic document and document-entity features are borrowed from \cite{jingang13}.
 
 \begin{itemize*}
   \item \textbf{Basic}
@@ -185,55 +231,77 @@ Every run uses the same $rnr$ model, an extremely randomized tree ensemble, whic
         \end{itemize*}
       \item $Document-Entity$
         \begin{itemize*}
-            \item $N(D,E)$: \# of occurrences of the target entity E in document D
-            \item $N(D,Ep)$: \# of occurrences of the partial name of target entity E in document D
-            \item $FPOS(D,E)$: position of first occurrence of entity E in document D
-            \item $FPOSn(D,E)$: $FPOS(D,E)$ normalized by document length
-            \item $FPOS(D,Ep)$: position of first occurrence of partial name of entity E in document D
-            \item $FPOSn(D,Ep)$: $FPOS(D,Ep)$ normalized by document length
-            \item $LPOS(D,E)$: position of last occurrence of entity E in document D
-            \item $LPOSn(D,E)$: $LPOS(D,E)$ normalized by document length
-            \item $LPOS(D,Ep)$: position of last occurrence of partial name of entity E in document D
-            \item $LPOSn(D,Ep)$: $LPOS(D,Ep)$ normalized by document length
-            \item $Spread(D,E)$: $LPOS(D,E) - FPOS(D,E)$
-            \item $Spreadn(D,E)$: $Spread(D,E)$ normalized by document length
-            \item $Spread(D,Ep)$: $LPOS(D,Ep)\mathord{-}FPOS(D,Ep)$
-            \item $Spreadn(D,Ep)$: $Spread(D,Ep)$ normalized by document length
+            \item $n(d,e)$: \# of occurrences of the target entity $e$ in document $d$
+            \item $n(d,e_p)$: \# of occurrences of partial name of target entity $e$ in document $d$
+            \item $fpos(d,e)$: position of first occurrence of entity $e$ in document $d$
+            \item $fpos_n(d,e)$: $fpos(d,e)$ normalized by document length
+            \item $fpos(d,e_p)$: position of first occurrence of partial name of entity $e$ in document $d$
+            \item $fpos_n(d,e_p)$: $fpos(d,e_p)$ normalized by document length
+            \item $lpos(d,e)$: position of last occurrence of entity $e$ in document $d$
+            \item $lpos_n(d,e)$: $lpos(d,e)$ normalized by document length
+            \item $lpos(d,e_p)$: position of last occurrence of partial name of entity $e$ in document $d$
+            \item $lpos_n(d,e_p)$: $lpos(d,e_p)$ normalized by document length
+            \item $spread(d,e)$: $lpos(d,e) - fpos(d,e)$
+            \item $spread_n(d,e)$: $spread(d,e)$ normalized by document length
+            \item $spread(d,e_p)$: $lpos(d,e_p)\mathord{-}fpos(d,ep)$
+            \item $spread_n(d,e_p)$: $spread(d,e_p)$ normalized by document length
         \end{itemize*}
+      \item $Entity$
+        \begin{itemize*}
+            \item $novelty(e)$: novelty of entity $e$, see section \ref{novelty}
+        \end{itemize*}              
     \end{itemize*}
   \item \textbf{Embeddings}
     \begin{itemize*}
-        \item $\vec{\mu(pos)}$: mean word embedding of part of speech tag in the entity context
+        \item $\vec{\mu(pos)}$: mean word embedding of certain part of speech tag in the entity context
     \end{itemize*}
   \item \textbf{Non-parametric Clustering}
     \begin{itemize*}
-        \item $min\hspace{1mm} distance$: minimum distance to existent clusters
-        \item $avg\hspace{1 mm}distance$: avg distance to existent clusters
-        \item $novelty$: computed in section \ref{novelty}
-        \item $zero$: flag activated in case $\vec{\mu(pos)} = \vec{0}$
+        \item $min$: minimum distance to existent topic clusters
+        \item $avg$: avg distance to existent topic clusters
+        \item $novelty(tc)$: topic cluster novelty, see section \ref{novelty}
+        \item $zero$: $\mathbbm{1}_{\vec{0}}{(doc)}$, i.e. flag set to 1 if the word embedding representation of the document is $\vec{0}$
     \end{itemize*}
 \end{itemize*}
 
 
+\subsection{Experiments}
+
+We perform 8 experiments. All of them use the same $rnr$ model trained with the Basic $Document$ and $Document-Entity$ features listed in section \ref{feat}.
+
+The different methods differ only on the $uv$ classifier. Explanations of the different $uv$ configurations are detailed below.
+
+\begin{itemize*}
+  \item $f\_basic\_single$: baseline method. Uses Basic $Document$ and $Document-Entity$ features.
+  \item $f\_basic\_multi$: baseline method. Same as $f\_basic\_single$ but with multitask-learning \cite{Caruana93multitasklearning}.
+  \item $f\_emb\_comb$: same as $f\_basic\_multi$ but with Embeddings features computed using the pre-trained Google News dataset. A single combined embedding is calculated from the nouns, proper nouns and verbs found in the entities contexts.
+  \item $f\_emb\_pos$: same as $f\_emb\_comb$ but instead of a single combined embedding, it includes one embedding per word type, i.e. one for nouns, one for proper nouns, and one for verbs.
+  \item $f\_mean\_stat$: same as $f\_emb\_pos$ but with Basic $Entity$ and Non-parametric Clustering features. The latter ones are computed per word type. $\alpha = 1$, $\gamma_d = 0$, $\gamma_i = 1$.
+  \item $f\_mean\_dyn$: same as $f\_mean\_stat$ but with different hyperparameters. $\alpha = 1$, $\gamma_d = 1$, $\gamma_i = 0.1$.
+  \item $f\_clust\_stat$: same as $f\_mean\_stat$ but with different hyperparameters. $\alpha = 0.8$, $\gamma_d = 0$, $\gamma_i = 1$.
+  \item $f\_clust\_dyn$: same as $f\_mean\_stat$ but with different hyperparameters. $\alpha = 0.8$, $\gamma_d = 1$, $\gamma_i = 0.1$.
+\end{itemize*}
+
+\subsection{Results}
+
+Table \ref{res} shows the micro precision, recall and F1 results of our methods, computed using KBA oficial scorer tool.
+
 \begin{table}[H]
 \center
-\begin{tabular}{|c|c|c|} \hline
-\textbf{RunId} & \textbf{F1} \\ \hline\hline
-$f\_basic\_single$ & 0.355 \\ \hline
-$f\_basic\_multi$ & 0.492 \\ \hline
-$f\_emb\_comb$ & 0.534 \\ \hline
-$f\_emb\_pos$ & 0.498 \\ \hline
-$f\_mean\_stat$ & 0.520 \\ \hline
-$f\_mean\_dyn$ & 0.524 \\ \hline
-$f\_clust\_stat$ & 0.527 \\ \hline
-$f\_clust\_dyn$ & 0.518 \\ \hline
+\begin{tabular}{|c|c|c|c|c|} \hline
+\textbf{Model} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\ \hline\hline
+$f\_basic\_single$ & & & 0.355 \\ \hline
+$f\_basic\_multi$ & & & 0.492 \\ \hline
+$f\_emb\_comb$ & & & 0.534 \\ \hline
+$f\_emb\_pos$ & & & 0.498 \\ \hline
+$f\_mean\_stat$ & & & 0.520 \\ \hline
+$f\_mean\_dyn$ & & & 0.524 \\ \hline
+$f\_clust\_stat$ & & & 0.527 \\ \hline
+$f\_clust\_dyn$ & & & 0.518 \\ \hline
 \end{tabular}
 \caption{TRECKBA14 Vital Filtering scores}
-\label{f1}
+\label{res}
 \end{table}
-
-Table \ref{f1} shows the micro F1 results computed using KBA oficial scorer tool.
-short explanation of results.
 
 \section{Related Work}
 \label{related}
