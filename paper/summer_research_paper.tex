@@ -41,8 +41,8 @@
 \begin{abstract} 
 
 Most studies that deal with large corpuses of text documents have focused on identifying references to target entities as well as studying their topics evolution over time. However, current systems are unable to handle streaming data, they do not partition the entity references according to their topics, and they do not identify the references vitalness.
-In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. We propose a distributed word embedding representation of entity contexts. Each context is described by topic clusters that are estimated in a non-parametric manner. Further, we associate a novelty measure to each topic cluster, dynamically estimating the relevance of each entity based on document frequencies.
-This approach of distributed word embeddings, non-parametric clustering, and novelty measure provides an accurate representation of entity context appropiate for streaming settings that addresses the aforementioned restrictions.
+In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. We propose a distributed word embedding representation of entity contexts. Each context is described by topic clusters that are estimated in a non-parametric manner. Further, we associate a novelty measure to each entity and topic cluster, dynamically estimating the relevance of each entity and topic cluster based on document frequencies.
+This approach of distributed word embeddings, non-parametric clustering, and novelty measure, provides an accurate representation of entity contexts appropiate for streaming settings, while addressing the aforementioned restrictions.
 
 
 \end{abstract} 
@@ -55,11 +55,11 @@ With the exponential increase of information on the web, it becomes critical to 
 
 \cite{frank12} observed a considerable time lag between the publication date of cited articles and the date of the corresponding citations created in Wikipedia. The median time is over a year, and the distribution has a long and heavy tail. This gap could be drastically reduced if automatic systems could suggest relevant documents to editors as soon as they are published.
 
-However, when processing a large corpus of text documents, practitioners are often concerned in finding references to entities of interest \cite{RaoMD10, choi2007}, and studying their topics distributions over time \cite{blei12}. Current tools are somewhat limited; they do not handle online settings, and they do not cluster the entity references according to topics nor identify their importance levels.
+However, when processing a large corpus of text documents, practitioners are often concerned in finding references to entities of interest \cite{RaoMD10, choi2007}, and studying their topics distributions over time \cite{blei12}. Current tools are somewhat limited; they do not handle online settings, and they do not cluster entity references according to topics nor identify the references importance.
 
-Recent studies \cite{xitong13, bouvier13, efron13, zhang13, bellogin13} have centered their attention on solving the above problems with supervised methods, using mainly document, document-entity and temporal level features. By using unlabelled examples to reduce data sparsity in the labeled training data, semi-supervised approaches can improve the generalization accuracy of those supervised systems \cite{Turian10wordrepresentations}.
+Recent studies \cite{xitong13, bouvier13, efron13, zhang13, bellogin13} have centered their attention on solving the above problems with supervised methods, using mainly document, document-entity and temporal level features. \cite{Turian10wordrepresentations} showed that by using unlabelled examples to reduce data sparsity in the labeled training data, semi-supervised approaches can improve the generalization accuracy of those supervised systems.
 
-We therefore introduce a semi-supervised approach suitable for streaming settings that uses a distributed word embedding and a non-parametric topic cluster representation of entity contexts. We also include a novelty measure that approximates the relevance of each entity according to document frequencies. Further, we update the topic identities, number of topics, and the topics novelty in an online fashion, observing only a single document at a time.
+We therefore introduce a semi-supervised approach suitable for streaming settings that uses a distributed word embedding and a non-parametric topic cluster representation of entity contexts. We also include a novelty measure that approximates the relevance of each entity and its topic clusters according to document frequencies. Further, we update the topic identities, number of topics, and the entities and topics novelties in an online fashion, observing only a single document at a time.
 
 This combination of distributed word embeddings, non-parametric clustering, and novelty measure provides an efficient yet accurate representation of entity context that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
 
@@ -86,7 +86,7 @@ Documents in $D$ may or may not refer to entities in $E$. In some cases, a candi
   \item $Referent$: the document refers to an entity in $E$
     \begin{itemize*}
       \item Vital: the document contains information that at the time it enters the stream, it drives an update to an entity in $E$ with timely, new information about the entity's current state, actions or situation, e.g. ``\dots Barack Obama has been elected President \dots''.
-      \item Useful: the document contains information that you can use when building an initial profile of an entity in $E$, it means that the document is possibly citable but the information is not timely, e.g. ``\dots Barack Obama was born on August 4th, 1961 \dots''.
+      \item Useful: the document contains information that can be used when building an initial profile of an entity in $E$, it means that the document is possibly citable but the information is not timely, e.g. ``\dots Barack Obama was born on August 4th, 1961 \dots''.
     \end{itemize*}
   \item $Unknown$: the context is so ambiguous that you cannot decide whether the mention refers to an entity in $E$ or not, e.g. ``\dots Barack is a great father and a better husband \dots''. The mention ``Barack'' may refer to any married parent named Barack.
   \item $Non\mathord{-}referent$: the document doesn't refer to any entity in $E$, e.g. ``\dots Barack Ferrazzano provides a wide range of business-oriented legal \dots''.
@@ -94,11 +94,11 @@ Documents in $D$ may or may not refer to entities in $E$. In some cases, a candi
 
 \subsection{Word Embeddings}
 
-There is rising interest in vector-space word embeddings and their use in NLP, especially given recent methods for their fast estimation at very large scale \cite{Arvind14}.
-
 A word embedding is a dense, low-dimensional, and real-valued vector associated with a word. Each dimension of the embedding represents a latent feature of the word, and hopefully captures useful syntactic and semantic properties \cite{Turian10wordrepresentations}.
 
 The learned vectors computed using neural networks are very attractive because they explicitly encode many linguistic regularities and patterns. Many of these patterns can be represented with simple algebraic operations. For example, the result of $\vec{v_{paris}} - \vec{v_{france}} + \vec{v_{germany}}$ is closer to $\vec{v_{berlin}}$ than to any other word vector \cite{mikolovChen,mikolovYih}.
+
+Given recent methods for their fast estimation at very large scale, there is rising interest in vector-space word embeddings and their use in NLP \cite{Arvind14}.
 
 \section{Method}
 \label{approach}
@@ -106,7 +106,7 @@ The learned vectors computed using neural networks are very attractive because t
 \subsection{Document Word Embedding}
 \label{docwordemb}
 
-To address the lexical sparsity and generalize to unseen documents, each document in $D$ is represented by its mean word embedding vector computed from lemmas that appear in sentences mentioning entities in $E$. The process is shown in Algorithm \ref{wordembedding}. 
+We use word embeddings to represent documents. To address the lexical sparsity and generalize to unseen documents, each document in $D$ is represented by its mean word embedding vector computed from lemmas that appear in sentences mentioning entities in $E$. The process is shown in Algorithm \ref{wordembedding}. 
 
 As an example, let's suppose we extract the following lemmas from document $d_2$ for entity $e_1$ shown in section \ref{setup}, conditioning on nouns and verbs: [barack obama, elected, president, united states, first, african american, hold, office]. For every lemma extracted, we then compute its word embedding and add them up in an aggregate vector. We finally take the mean of the aggregate vector, which constitutes the distributed word embedding representation of the document.
 
@@ -154,8 +154,7 @@ The number of topic clusters for an entity context is unkown beforehand. Initial
         \STATE $tc = create\_topic\_cluster(center\mathord{=}doc)$
         \STATE $tcs.append(tc)$
      \ELSE
-        \STATE $tcs[i].center = update\_center(tcs[i].elems, doc)$
-        \STATE $tc = tcs[i]$
+        \STATE $tc = update\_topic\_cluster(tcs[i], doc)$
      \ENDIF
    \ENDIF
    \STATE return $tc$
@@ -215,6 +214,8 @@ We use two extremely randomized tree ensembles classifiers \cite{GEW06a} in casc
     \item $rnr$: classifies between $referent$ and $non\mathord{-}referent$ or $unkown$ documents.
     \item $uv$: discriminates the $referent$ documents into vital or useful categories.
 \end{itemize*}
+
+Each document goes through the $rnr$ classifier. The $referent$ outputs from $rnr$ are used as input to the $uv$ ensemble.
 
 \subsection{Features}
 \label{feat}
@@ -303,9 +304,9 @@ $f\_clust\_dyn$ & 0.518 & 0.529 \\ \hline
 \label{res}
 \end{table}
 
-As reported in Table \ref{res}, $f\_emb\_comb$ approach is the overall best run on the $vital$ filtering task. Our two baselines ($f\_basic\_single$ and $f\_basic\_multi$) perform as expected. The F1 difference between the two baselines evidences that multitask-learning do work.
+As reported in Table \ref{res}, $f\_emb\_comb$ approach is the overall best run on the $vital$ filtering task. Our two baselines ($f\_basic\_single$ and $f\_basic\_multi$) perform as expected. The F1 difference between the two baselines evidences that multitask-learning does work.
 
-All the more advanced runs perform better than both baselines. Using a combined embedding as in $f\_emb\_comb$ outperforms using embeddings per part of speech as $f\_emb\_pos$ does.
+All the more advanced runs perform better than both baselines. Using a combined embedding ($f\_emb\_comb$) outperforms using individual embeddings per part of speech tags ($f\_emb\_pos$).
 
 Though the non-parametric clustering and novelty runs perform slightly worse than the simple $f\_emb\_comb$ approach, they illustrate the importance of these new features as they improve the performance of the $f\_emb\_pos$ model.
 
