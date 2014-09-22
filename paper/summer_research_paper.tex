@@ -219,7 +219,7 @@ We use two extremely randomized tree ensembles classifiers \cite{GEW06a} in casc
 \subsection{Features}
 \label{feat}
 
-A summary of the features used in this paper is presented below. Basic document and document-entity features are borrowed from \cite{jingang13}.
+A summary of the features used in this paper is presented below. Basic features are borrowed from \cite{jingang13}.
 
 \begin{itemize*}
   \item \textbf{Basic}
@@ -246,10 +246,6 @@ A summary of the features used in this paper is presented below. Basic document 
             \item $spread(d,e_p)$: $lpos(d,e_p)\mathord{-}fpos(d,ep)$
             \item $spread_n(d,e_p)$: $spread(d,e_p)$ normalized by document length
         \end{itemize*}
-      \item $Entity$
-        \begin{itemize*}
-            \item $novelty(e)$: novelty of entity $e$, see section \ref{novelty}
-        \end{itemize*}              
     \end{itemize*}
   \item \textbf{Embeddings}
     \begin{itemize*}
@@ -259,15 +255,19 @@ A summary of the features used in this paper is presented below. Basic document 
     \begin{itemize*}
         \item $min$: minimum distance to existent topic clusters
         \item $avg$: avg distance to existent topic clusters
-        \item $novelty(tc)$: topic cluster novelty, see section \ref{novelty}
         \item $zero$: $\mathbbm{1}_{\vec{0}}{(doc)}$, i.e. flag set to 1 if the word embedding representation of the document is $\vec{0}$
+    \end{itemize*}
+  \item \textbf{Novelty}
+    \begin{itemize*}
+        \item $novelty(e)$: novelty of entity $e$, see section \ref{novelty}
+        \item $novelty(tc)$: novelty of topic cluster $tc$.
     \end{itemize*}
 \end{itemize*}
 
 
 \subsection{Experiments}
 
-We perform 8 experiments. All of them use the same $rnr$ model trained with the Basic $Document$ and $Document-Entity$ features listed in section \ref{feat}.
+We perform 8 experiments. All of them use the same $rnr$ model trained with the basic features listed in section \ref{feat}.
 
 The different methods differ only on the $uv$ classifier. Explanations of the different $uv$ configurations are detailed below.
 
@@ -276,7 +276,7 @@ The different methods differ only on the $uv$ classifier. Explanations of the di
   \item $f\_basic\_multi$: baseline method. Same as $f\_basic\_single$ but with multitask-learning \cite{Caruana93multitasklearning}.
   \item $f\_emb\_comb$: same as $f\_basic\_multi$ but with Embeddings features computed using the pre-trained Google News dataset. A single combined embedding is calculated from the nouns, proper nouns and verbs found in the entities contexts.
   \item $f\_emb\_pos$: same as $f\_emb\_comb$ but instead of a single combined embedding, it includes one embedding per word type, i.e. one for nouns, one for proper nouns, and one for verbs.
-  \item $f\_mean\_stat$: same as $f\_emb\_pos$ but with Basic $Entity$ and Non-parametric Clustering features. The latter ones are computed per word type. $\alpha = 1$, $\gamma_d = 0$, $\gamma_i = 1$.
+  \item $f\_mean\_stat$: same as $f\_emb\_pos$ but with Novelty and Non-parametric Clustering features, computed per word type. $\alpha = 1$, $\gamma_d = 0$, $\gamma_i = 1$.
   \item $f\_mean\_dyn$: same as $f\_mean\_stat$ but with different hyperparameters. $\alpha = 1$, $\gamma_d = 1$, $\gamma_i = 0.1$.
   \item $f\_clust\_stat$: same as $f\_mean\_stat$ but with different hyperparameters. $\alpha = 0.8$, $\gamma_d = 0$, $\gamma_i = 1$.
   \item $f\_clust\_dyn$: same as $f\_mean\_stat$ but with different hyperparameters. $\alpha = 0.8$, $\gamma_d = 1$, $\gamma_i = 0.1$.
@@ -284,24 +284,32 @@ The different methods differ only on the $uv$ classifier. Explanations of the di
 
 \subsection{Results}
 
-Table \ref{res} shows the micro precision, recall and F1 results of our methods, computed using KBA oficial scorer tool.
+Table \ref{res} shows the micro F1 and SU results of our methods, computed using KBA oficial scorer tool.
 
 \begin{table}[H]
 \center
 \begin{tabular}{|c|c|c|c|c|} \hline
-\textbf{Model} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\ \hline\hline
-$f\_basic\_single$ & & & 0.355 \\ \hline
-$f\_basic\_multi$ & & & 0.492 \\ \hline
-$f\_emb\_comb$ & & & 0.534 \\ \hline
-$f\_emb\_pos$ & & & 0.498 \\ \hline
-$f\_mean\_stat$ & & & 0.520 \\ \hline
-$f\_mean\_dyn$ & & & 0.524 \\ \hline
-$f\_clust\_stat$ & & & 0.527 \\ \hline
-$f\_clust\_dyn$ & & & 0.518 \\ \hline
+\textbf{Model} & \textbf{F1} & \textbf{SU} \\ \hline\hline
+$f\_basic\_single$ & 0.355 & 0.437 \\ \hline
+$f\_basic\_multi$ & 0.492 & 0.520 \\ \hline
+$f\_emb\_comb$ & 0.534 & 0.537 \\ \hline
+$f\_emb\_pos$ & 0.498 & 0.518 \\ \hline
+$f\_mean\_stat$ & 0.520 & 0.532 \\ \hline
+$f\_mean\_dyn$ & 0.524 & 0.535 \\ \hline
+$f\_clust\_stat$ & 0.527 & 0.537 \\ \hline
+$f\_clust\_dyn$ & 0.518 & 0.529 \\ \hline
 \end{tabular}
 \caption{TRECKBA14 Vital Filtering scores}
 \label{res}
 \end{table}
+
+As reported in Table \ref{res}, $f\_emb\_comb$ approach is the overall best run on the $vital$ filtering task. Our two baselines ($f\_basic\_single$ and $f\_basic\_multi$) perform as expected. The F1 difference between the two baselines evidences that multitask-learning do work.
+
+All the more advanced runs perform better than both baselines. Using a combined embedding as in $f\_emb\_comb$ outperforms using embeddings per part of speech as $f\_emb\_pos$ does.
+
+Though the non-parametric clustering and novelty runs perform slightly worse than the simple $f\_emb\_comb$ approach, they illustrate the importance of these new features as they improve the performance of the $f\_emb\_pos$ model.
+
+The worse performance of these more advanced models may be caused by the uncertainty of enough training data and the lack of hyperparameter tunning. We suspect that learning the right $\alpha$ could improve the overall performance of the system.
 
 \section{Related Work}
 \label{related}
@@ -319,10 +327,16 @@ One approach that is becoming popular is to use unsupervised methods to induce w
 \section{Conclusion}
 \label{conclusion}
 
-more...
+In this paper we introduce a semi-supervised learning model for document classification tasks. We propose a distributed, non-parametric representation of documents suitable for streaming settings, that groups entity references into topic clusters. Further, we present a notion of novelty computed per entity as well as per topic cluster, which dynamically estimates the entity and cluster relevances.
+
+Combining these three core ideas, distributed word embeddings, non-parametric clustering, and novelty, results in a more accurate representation of entity contexts, and simultaneously addresses the filtering requirements of large corpuses of streaming text documents.
+
+A possible line of future reseach would be exploring hierarchical clustering algorithms to better represent topic clusters. It would also be interesting to assess the effects of using different pre-trained word embeddings. Finally, further experimental investigations are needed to account for the correct tunning of the hyperparameters of the model.
 
 \section*{Acknowledgments} 
  
+This work was supported in part by the Argentine Ministry of Science, Technology and Productive Innovation and the TerraSwarm Research Center, supported by the STARnet phase of the Focus Center Research Program (FCRP). Any opinions, findings and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect those of the sponsors.
+
 \bibliography{summer_research_paper}
 \bibliographystyle{icml2014}
 
