@@ -71,12 +71,13 @@ We present experimental results demonstrating the benefits of our method and sho
 \subsection{Problem Setup}
 \label{setup}
 
-We assume a set of $m$ target entities $E = \left\{ {e_1, ..., e_m}\right\}$. We further assume a set of documents $D = \left\{ {d_{11}, ..., d_{nk}}\right\}$ that arrive in chronological order, where $d_{ij}$ is the $i$-th document in the $j$-th topic cluster. We let $d_{i}$ denote the $i$-th document before a cluster assignment. 
+We assume a set of $m$ target entities $E = \left\{ {e_1, ..., e_m}\right\}$. We further assume a set of $n$ documents $D = \left\{ {d_{1}, ..., d_{n}}\right\}$ that arrive in chronological order. 
+When documents in $D$ are assigned a topic cluster, we denote the $i$-th document in the $j$-th topic cluster as $d_{ij}$. 
 
 Each document is a sequence of sentences composed by collections of words and annotated with NLP tools.
 Further, we assume w.l.o.g. that every document in $D$ refers -or not- to a single entity $e \in E$. For illustrative purposes we let $e\mathord{=}Barack\hspace{1mm}Obama$.
 
-We represent each $d_{ij}$ or simply $d_i \in D$ as a compound of a timestamp $t_i$ and a set of $p$ words $W_i = \left\{ {w_{i1}, ..., w_{ip}}\right\}$ located around -and including- mentions to the entity $e$. A mention to $e$ is found by a string matching algorithm that searches for exact matches of canonical and surface form names of $e$.
+We represent each $d_i \in D$ as a compound of a timestamp $t_i$ and a set of $p$ words $W_i = \left\{ {w_{i1}, ..., w_{ip}}\right\}$ located around -and including- mentions to the entity $e$. A mention to $e$ is found by a string matching algorithm that searches for exact matches of canonical and surface form names of the entity $e$.
 
 The task at hand is to predict the truth category of unseen documents in $D$.
 
@@ -116,11 +117,11 @@ We define a function $f : w \rightarrow v_w \in \mathbf{R^d}$ that computes the 
 
 TODO Add topic modeling, each document is generated from a distribution of words, need a lot of training examples, otherwise it's impossible to learn well. To account for sparsity we use this.
 
-Given the nice properties exposed in section \ref{emb}, in order to address the lexical sparsity and generalize to unseen documents, document $d_{i}$ can be represented by its mean word embedding vector as defined in Equation \ref{wordembedding}.
+Given the nice properties exposed in section \ref{emb}, in order to address the lexical sparsity and generalize to unseen documents, document $d_i$ can be represented by its mean word embedding vector as defined in Equation \ref{wordembedding}.
 
 \begin{equation}
 \label{wordembedding}
-v_{d_{i}} = \frac{1}{|W_i|} \sum_{s=1}^{p}{f(w_{is})}
+v_{d_i} = \frac{1}{|W_i|} \sum_{s=1}^{|W_i|}{f(w_{is})}
 \end{equation}
 
 %\begin{algorithm}[tb]
@@ -143,29 +144,34 @@ v_{d_{i}} = \frac{1}{|W_i|} \sum_{s=1}^{p}{f(w_{is})}
 
 \subsection{Non-parametric Clustering}
 
-Each entity context is represented by topic clusters, which are estimated in a non-parametric manner by assuming that the context of each entity in a single document belongs to a single topic. As mentioned in section \ref{docwordemb}, each document is represented by its mean word embedding. Here, each topic cluster of an entity context is represented by the mean embedding vector of the documents in that cluster.
+Each entity context is represented by topic clusters, which are estimated in a non-parametric manner by assuming that the context of each entity in a single document belongs to a single topic. As mentioned in section \ref{docwordemb}, each document is represented by its mean word embedding. Here, as we are dealing with a streaming setting, topic clusters do evolve over time. Therefore, each cluster of an entity context is represented by the mean embedding vector of the documents in that cluster at a certain timestamp.
 
-Mathematically, we can represent the $j$-th topic cluster using Formula \ref{nonparamclust}.
+Mathematically, we can represent the $j$-th topic cluster at timestamp $t$ using Formula \ref{nonparamclust}.
 
 \begin{equation}
 \label{nonparamclust}
-v_{c_{j}} = \frac{1}{|D_j|} \sum_{i=1}^{|D_j|}{v_{d_{ij}}}
+v_{c_{j_t}} = \frac{1}{|D_{j_t}|} \sum_{i=1}^{|D_{j_t}|}{v_{d_{ij}}}
 \end{equation}
-where $D_j = \left\{ {d_{1j}, ..., d_{tj}} \right\}$ is the subset of all documents in cluster $j$.
+where $D_{j_t} = \left\{ {d_{1j}, ..., d_{qj}} \right\}$ is the subset of $q$ documents that belong to cluster $j$ at timestamp $t$, and $v_{d_{ij}}$ is the embedding representation of the $i$-th document in the $j$-th cluster.
 
-The number of topic clusters for an entity context is unkown beforehand. Initially, entity contexts do not have topic clusters. We create the first topic cluster for an entity context on its first occurrence in the training data. After creating the first topic cluster for an entity context, a new topic cluster is created when the cosine distance between the word embedding representation of the new arriving document with every topic cluster center of the same entity is greater than or equal to $\alpha$, where $\alpha$ is an hyperparameter of the model, and $0 \geq \alpha \leq 1$. Our approach is closely related to the online non-parametric clustering procedure described in \citet{Arvind14}.
+The number of topic clusters for an entity context is unkown beforehand. Initially, entity contexts do not have topic clusters. We create the first topic cluster for an entity context on its first occurrence in the training data. After creating the first topic cluster for an entity context, a new topic cluster is created when the cosine distance between the word embedding representation of the new arriving document with every topic cluster center of the same entity is greater than or equal to $\alpha$, where $\alpha$ is an hyperparameter of the model, and $0 \leq \alpha \leq 1$. Our approach is closely related to the online non-parametric clustering procedure described in \citet{Arvind14}.
 
-In case the distance is less than $\alpha$, we add the new document to the closest topic cluster and update its center. More formally, $\forall d_i$, we add it to the existent topic cluster that solves the following optimization problem:\\
+In case the distance is less than $\alpha$, we add the incoming document to the closest topic cluster and update its center. 
 
-\centerline{$\underset{j}{\argmin}$\;\; $dist(v_{d_i}, v_{c_{j}})$} 
-\centerline{\text{subject to} $dist(v_{d_i}, v_{c_{j}}) < \alpha$}
+More formally, $\forall\hspace{1mm}c_{j_{t-1}}$, at time $t$, document $d_i$ is added to the topic cluster that solves the following optimization problem:\\
 
-where $dist(\cdot,\cdot)$ is the cosine distance defined as follows
+\centerline{$\underset{j}{\argmin}$\;\; $dist(v_{d_i}, v_{c_{j_{t-1}}})$} 
+\medskip
+\centerline{\text{subject to} $dist(v_{d_i}, v_{c_{j_{t-1}}}) < \alpha$}
+
+where $dist(\cdot,\cdot)$ is the cosine distance defined in Equation \ref{cosine}
 
 \begin{equation}
 \label{cosine}
 dist(x,y) = 1 - \cos(x,y) = 1 - \frac{x \cdot y}{||x||||y||}
 \end{equation}
+
+The $j$-th topic cluster at time $t$ is updated, and therefore composed by the subset of documents $D_{j_t} \subseteq D$, where $D_{j_t} = D_{j_{t-1}} \cup \left\{ {d_i}\right\}$.
 
 %\begin{algorithm}[tb]
 %   \caption{Non-parametric Clustering}
@@ -191,9 +197,7 @@ dist(x,y) = 1 - \cos(x,y) = 1 - \frac{x \cdot y}{||x||||y||}
 %\end{algorithmic}
 %\end{algorithm}
 
-Further, let's assume the following raw representation of documents, $d_{1-_r}$ = ``Before becoming president, Clinton was the Governor of Arkansas for five terms \dots Obama took an active role in the Senate's drive for improved border security and immigration reform \dots'', $d_{2-_r}$ = ``Barack Obama has been elected as President of the United States, he is the first African American to hold the office \dots Michelle is an American lawyer and writer \dots'', $d_{3-_r}$ = ``After graduating from Yale University in 1968, George W. Bush worked in oil business \dots Obama is the 44th and current President of the United States \dots''.
-
-As an example, let's assume document $d_1$ appears in the stream, and talks about the days Barack Obama was a Senator. As is the first document refering to the entity Obama, we add $d_1$ to a new topic cluster $senator$ (1), $d_1$ now becomes $d_{11}$. Then, document $d_2$ appears in the stream. It refers to Obama as being elected President of the United States. The distance with the previous cluster $senator$ is greater than $\alpha$, therefore the algorithm proceeds to add $d_2$ to a new topic cluster $president$ (2), $d_2$ now becomes $d_{22}$. Finally, $d_3$ enters the stream. It talks about Obama as the current President of the U.S. The algorithm compares its distance to the previous clusters and finds that is closest to the $president$ cluster. The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ cluster and updates the cluster center, $d_3$ now becomes $d_{32}$.
+As an example, let's assume document $d_1$ appears in the stream, and talks about the days Barack Obama was a Senator. As is the first document refering to the entity Obama, we add $d_1$ to a new topic cluster $senator\hspace{1mm}(1)$, $d_1$ can now be referred as $d_{11}$. Then, document $d_2$ appears in the stream. It refers to Obama as being elected President of the United States. The distance with the previous cluster $senator$ is greater than $\alpha$, therefore the algorithm proceeds to add $d_2$ to a new topic cluster $president\hspace{1mm}(2)$, $d_2$ can now be referred as $d_{22}$. Finally, $d_3$ enters the stream. It talks about Obama as the current President of the U.S. The algorithm compares its distance to the previous clusters and finds that is closest to the $president$ cluster. The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ cluster and updates the cluster center, $d_3$ can now be referred as $d_{32}$.
 
 %\begin{figure}[h!]
 %\centering
@@ -209,20 +213,52 @@ As mentioned in section \ref{categories}, the notion of $vitalness$ is closely r
 This staleness measure can be used both for entities and topic clusters.
 
 The staleness update is a two-step process, an exponential decrease followed by a constant increase.
-The staleness decrease is controlled by the hyperparameter $\gamma_{dec}$ and follows an exponential decay model
+We denote the staleness decrease as $\lambda_{i_{dec}}$, and is controlled by the hyperparameter $\gamma_{dec}$ following an exponential decay model.
 \begin{equation}
 \label{decrease}
 \lambda_{i_{dec}} = \lambda_{{i-1}_{inc}} \exp{(-\gamma_{dec} \frac{t_i-t_{i-1}}{T})}
 \end{equation}
 where $\gamma_{dec} \geq 0$, $t_i$ is the $i$-th document timestamp, $t_{i-1}$ is the $i-1$ document timestamp, and $T$ is a normalizing constant.
-In case we use staleness as an entity measure, $\lambda_{{i-1}_{inc}}$ alludes to the previous document in the stream that refers to the same entity as document $i$.
-If we use staleness as a topic cluster measure, $\lambda_{{i-1}_{inc}}$ refers to the previous document that belongs to the same topic cluster as document $i$.
+In case we use staleness as an entity measure, $\lambda_{{i-1}_{inc}}$ alludes to the staleness of the previous document in the stream that refers to the same entity as document $i$.
+If we use staleness as a topic cluster measure, $\lambda_{{i-1}_{inc}}$ refers to the staleness of the previous document that belongs to the same topic cluster as document $i$.
 
-On the other hand, the staleness increase is regulated by $\gamma_{inc}$ according to the following expression
+On the other hand, the staleness increase is denoted as $\lambda_{i_{inc}}$, and is regulated by $\gamma_{inc}$ according to the following expression
 \begin{equation}
 \lambda_{i_{inc}} = 1 - (1 - \lambda_{i_{dec}}) \gamma_{inc}
 \end{equation}
 where $0 \leq \gamma_{inc} \leq 1$.
+
+The final staleness feature reported for the $i$-th document is $\lambda_{i_{dec}}$.
+
+Figures \ref{stalenesslow}, \ref{stalenesshigh} and \ref{stalenessmedium} illustrate some toy examples to further understand the intuition behind this concept. While Figures \ref{stalenesslow} and \ref{stalenesshigh} refer to staleness as an entity measure, Figure \ref{stalenessmedium} deals with staleness as a topic cluster measure.
+
+Figure \ref{stalenesslow} intends to show an example of an entity with a decreasing staleness. There are almost no documents in the stream referred to that entity. As soon as some activity is detected, i.e. a document mentioning the entity appears ($t\mathord{=}10$), a slight increase in the curve is seen. Given the fact that there's no much information about the entity, every new document would add new, timely information to the entity, strongly suggesting vitalness. As an example, let's consider a relatively unknown graduate student at UW almost finishing his PhD in CS. No news about him are reported except when he defends his dissertation ($t\mathord{=}10$), which constitutes a key milestone in his life, evidently expressing vitalness.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=.5\textwidth]{staleness2.png}
+\caption{Unkown PhD Student Staleness Example}
+\label{stalenesslow}
+\end{figure}
+
+Figure \ref{stalenesshigh} intends to represent the exact opposite. It shows an example of an entity with increasing activity in the stream of documents. From $t\mathord{=}10$ we can see that several documents talk about the entity. At first, those documents can be considered vital, but as time goes by and documents continue commenting on the same events, the information starts staling. As an example, let's consider the entity Pearl Jam, a Seattle rock band, which hasn't played in a while. No documents in the stream talk about this entity but when they decide to release their new album, there's a popularity explosion in the stream, which keeps increasing as time passes. At the beginning, releasing a new album can be considered vital information, but after some time, i.e. days, this so-called new information transitions to background information, clearly indicating non-vitalness.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=.5\textwidth]{staleness3.png}
+\caption{Pearl Jam Staleness Example}
+\label{stalenesshigh}
+\end{figure}
+
+Finally, Figure \ref{stalenessmedium} aims to represent staleness per topic cluster. We assume that documents about the target entity are assigned to two different topic clusters, $c_1$ and $c_2$. The first main event starts at $t\mathord{=}10$ and continues for a long period of time, showing a growing trend in popularity. The second event starts at $t\mathord{=}50$ and its increasing recognition lasts few days. As an example, let's consider the entity 2014 FIFA World Cup, assume that at $t\mathord{=}10$, the tournament is about to start, and that $c_1$ contains all the documents that talk about the teams that participate. At first, documents talking about the qualified squads can be considered vital information, but after some time, these documents do not drive any update to the entity profile, denoting staleness. Few days after the final, $t\mathord{=}40$, a steep decrease in popularity is shown. At a later time, some documents appear in the stream, and are assigned to $c_2$. They mainly talk about the lessons learned during the competition, denoting vitality.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=.5\textwidth]{staleness1.png}
+\caption{2014 World Cup Staleness Example}
+\label{stalenessmedium}
+\end{figure}
+
 
 \subsection{Classifiers}
 
