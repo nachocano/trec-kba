@@ -106,62 +106,58 @@ In section \ref{docwordemb} we describe the way to determine the word embedding 
 \subsection{Topic Embeddings}
 \label{docwordemb}
 
-TODO Add topic modeling, each document is generated from a distribution of words, need a lot of training examples, otherwise it's impossible to learn well. To account for sparsity we use this.
+Topic models are a class of statistical models for collections of documents that represent documents as admixtures over topics. More specifically, each topic is modeled as a distribution over words, and each document is a mixture of such topics \cite{InouyeRD14}. Though they can be easily extended and embedded in other models, they do not generalize to new, unseen documents and they are prone to overfitting. 
 
-We define a function $f : w \in V \rightarrow v_w \in \mathbf{R^d}$ that computes the word embedding representation of word $w$ that exists in the set of all possible words in the vocabulary $V$. We further define a function $g : W \rightarrow v_W \in \mathbf{R^d}$ that computes the word embedding representation of the set of words $W$, which is the mean embedding vector as defined in Equation \ref{wordembedding}.
+In order to address the lexical sparsity and generalize to unseen documents, given the nice properties exposed in section \ref{emb}, we propose to represent documents by their mean word embedding vector.
+
+We define a function $f : w \rightarrow v_w \in \mathbf{R^d}$ that computes the word embedding representation of the word string $w$. We further define a function $g : W \rightarrow v_W \in \mathbf{R^d}$ that computes the mean word embedding representation of the set of words in $W$ as defined in Equation \ref{wordembedding}.
 
 \begin{equation}
 \label{wordembedding}
-v_W = g(W) = \frac{1}{|W|} \sum_{l=1}^{|W|}{f(W_l)}
+g(W) = v_W = \frac{1}{|W|} \sum_{w \in W}{f(w)}
 \end{equation}
 
-Given the nice properties exposed in section \ref{emb}, in order to address the lexical sparsity and generalize to unseen documents, document $d_i$ can be represented by its mean word embedding vector as defined in Equation \ref{wordembedding}.
+Given the document $d_i \in D$ that refers to entity $e$ and contains the words $w_i \in W_i$, we can compute its vector representation using function $g$ as follows:
 
+\begin{equation}
+\label{wordembedding1}
+v_{d_i} = v_{W_i} = g(W_i)
+\end{equation}
 
-%v_{d_{i_n}}
-%v_{d_{i_v}}
-%v_{d_{i_pn}}
+Further, let's denote $W_{i_n}$ to the set of all nouns in $W_i$, where $W_{i_n} \subseteq W_i$; and $W_{i_v}$ to the set of all verbs in $W_i$, where $W_{i_v} \subseteq W_i$. We can simply compute the mean embedding vector of all the nouns and verbs that appear in the context of entity $e$ using function $g$, as shown below:
 
-%\begin{algorithm}[tb]
-%   \caption{Document Word Embedding}
-%   \label{wordembedding}
-%\begin{algorithmic}
-%   \STATE {\bfseries Input:} document $d$, entity $e$, condition $c$
-%   \STATE {\bfseries Output:} document word embedding mean vector
-%   \STATE {\bfseries Body:}
-%   \STATE Initialize $aggregate = \vec{0}$
-%   \STATE $lemmas = extract(d, e, c)$
-%   \FOR{$lemma$ {\bfseries in} $lemmas$}
-%   \STATE $aggregate += word\_embedding(lemma)$
-%   \ENDFOR
-%   \STATE $aggregate /= len(lemmas)$
-%   \STATE return $aggregate$
-%\end{algorithmic}
-%\end{algorithm}
+\begin{equation*}
+\label{nouns}
+v_{d_{i_n}} = v_{W_{i_n}} = g(W_{i_n})
+\end{equation*}
 
+\begin{equation*}
+\label{verbs}
+v_{d_{i_v}} = v_{W_{i_v}} = g(W_{i_v})
+\end{equation*}
 
 \subsection{Non-parametric Clustering}
 \label{non}
 
-Each entity context is represented by topic clusters, which are estimated in a non-parametric manner by assuming that the context of each entity in a single document belongs to a single topic. As mentioned in section \ref{docwordemb}, each document is represented by its mean word embedding. Here, as we are dealing with a streaming setting, topic clusters do evolve over time. Therefore, each cluster of an entity context is represented by the mean embedding vector of the documents in that cluster at a certain timestamp.
+The context of entity $e$ is represented by topic clusters, which are estimated in a non-parametric manner by assuming that the entity context in a single document belongs to a single topic. As mentioned in section \ref{docwordemb}, each document can be represented by its mean word embedding vector. Here, as we are dealing with a streaming setting, topic clusters do evolve over time. Therefore, each topic cluster is represented by the mean embedding vector of the documents in that cluster at a certain timestamp.
 
-Mathematically, we can represent the $j$-th topic cluster at timestamp $t$ using Formula \ref{nonparamclust}.
+Mathematically, the vector representation of the $j$-th topic cluster at timestamp $i$, $c^j_i$, can be computed using Equation \ref{nonparamclust}.
 
 \begin{equation}
 \label{nonparamclust}
-v_{c_{j_t}} = \frac{1}{|D_{j_t}|} \sum_{i=1}^{|D_{j_t}|}{v_{d_{ij}}}
+v_{c^j_i} = \frac{1}{|D^j_i|} \sum_{d \in D^j_i}{v_d}
 \end{equation}
-where $D_{j_t} = \left\{ {d_{1j}, ..., d_{qj}} \right\}$ is the subset of $q$ documents that belong to cluster $j$ at timestamp $t$, and $v_{d_{ij}}$ is the embedding representation of the $i$-th document in the $j$-th cluster.
+where $D^j_i$ is the subset of all the documents that belong to cluster $j$ at timestamp $i$, and $\forall\hspace{1mm}d_q \in D^j_i, q \leq i$.
 
-The number of topic clusters for an entity context is unknown beforehand. Initially, entity contexts do not have topic clusters. We create the first topic cluster for an entity context on its first occurrence in the training data. After creating the first topic cluster for an entity context, a new topic cluster is created when the cosine distance between the word embedding representation of the new arriving document with every topic cluster center of the same entity is greater than or equal to $\alpha$, where $\alpha$ is an hyper-parameter of the model, and $0 \leq \alpha \leq 1$. Our approach is closely related to the online non-parametric clustering procedure described in \citet{Arvind14}.
+The number of topic clusters for the context of entity $e$ is unknown beforehand. Initially, the entity context does not have topic clusters. We create the first topic cluster for the entity context on its first occurrence in the training data. After creating the first cluster for the context, a new topic cluster is created when the cosine distance between the word embedding representation of the new arriving document with every topic cluster center of the entity is greater than or equal to $\alpha$, where $\alpha$ is an hyper-parameter of the model, and $0 \leq \alpha \leq 1$. Our approach is closely related to the online non-parametric clustering procedure described in \citet{Arvind14}.
 
 In case the distance is less than $\alpha$, we add the incoming document to the closest topic cluster and update its center. 
 
-More formally, $\forall\hspace{1mm}c_{j_{t-1}}$, at time $t$, document $d_i$ is added to the topic cluster that solves the following optimization problem:\\
+More formally, $\forall\hspace{1mm}c^j_{i-1}$, at time $i$, document $d_i$ is added to the topic cluster that solves the following optimization problem:\\
 
-\centerline{$\underset{j}{\argmin}$\;\; $dist(v_{d_i}, v_{c_{j_{t-1}}})$} 
+\centerline{$\underset{j}{\argmin}$\;\; $dist(v_{d_i}, v_{c^j_{i-1}})$} 
 \medskip
-\centerline{\text{subject to} $dist(v_{d_i}, v_{c_{j_{t-1}}}) < \alpha$}
+\centerline{\text{subject to} $dist(v_{d_i}, v_{c^j_{i-1}}) < \alpha$}
 
 where $dist(\cdot,\cdot)$ is the cosine distance defined in Equation \ref{cosine}
 
@@ -170,7 +166,7 @@ where $dist(\cdot,\cdot)$ is the cosine distance defined in Equation \ref{cosine
 dist(x,y) = 1 - \cos(x,y) = 1 - \frac{x \cdot y}{||x||||y||}
 \end{equation}
 
-The $j$-th topic cluster at time $t$ is updated, and therefore composed by the subset of documents $D_{j_t} \subseteq D$, where $D_{j_t} = D_{j_{t-1}} \cup \left\{ {d_i}\right\}$.
+The $j$-th topic cluster at time $i$ is updated, and therefore composed by the subset of documents $D^j_i \subseteq D$, where $D^j_i = D^j_{i-1} \cup \left\{ {d_i}\right\}$.
 
 %\begin{algorithm}[tb]
 %   \caption{Non-parametric Clustering}
@@ -196,18 +192,12 @@ The $j$-th topic cluster at time $t$ is updated, and therefore composed by the s
 %\end{algorithmic}
 %\end{algorithm}
 
-As an example, let's assume document $d_1$ appears in the stream, and talks about the days Barack Obama was a Senator. As is the first document referring to the entity Obama, we add $d_1$ to a new topic cluster $senator\hspace{1mm}(1)$, $d_1$ can now be referred as $d_{11}$. Then, document $d_2$ appears in the stream. It refers to Obama as being elected President of the United States. The distance with the previous cluster $senator$ is greater than $\alpha$, therefore the algorithm proceeds to add $d_2$ to a new topic cluster $president\hspace{1mm}(2)$, $d_2$ can now be referred as $d_{22}$. Finally, $d_3$ enters the stream. It talks about Obama as the current President of the U.S. The algorithm compares its distance to the previous clusters and finds that is closest to the $president$ cluster. The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ cluster and updates the cluster center, $d_3$ can now be referred as $d_{32}$.
-
-%\begin{figure}[h!]
-%\centering
-%\includegraphics[width=.5\textwidth]{kmeans.png}
-%\label{clusteringFig}
-%\end{figure}
+As an example, let's assume document $d_1$ appears in the stream, and talks about the days Barack Obama was a Senator. As is the first document referring to the entity Obama, we add $d_1$ to a new topic cluster $senator\hspace{1mm}(1)$. Then, document $d_2$ appears in the stream. It refers to Obama as being elected President of the United States. The distance with the previous cluster $senator$ is greater than $\alpha$, therefore the algorithm proceeds to add $d_2$ to a new topic cluster $president\hspace{1mm}(2)$. Finally, $d_3$ enters the stream. It talks about Obama as the current President of the U.S. The algorithm compares its distance to the previous clusters and finds that is closest to the $president$ cluster. The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ cluster and updates the cluster center.
 
 \subsection{Staleness}
 \label{staleness}
 
-As mentioned in section \ref{categories}, the notion of $vitalness$ is closely related to the timeliness of the new information. We include a staleness feature $\lambda_i$, which is dynamically updated over time, and $0 < \lambda_i \leq 1$. Low staleness aims to represent vital documents.
+As mentioned in section \ref{setup}, the notion of $vitalness$ is closely related to the timeliness of the new information. We include a staleness feature $\lambda_i$, which is dynamically updated over time, and $0 < \lambda_i \leq 1$. Low staleness aims to represent vital documents.
 
 This staleness measure can be used both for entities and topic clusters.
 
@@ -229,7 +219,7 @@ where $0 \leq \gamma_i \leq 1$.
 
 The final staleness feature reported for the $i$-th document is $\lambda^{dec}_i$.
 
-\subsubsection{Toy Examples}
+\subsubsection{Examples}
 
 Figures \ref{stalenesslow} and \ref{stalenessmedium} illustrate some toy examples to further understand the intuition behind staleness.
 
@@ -254,23 +244,13 @@ Near $t\mathord{=}40$, the event can be considered over, a steep decrease in pop
 \end{figure}
 
 
-\subsection{Classifiers}
-
-To apply our method, we propose a multistage classification process with the two classifiers shown below.
-
-\begin{itemize*}
-    \item $rnr$: classifies between $referent$ and $non\mathord{-}referent$ documents.
-    \item $uv$: discriminates the $referent$ documents into vital or useful subcategories.
-\end{itemize*}
-
-Each document goes through the $rnr$ classifier. The $referent$ documents outputted by $rnr$ are used as inputs to the $uv$ model.
-
 \section{Evaluation}
 \label{evaluation}
 
 \subsection{Data}
+\label{data}
 
-To assess our method we use TRECKBA14 stream corpus. It has around 20M documents annotated with BBN's Serif NLP tools, including within-doc coref and dependency parse trees. Further, we use the 71 target entities given by TRECKBA14 organizers for the Vital Filtering task. Among the 20M documents, around 28K have truth labels. From these, only 8K are training instances while the rest are test examples.
+To assess our method we use TRECKBA14 stream corpus. It has around 20M documents annotated with BBN's Serif NLP tools, including within-doc coref and dependency parse trees. Further, we use the 71 target entities given by TRECKBA14 organizers for the Vital Filtering task. Among the 20M documents, around 28K have truth labels. From these, only 8K are training instances while the rest are test examples. An important assumption is that not all documents in the corpus refer to the target entities.
 
 \subsubsection{Preprocess}
 
@@ -327,6 +307,13 @@ A summary of the features used in this paper is presented below. Basic features 
 
 \subsection{Experiments}
 \label{expe}
+
+Due to the assumption that not all documents in the corpora refer to the target entities (\ref{data}), we include an extra step in our classification process. We introduce an additional classifier, called $rnr$, which acts offline and classifies documents as $referent$ or $non\mathord{-}referent$.
+
+A $referent$ document means it refers to the target entity, $vital$ and $non-vital$ classes described in section \ref{setup} fall into this category.
+A $non-referent$ document means that it doesn't refer to the target entity or the context is so ambiguous that is impossible to decide whether the mention refers to the entity or not. An example for the former case is ``Barack Ferrazzano provides a wide range of business-oriented legal''. For the latter, an example is ``Barack is a great father and a better husband''. The mention ``Barack'' may refer to any married parent named Barack, therefore, we consider it $non\mathord{-}referent$.
+
+Therefore, each document goes through the $rnr$ classifier. Only the $referent$ documents outputted by $rnr$ are used as inputs to the $uv$ model.
 
 We use two extremely randomized tree ensembles classifiers \cite{GEW06a} in cascade, each composed of 100 weak learners. Each tree in the ensembles has depth 150.
 
