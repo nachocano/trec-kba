@@ -43,9 +43,9 @@
 
 \begin{abstract} 
 
-Most studies that deal with large corpora of text documents have focused on identifying references to target entities as well as studying their topics evolution over time. However, current systems are unable to handle streaming data, they do not partition the entity references according to their topics, and they do not identify the references vitalness.
-In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. We propose a distributed word embedding representation of entity contexts. Each context is described by topic clusters that are estimated in a non-parametric manner. Further, we associate a staleness measure to each entity and topic cluster, dynamically estimating their relevances based on document frequencies.
-This approach of distributed word embeddings, non-parametric clustering, and staleness measure, provides an accurate representation of entity contexts appropriate for streaming settings, while addressing the aforementioned constraints.
+Most studies that deal with large corpora of text documents have focused on identifying references to target entities as well as studying their topics evolution over time. However, current systems are unable to handle streaming data, they do not partition entities' references according to topics nor identify the references' vitalness.
+In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. We propose a distributed word embedding representation of entities' contexts. Each context is described by topic clusters that are estimated in a non-parametric manner. Further, we associate a staleness measure to each entity and topic cluster, dynamically estimating their relevances based on document frequencies.
+This approach of distributed word embeddings, non-parametric clustering, and staleness measure, provides an accurate representation of entities' contexts appropriate for streaming settings, while addressing the aforementioned constraints.
 
 
 \end{abstract} 
@@ -55,13 +55,13 @@ This approach of distributed word embeddings, non-parametric clustering, and sta
 
 \citet{frank12} observed a considerable time lag between the publication date of cited articles and the date of the corresponding citations created in Wikipedia. The median time is over a year, and the distribution has a long and heavy tail. This gap could be drastically reduced if automatic systems could suggest relevant documents to editors as soon as they are published.
 
-However, when processing a large corpus of text documents, practitioners are often concerned in finding references to entities of interest \cite{RaoMD10, choi2007}, and studying their topics distributions over time \cite{blei12}. Current tools are somewhat limited; they do not handle online settings, and they do not cluster entity references according to topics nor identify the references importance.
+However, when processing a large corpus of text documents, practitioners are often concerned in finding references to entities of interest \cite{RaoMD10, choi2007}, and studying their topics distributions over time \cite{blei12}. Current tools are somewhat limited; they do not handle online settings, and they do not cluster entities' references according to topics nor identify the references' importance.
 
 Recent studies \cite{xitong13, bouvier13, efron13, zhang13, bellogin13} have centered their attention on solving the above problems with supervised methods, using mainly document, document-entity and temporal level features. \citet{Turian10wordrepresentations} showed that by using unlabeled examples to reduce data sparsity in the labeled training data, semi-supervised approaches can improve the generalization accuracy of those supervised systems.
 
-We therefore introduce a semi-supervised approach suitable for streaming settings that uses a distributed word embedding and a non-parametric topic cluster representation of entity contexts. We also include a staleness measure that approximates the relevance of each entity and its topic clusters according to document frequencies. Further, we update the topic identities, number of topics, and the entities and topics staleness in an online fashion, observing only a single document at a time.
+We therefore introduce a semi-supervised approach suitable for streaming settings that uses a distributed word embedding and a non-parametric topic cluster representation of entities' contexts. We also include a staleness measure that approximates the relevance of each entity and its topic clusters according to document frequencies. Further, we update the topic identities, number of topics, and the entities and topics staleness in an online fashion, observing only a single document at a time.
 
-This combination of distributed word embeddings, non-parametric clustering, and staleness measure provides an efficient yet accurate representation of entity contexts that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
+This combination of distributed word embeddings, non-parametric clustering, and staleness measure provides an efficient yet accurate representation of entities' contexts that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
 
 We present experimental results demonstrating the benefits of our method and show that it surpasses previous supervised approaches in TRECKBA14 Vital Filtering task.
 
@@ -73,7 +73,7 @@ We present experimental results demonstrating the benefits of our method and sho
 
 We assume a set of $m$ target entities $E = \left\{ {e_1, ..., e_m}\right\}$. We further assume a set of $n$ documents $D = \left\{ {d_{1}, ..., d_{n}}\right\}$ that arrive in chronological order. 
  
-Each document is a sequence of sentences composed by collections of words and annotated with NLP tools.
+Each document is a sequence of sentences composed by collections of words, annotated with NLP tools.
 Further, we assume w.l.o.g. that every document in $D$ refers to a single entity $e \in E$. For illustrative purposes we let $e\mathord{=}Barack\hspace{1mm}Obama$.
 
 We represent each $d_i \in D$ as a compound of a timestamp $t_i$ and a set of $p$ words $W_i = \left\{ {w_{i1}, ..., w_{ip}}\right\}$ located around (and including) mentions to the entity $e$. A mention to $e$ is found by a string matching algorithm that searches for exact matches of canonical and surface form names of the entity $e$.
@@ -94,21 +94,21 @@ A word embedding is a dense, low-dimensional, and real-valued vector associated 
 
 The learned vectors computed using neural networks are very attractive because they explicitly encode many linguistic regularities and patterns. Many of these patterns can be represented with simple algebraic operations. For example, the result of $v_{paris} - v_{france} + v_{germany}$ is closer to $v_{berlin}$ than to any other word vector \cite{mikolovChen,mikolovYih}.
 
-Given recent methods for their fast estimation at very large scale, there is rising interest in vector-space word embeddings and their use in NLP \cite{Arvind14}.
+Given the recent fast estimation of embedding representations at very large scale, there is rising interest in vector-space word embeddings and their use in NLP \cite{Arvind14}.
 
 \section{Method}
 \label{approach}
 
-Given a stream of documents $D$ that refer to entity $e$, the task at hand is to predict whether those documents are $vital$ or $non\mathord{-}vital$ to $e$. For this, we propose a three-step method: 1) represent documents with embeddings computed from sets of words in each document, 2) represent the entity context using non-parametric topic clusters, and 3) estimate the novelty of the document information with respect to entity $e$ using a staleness measure.
+Given a stream of documents $D$ that refer to entity $e$, the task at hand is to predict whether those documents are $vital$ or $non\mathord{-}vital$ to $e$. For this, we propose a three-step method: 1) represent documents with embeddings computed from sets of words in each document, 2) represent the entity's context using non-parametric topic clusters, and 3) estimate the novelty of the document information with respect to entity $e$ using a staleness measure.
 
-In section \ref{docwordemb} we describe the way to determine the word embedding representation of a document given the set of words located close to mentions of entity $e$. In section \ref{non}, we introduce the non-parametric representation of the entity context. Finally, in section \ref{staleness} we present the staleness measure, which is a good indicator of the novelty of the information contained in a document with respect to $e$.
+In section \ref{docwordemb} we describe the way to determine the word embedding representation of a document given the set of words located close to mentions of entity $e$. In section \ref{non}, we introduce the non-parametric representation of the entity's context. Finally, in section \ref{staleness} we present the staleness measure, which is a good indicator of the novelty of the information contained in a document with respect to $e$.
 
-\subsection{Topic Embedding Representation for Documents}
+\subsection{Context Embedding Representation of Documents}
 \label{docwordemb}
 
 Topic models are a class of statistical models for collections of documents that represent documents as admixtures over topics. More specifically, each topic is modeled as a distribution over words, and each document is a mixture of such topics \cite{InouyeRD14}. Though they can be easily extended and embedded in other models, they do not generalize to new, unseen documents and they are prone to overfitting. 
 
-In order to address the lexical sparsity and generalize to unseen documents, given the nice properties exposed in section \ref{emb}, we propose to represent documents by their mean word embedding vector.
+In order to address the lexical sparsity and generalize to unseen documents, given the nice properties exposed in section \ref{emb}, we propose to represent entity's contexts in documents by their mean word embedding vector.
 
 We define a function $f : w \rightarrow v_w \in \mathbf{R^d}$ that computes the word embedding representation of the word string $w$. We further define a function $g : W \rightarrow v_W \in \mathbf{R^d}$ that computes the mean word embedding representation of the set of words in $W$ as defined in Equation \ref{wordembedding}.
 
@@ -138,12 +138,12 @@ v_{d_{i_n}} = v_{W_{i_n}} = g(W_{i_n})
 v_{d_{i_v}} = v_{W_{i_v}} = g(W_{i_v})
 \end{equation*}
 
-Being able to compute individual embeddings for different word types is a flexibility our method provides that might better encapsulate the truth underlying topic of the document.
+Being able to compute individual embeddings for different word types is a flexibility our method provides that might better encapsulate the truth underlying context (topic) of the document.
 
 \subsection{Non-parametric Clustering}
 \label{non}
 
-The context of entity $e$ is further represented by topic clusters, which are estimated in a non-parametric manner by assuming that the entity context in a single document belongs to a single topic. As we are dealing with a streaming setting, topic clusters do evolve over time, i.e. members of each cluster change over time. We therefore represent each topic cluster by the mean embedding vector of the documents in that cluster at a certain timestamp.
+The context of entity $e$ is further represented by topic clusters, which are estimated in a non-parametric manner by assuming that the entity's context in a single document belongs to a single topic. As we are dealing with a streaming setting, topic clusters do evolve over time, i.e. members of each cluster change over time. We therefore represent each topic cluster by the mean embedding vector of the documents in that cluster at a certain timestamp.
 
 Mathematically, the vector representation of the $j$-th topic cluster at timestamp $t_i$, $c^j_i$, can be computed using Equation \ref{nonparamclust}.
 
@@ -153,7 +153,7 @@ v_{c^j_i} = \frac{1}{|D^j_i|} \sum_{d \in D^j_i}{v_d}
 \end{equation}
 where $D^j_i$ is the subset of all the documents that belong to cluster $j$ at timestamp $t_i$, and $\forall\hspace{1mm}d_q \in D^j_i, t_q \leq t_i$.
 
-The number of topic clusters for the context of entity $e$ is unknown beforehand. Initially, the entity context does not have topic clusters. We create the first topic cluster for the entity context on its first occurrence in the training data. After creating the first cluster for the context, a new topic cluster is created when the cosine distance between the word embedding representation of the new arriving document with every topic cluster center of the entity is greater than or equal to $\alpha$, where $\alpha$ is an hyperparameter of the model, and $0 \leq \alpha \leq 1$. Our approach is closely related to the online non-parametric clustering procedure described in \citet{Arvind14}.
+The number of topic clusters for the context of entity $e$ is unknown beforehand. Initially, the entity's context does not have topic clusters. We create the first topic cluster for the entity's context on its first occurrence in the training data. After creating the first cluster for the context, a new topic cluster is created when the cosine distance between the word embedding representation of the new arriving document with every topic cluster center of the entity is greater than or equal to $\alpha$, where $\alpha$ is an hyperparameter of the model, and $0 \leq \alpha \leq 1$. Our approach is closely related to the online non-parametric clustering procedure described in \citet{Arvind14}.
 
 In case the distance is less than $\alpha$, we add the incoming document to the closest topic cluster and update its center. 
 
@@ -212,8 +212,8 @@ We denote the staleness decrease as $\lambda^{dec}_i$, and is controlled by the 
 \lambda^{dec}_i = \lambda^{inc}_{{i-1}} \exp{(-\gamma_d \frac{t_i-t_{i-1}}{T})}
 \end{equation}
 where $\gamma_d \geq 0$, $t_i$ is the $i$-th document timestamp, $t_{i-1}$ is the $i-1$ document timestamp, $T$ is a normalizing constant, and $\lambda^{inc}_{i-1}$ is the staleness increase (defined below) at a previous timestamp.
-In case we use staleness as an entity measure, $\lambda^{inc}_{i-1}$ alludes to the staleness of the previous document in the stream that refers to the same entity as document $i$.
-If we use staleness as a topic cluster measure, $\lambda^{inc}_{i-1}$ refers to the staleness of the previous document that belongs to the same topic cluster as document $i$.
+In case we use staleness as an entity's measure, $\lambda^{inc}_{i-1}$ alludes to the staleness of the previous document in the stream that refers to the same entity as document $i$.
+If we use staleness as a topic cluster's measure, $\lambda^{inc}_{i-1}$ refers to the staleness of the previous document that belongs to the same topic cluster as document $i$.
 
 On the other hand, the staleness increase is denoted as $\lambda^{inc}_i$, and is regulated by $\gamma_i$ according to the following expression
 \begin{equation}
@@ -227,12 +227,12 @@ The final staleness feature reported for the $i$-th document is $\lambda^{dec}_i
 
 Figures \ref{stalenesslow} and \ref{stalenessmedium} illustrate some toy examples to further understand the intuition behind staleness.
 
-Figure \ref{stalenesslow} intends to show an example of an entity with a decreasing staleness. There are almost no documents in the stream referred to that entity. As soon as some activity is detected, i.e. a document mentioning the entity appears ($t\mathord{=}10$), a slight increase in the curve is seen. Given the fact that there's no much information about the entity, every new document would drive an update to the entity profile, strongly suggesting vitalness.
+Figure \ref{stalenesslow} intends to show an example of an entity with a decreasing staleness. There are almost no documents in the stream referred to that entity. As soon as some activity is detected, i.e. a document mentioning the entity appears ($t\mathord{=}10$), a slight increase in the curve is seen. Given the fact that there's no much information about the entity, every new document would drive an update to the entity's profile, strongly suggesting vitalness.
 
 \begin{figure}[h!]
 \centering
 \includegraphics[width=.5\textwidth]{staleness1.pdf}
-\caption{Staleness on Unpopular Entity}
+\caption{Staleness of Unpopular Entity}
 \label{stalenesslow}
 \end{figure}
 
@@ -243,7 +243,7 @@ Near $t\mathord{=}40$, the event can be considered over, a steep decrease in pop
 \begin{figure}[h!]
 \centering
 \includegraphics[width=.5\textwidth]{staleness2.pdf}
-\caption{Staleness on Entity with Fluctuating Popularity}
+\caption{Staleness of Entity with Fluctuating Popularity}
 \label{stalenessmedium}
 \end{figure}
 
@@ -263,7 +263,7 @@ We preprocess the corpus to filter the documents that contain exact string match
 \subsubsection{Categories}
 \label{subcat}
 
-TRECKBA14 corpus contain documents that do not refer to the target entities, we therefore need to introduce a new category of documents, $non\mathord{-}referent$. 
+TRECKBA14 corpus contain documents that do not refer to the target entities, even though they may contain references to them. We therefore need to introduce a new category of documents, $non\mathord{-}referent$. 
 
 A $non\mathord{-}referent$ document means that it doesn't refer to a target entity or the context is so ambiguous that is impossible to decide whether the mention refers to an entity or not. An example for the former case is ``Barack Ferrazzano provides a wide range of business-oriented legal''. For the latter, an example is ``Barack is a great father and a better husband''. The mention ``Barack'' may refer to any married parent named Barack, therefore, we consider it $non\mathord{-}referent$.
 
@@ -333,7 +333,7 @@ The different models differ on the features used to train and test the $uv$ clas
 \begin{itemize*}
   \item {\textit{Baseline Single}}: baseline method that uses basic document and document-entity features. \citet{jingang13, bellogin13} have a similar method, though they train their models with more features.
   \item {\textit{Baseline Multi-task}}: another baseline method. It's similar to {\textit{Basic Single}} but it includes multi-task learning \cite{Caruana93multitasklearning}.
-  \item {\textit{Embedding Combined}}: similar to {\textit{Basic Multi-task}}. It also includes the embeddings features. The word embeddings are computed using the pre-trained Google News dataset. Each document has a single combined embedding, which is calculated from the nouns, proper nouns and verbs found near the mentions to the entity as explained in section \ref{docwordemb}.
+  \item {\textit{Embedding Combined}}: similar to {\textit{Basic Multi-task}}. It also includes the embeddings features. The word embeddings are computed using the pre-trained Google News dataset. Each document has a single combined embedding, which is calculated from the nouns, proper nouns and verbs found near the mentions to entities as explained in section \ref{docwordemb}.
   \item {\textit{Embedding POS}}: similar to {\textit{Embedding Combined}} but instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns, proper nouns and verbs. It uses the part of speech annotations in the documents to easily extract the different word types.
   \item {\textit{Mean Static}}: similar to {\textit{Embedding POS}}. It also includes the staleness measure, which is constant throughout the stream, as $\gamma_d = 0$ and $\gamma_i = 1$. No topic clusters are formed, this means that $\alpha = 1$.
   \item {\textit{Mean Dynamic}}: similar to {\textit{Embedding POS}}. Further, it includes the staleness measure, which fluctuates over time as $\gamma_d \neq 0$ and $\gamma_i \neq 1$. Still no topic clusters are formed, i.e. $\alpha = 1$.
@@ -375,9 +375,29 @@ The more advanced models perform better than both baselines. Using a combined em
 
 Though the staleness and non-parametric clustering runs ({\textit{Mean Static}}, {\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method, they illustrate the importance of these new features as they improve the performance of the {\textit{Embedding POS}} model.
 
-Figure \ref{precrecall} further illustrates the precision-recall for the different methods listed in Table \ref{res}. It's worth noting that on low recall, the precision of the different methods meets our expectations, the more complex methods, which include non-parametric clustering and staleness, outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
+Figure \ref{precrecall} further illustrates the precision-recall for the different methods listed in Table \ref{res}. It's worth noting that on low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
-Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.6$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
+Further, we present some qualitative results on topic clusters. Table \ref{clusterresult} illustrates the top 5 words that appear in 4 random topic clusters computed for entity Lisa Brown using the \textit{Clustering Dynamic} model in Table \ref{res}.
+
+\begin{table}[H]
+\center
+\begin{tabular}{|c|c|c|c|} \hline
+\textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} \\ \hline\hline
+director & leader & counselor & vagina \\ \hline
+executive & majority & doctors & state \\ \hline
+white\_house & senate & welcomes & michigan \\ \hline
+representative & state & usa & word \\ \hline
+introduced & spokane & nutrition & floor \\ \hline
+\end{tabular}
+\caption{An illustration of 4 (out of 78) topic clusters extracted for entity Lisa Brown}
+\label{clusterresult}
+\end{table}
+
+By doing some manual search on the entity Lisa Brown, we can confirm that the cluster elements make sense. Mrs. Brown is an American politician from the state of Michigan, who has been member of the Michigan State House of Representatives, and she is on the Executive Board of some association.
+Even the word vagina is justifiable as she engaged in a heated debate about abortion legislation in Michigan.
+
+
+Finally, Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.6$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
 
 \begin{table}[H]
 \center
@@ -404,26 +424,7 @@ $\gamma_i$ & $\gamma_d$ & \textbf{P} & \textbf{R} & \textbf{F1} \\ \hline\hline
 \label{varyinggamma}
 \end{table}
 
-We achieve the best result when $\gamma_i=0.5$ and $\gamma_d=0.2$, still lower than \textit{Embedding Combined} but better than the previous {\textit{Clustering Dynamic}}. In general, lower $\gamma_d$ seems to be doing a better job. This reflects the importance of hyperparameter tuning.
-
-Further, we present some qualitative results on topic clusters. Table \ref{clusterresult} illustrates the top 5 words that appear in 4 random topic clusters computed for entity Lisa Brown using the \textit{Clustering Dynamic} model in Table \ref{res}.
-
-\begin{table}[H]
-\center
-\begin{tabular}{|c|c|c|c|} \hline
-\textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} \\ \hline\hline
-director & leader & counselor & vagina \\ \hline
-executive & majority & doctors & state \\ \hline
-white\_house & senate & welcomes & michigan \\ \hline
-representative & state & usa & word \\ \hline
-introduced & spokane & nutrition & floor \\ \hline
-\end{tabular}
-\caption{An illustration of 4 (out of 78) topic clusters extracted for entity Lisa Brown}
-\label{clusterresult}
-\end{table}
-
-By doing some manual search on the entity Lisa Brown, we can confirm that the cluster elements make sense. Mrs. Brown is an American politician from the state of Michigan, who has been member of the Michigan State House of Representatives, and she is on the Executive Board of some association.
-Even the word vagina is justifiable as she engaged in a heated debate about abortion legislation in Michigan.
+We achieve the best result when $\gamma_i=0.5$ and $\gamma_d=0.2$, still lower than \textit{Embedding Combined} but better than previous {\textit{Clustering Dynamic}}. In general, lower $\gamma_d$ seems to be doing a better job. These results further reflect the importance of hyperparameter tuning.
 
 Although Table \ref{varyinggamma} show some results for different $\gamma_i$ and $\gamma_d$, further experimental investigations are needed to account for the correct tunning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. It would also be interesting to assess the effects of using different pre-trained word embeddings.
 
@@ -434,7 +435,7 @@ Streaming document filtering is related to several fields, including but not lim
 
 Several comparative knowledge based population competitions have run in the recent past testifying on the great progress achieved in these fields \cite{gross_doucet_toivonen_trec12}. 
 
-\citet{xitong12} presented one of the best performing systems in TRECKBA12. They created wider representations of entity profiles based on a Wikipedia snapshot and considered the anchor text of all internal Wikipedia links as related entities. In TRECKBA13 competition, different families of methods were proposed, query expansion, classification, learning to rank. 
+\citet{xitong12} presented one of the best performing systems in TRECKBA12. They created wider representations of entities' profiles based on a Wikipedia snapshot and considered the anchor text of all internal Wikipedia links as related entities. In TRECKBA13 competition, different families of methods were proposed, query expansion, classification, learning to rank. 
 
 Our strategy is somewhat similar to \citet{jingang13} in the sense that we first target for a high recall system and then apply different classification methods to differentiate between $vital$ and $non\mathord{-}vital$ documents. Nevertheless, one key difference is that we do not exploit any external resources to construct features, e.g. we do not use Wikipedia entity pages nor existing citations in the Wikipedia page of an entity. 
 
@@ -450,9 +451,9 @@ The closest example we found that addresses the problem of staleness detection i
 Filtering streaming documents to accelerate users filling knowledge gaps plays a crucial role in the maintenance and update of knowledge bases.
 With the exponential increase of information on the web, it becomes critical to detect relevant documents and incorporate their information to entities in a timely manner \cite{jingang13}.
 
-In this paper we introduce a semi-supervised learning model for document filtering tasks. We propose a distributed, non-parametric representation of documents suitable for streaming settings, that groups entity references into topic clusters. Further, we present a notion of staleness computed per entity as well as per topic cluster, which dynamically estimates the entity and cluster relevances.
+In this paper we introduce a semi-supervised learning model for document filtering tasks. We propose a distributed, non-parametric representation of documents suitable for streaming settings, that groups entities' references into topic clusters. Further, we present a notion of staleness computed per entity as well as per topic cluster, which dynamically estimates entities' and clusters' relevances.
 
-Combining these three core ideas, distributed word embeddings, non-parametric clustering, and staleness, results in a more accurate representation of entity contexts, and simultaneously addresses the filtering requirements of large corpora of streaming text documents.
+Combining these three core ideas, distributed word embeddings, non-parametric clustering, and staleness, results in a more accurate representation of entities' contexts, and simultaneously addresses the filtering requirements of large corpora of streaming text documents.
 
 Further work needs to be done. A possible line of future research would be exploring hierarchical clustering algorithms to better represent topic clusters. It would also be interesting to assess the effect of learning the hyperparameters of the model instead of just manual tuning them for the specific datasets.
 
