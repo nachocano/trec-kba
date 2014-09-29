@@ -4,7 +4,7 @@ import java.io.File
 
 import org.apache.commons.cli._
 import org.apache.commons.lang.Validate
-import org.sameersingh.scalaplot.Style
+import org.sameersingh.scalaplot.{XYChart, Style}
 import org.sameersingh.scalaplot.gnuplot.GnuplotPlotter
 import org.sameersingh.scalaplot.metrics.PrecRecallCurve
 
@@ -49,7 +49,7 @@ object PrecisionRecall {
     val inputFiles = new File(inputDir).listFiles()
     for (file <- inputFiles) {
       if (!file.isDirectory()) {
-        names += file.getName()
+        names += file.getName().replace("_", " ")
         val list = new ArrayBuffer[(Double, Boolean)]
         for (line <- Source.fromFile(file).getLines) {
           val values = line.split(" ")
@@ -75,8 +75,10 @@ object PrecisionRecall {
     }
 
     chart.data.serieses.foreach(_.pointType= Some(Style.PointType.Dot))
-    chart.showLegend = true
-    val plotter = new GnuplotPlotter(chart)
-    plotter.png(outputDir, outFilename)
+    //chart.showLegend = true
+    val c = new XYChart(None, chart.data, chart.x, chart.y)
+    c.showLegend = true
+    val plotter = new GnuplotPlotter(c)
+    plotter.pdf(outputDir, outFilename)
   }
 }

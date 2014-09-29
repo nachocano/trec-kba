@@ -55,12 +55,12 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 			left -= 1;
 			System.out.println(String.format("processing %s for %s, %d left",
 					str, targetId, left));
-			populateFeatures(verbs, example, example.getVerbs(), verbsParams,
-					timestampNormalizer);
+			// populateFeatures(verbs, example, example.getVerbs(), verbsParams,
+			// timestampNormalizer);
 			populateFeatures(nouns, example, example.getNouns(), nounsParams,
 					timestampNormalizer);
-			populateFeatures(properNouns, example, example.getProperNouns(),
-					nounsParams, timestampNormalizer);
+			// populateFeatures(properNouns, example, example.getProperNouns(),
+			// nounsParams, timestampNormalizer);
 
 		}
 	}

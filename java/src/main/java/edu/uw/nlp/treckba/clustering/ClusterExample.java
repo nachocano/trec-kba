@@ -140,11 +140,12 @@ public class ClusterExample {
 			sb.append(ClusteringConstants.WHITE_SPACE).append(features[i]);
 		}
 		final String nounsArrayAsStr = nouns.arrayToString();
-		final String verbsArrayAsStr = verbs.arrayToString();
-		final String properNounsArrayAsStr = properNouns.arrayToString();
+		// final String verbsArrayAsStr = verbs.arrayToString();
+		// final String properNounsArrayAsStr = properNouns.arrayToString();
 		final String nounsFeaturesAsStr = nouns.featuresToString();
-		final String verbsFeaturesAsStr = verbs.featuresToString();
-		final String properNounsFeaturesAsStr = properNouns.featuresToString();
+		// final String verbsFeaturesAsStr = verbs.featuresToString();
+		// final String properNounsFeaturesAsStr =
+		// properNouns.featuresToString();
 		final String entityTimelinessAsStr = String.format("%.5f",
 				entityTimeliness);
 		// final String dayOfWeekAsString = dayOfWeekToString();
@@ -165,10 +166,8 @@ public class ClusterExample {
 		// preMentionsNounsAsStr, preMentionsVerbsAsStr,
 		// preMentionsProperNounsAsStr);
 
-		return String.format("%s %s %s %s %s %s %s %s", sb.toString(),
-				nounsArrayAsStr, verbsArrayAsStr, properNounsArrayAsStr,
-				nounsFeaturesAsStr, verbsFeaturesAsStr,
-				properNounsFeaturesAsStr, entityTimelinessAsStr);
+		return String.format("%s %s %s %s", sb.toString(), nounsArrayAsStr,
+				nounsFeaturesAsStr, entityTimelinessAsStr);
 
 	}
 

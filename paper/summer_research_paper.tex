@@ -341,7 +341,7 @@ The different models differ on the features used to train and test the $uv$ clas
   \item {\textit{Clustering Dynamic}}: similar to {\textit{Mean Dynamic}} in the sense that the staleness fluctuates over time, i.e. $\gamma_d \neq 0$ and $\gamma_i \neq 1$, but it also adds topic clusters by making $\alpha \neq 1$.
 \end{itemize*}
 
-\subsection{Results \& Discussion}
+\section{Results \& Discussion}
 
 Table \ref{res} shows the micro precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_d=1$ and $\gamma_i=0.1$.
 
@@ -377,27 +377,7 @@ Though the staleness and non-parametric clustering runs ({\textit{Mean Static}},
 
 Figure \ref{precrecall} further illustrates the precision-recall for the different methods listed in Table \ref{res}. It's worth noting that on low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
-Further, we present some qualitative results on topic clusters. Table \ref{clusterresult} illustrates the top 5 words that appear in 4 random topic clusters computed for entity Lisa Brown using the \textit{Clustering Dynamic} model in Table \ref{res}.
-
-\begin{table}[H]
-\center
-\begin{tabular}{|c|c|c|c|} \hline
-\textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} \\ \hline\hline
-director & leader & counselor & vagina \\ \hline
-executive & majority & doctors & state \\ \hline
-white\_house & senate & welcomes & michigan \\ \hline
-representative & state & usa & word \\ \hline
-introduced & spokane & nutrition & floor \\ \hline
-\end{tabular}
-\caption{An illustration of 4 (out of 78) topic clusters extracted for entity Lisa Brown}
-\label{clusterresult}
-\end{table}
-
-By doing some manual search on the entity Lisa Brown, we can confirm that the cluster elements make sense. Mrs. Brown is an American politician from the state of Michigan, who has been member of the Michigan State House of Representatives, and she is on the Executive Board of some association.
-Even the word vagina is justifiable as she engaged in a heated debate about abortion legislation in Michigan.
-
-
-Finally, Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.6$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
+Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.6$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
 
 \begin{table}[H]
 \center
@@ -425,6 +405,25 @@ $\gamma_i$ & $\gamma_d$ & \textbf{P} & \textbf{R} & \textbf{F1} \\ \hline\hline
 \end{table}
 
 We achieve the best result when $\gamma_i=0.5$ and $\gamma_d=0.2$, still lower than \textit{Embedding Combined} but better than previous {\textit{Clustering Dynamic}}. In general, lower $\gamma_d$ seems to be doing a better job. These results further reflect the importance of hyperparameter tuning.
+
+Further, we present some qualitative results on topic clusters of the previous method. Table \ref{clusterresult} illustrates the top 5 words that appear more often in 4 random topic clusters computed for entity Lisa Brown.
+
+\begin{table}[H]
+\center
+\begin{tabular}{|c|c|c|c|} \hline
+\textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} \\ \hline\hline
+director & leader & counselor & vagina \\ \hline
+executive & majority & doctors & state \\ \hline
+white\_house & senate & welcomes & michigan \\ \hline
+representative & state & usa & word \\ \hline
+introduced & spokane & nutrition & floor \\ \hline
+\end{tabular}
+\caption{An illustration of 4 (out of 78) topic clusters extracted for entity Lisa Brown}
+\label{clusterresult}
+\end{table}
+
+By doing some manual search on the entity Lisa Brown, we can confirm that the cluster elements make sense. Mrs. Brown is an American politician from the state of Michigan, who has been member of the Michigan State House of Representatives, and she is on the Executive Board of some association.
+Even the word vagina is justifiable as she engaged in a heated debate about abortion legislation in Michigan.
 
 Although Table \ref{varyinggamma} show some results for different $\gamma_i$ and $\gamma_d$, further experimental investigations are needed to account for the correct tunning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. It would also be interesting to assess the effects of using different pre-trained word embeddings.
 

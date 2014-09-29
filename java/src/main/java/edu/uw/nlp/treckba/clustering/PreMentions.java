@@ -155,10 +155,10 @@ public class PreMentions {
 					+ cOut.getTargetId());
 			computePreMentionsForClusters(cOut.getNounClusters(),
 					PreMentionType.NOUN);
-			computePreMentionsForClusters(cOut.getVerbClusters(),
-					PreMentionType.VERB);
-			computePreMentionsForClusters(cOut.getProperNounClusters(),
-					PreMentionType.PROPER_NOUN);
+			// computePreMentionsForClusters(cOut.getVerbClusters(),
+			// PreMentionType.VERB);
+			// computePreMentionsForClusters(cOut.getProperNounClusters(),
+			// PreMentionType.PROPER_NOUN);
 			final long end = System.currentTimeMillis();
 			System.out
 					.println(String

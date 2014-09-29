@@ -41,19 +41,21 @@ public class ClusteringUtils {
 				for (int j = 0, i = 29; j < 300 && i < 329; j++, i++) {
 					nouns[j] = Float.valueOf(str[i]);
 				}
-				final float[] verbs = new float[ClusteringConstants.EMBEDDING_DIM];
-				for (int j = 0, i = 329; j < 300 && i < 629; j++, i++) {
-					verbs[j] = Float.valueOf(str[i]);
-				}
-				final float[] properNouns = new float[ClusteringConstants.EMBEDDING_DIM];
-				for (int j = 0, i = 629; j < 300 && i < 929; j++, i++) {
-					properNouns[j] = Float.valueOf(str[i]);
-				}
+				// final float[] verbs = new
+				// float[ClusteringConstants.EMBEDDING_DIM];
+				// for (int j = 0, i = 329; j < 300 && i < 629; j++, i++) {
+				// verbs[j] = Float.valueOf(str[i]);
+				// }
+				// final float[] properNouns = new
+				// float[ClusteringConstants.EMBEDDING_DIM];
+				// for (int j = 0, i = 629; j < 300 && i < 929; j++, i++) {
+				// properNouns[j] = Float.valueOf(str[i]);
+				// }
 				final ClusterExample ce = new ClusterExample(streamId,
 						targetId, dateHour, relevance);
 				ce.setNouns(new WordType(nouns));
-				ce.setVerbs(new WordType(verbs));
-				ce.setProperNouns(new WordType(properNouns));
+				// ce.setVerbs(new WordType(verbs));
+				// ce.setProperNouns(new WordType(properNouns));
 				ce.setFeatures(features);
 				if (!examples.containsKey(targetId)) {
 					final List<ClusterExample> set = new LinkedList<>();
