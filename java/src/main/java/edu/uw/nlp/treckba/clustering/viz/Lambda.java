@@ -1,12 +1,15 @@
 package edu.uw.nlp.treckba.clustering.viz;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+
 public class Lambda {
 
+	@JsonProperty("inc")
 	private float lambdaInc;
+	@JsonProperty("dec")
 	private float lambdaDec;
 
 	public Lambda() {
-
 	}
 
 	public Lambda(final float lambdaDec, final float lambdaInc) {

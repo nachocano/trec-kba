@@ -111,7 +111,7 @@ public class ClusteringUtils {
 			final Map<String, List<ClusterExample>> train,
 			final Map<String, List<ClusterExample>> test) {
 		System.out.println("merging and sorting");
-		final List<ClusterExample> result = new ArrayList<ClusterExample>();
+		final List<ClusterExample> result = new LinkedList<ClusterExample>();
 		for (final String targetId : train.keySet()) {
 			result.addAll(train.get(targetId));
 			result.addAll(test.get(targetId));

@@ -2,10 +2,8 @@ package edu.uw.nlp.treckba.clustering;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -14,12 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-
 import edu.uw.nlp.treckba.clustering.viz.VizDataObject;
-import edu.uw.nlp.treckba.utils.Utils;
 
 public class ClusteringFeatureFactory {
 
@@ -34,22 +27,12 @@ public class ClusteringFeatureFactory {
 		final File outputTrainFile = new File(outputTrain);
 		final File outputTestFile = new File(outputTest);
 
-		File vizOutputFile = null;
-		Map<String, List<VizDataObject>> vizPerEntity = null;
-		if (vizOutput != null) {
-			vizPerEntity = new HashMap<>();
-			vizOutputFile = new File(vizOutput);
-		}
 		final List<ClusteringFeatureTask> tasks = new ArrayList<>();
 		for (final String targetId : train.keySet()) {
-			List<VizDataObject> vizDataObjects = null;
-			if (vizOutput != null) {
-				vizDataObjects = new LinkedList<>();
-				vizPerEntity.put(targetId, vizDataObjects);
-			}
+			final List<VizDataObject> vizDataObjects = null;
 			final ClusteringFeatureTask t = new ClusteringFeatureTask(targetId,
 					train.get(targetId), test.get(targetId), nounsParams,
-					verbsParams, timestampNormalizer, vizDataObjects);
+					verbsParams, timestampNormalizer, vizOutput);
 			tasks.add(t);
 		}
 
@@ -69,22 +52,22 @@ public class ClusteringFeatureFactory {
 			executor.shutdown();
 		}
 
-		final List<ClusterExample> wholeCorpus = ClusteringUtils.mergeAndSort(
-				train, test);
-		System.out.println(wholeCorpus.size());
-
-		final EntityTimeliness et = new EntityTimeliness(timestampNormalizer);
-		et.computeTimeliness(wholeCorpus, nounsParams);
+		// final List<ClusterExample> wholeCorpus =
+		// ClusteringUtils.mergeAndSort(
+		// train, test);
+		// System.out.println(wholeCorpus.size());
+		//
+		// final EntityTimeliness et = new
+		// EntityTimeliness(timestampNormalizer);
+		// et.computeTimeliness(wholeCorpus, nounsParams);
 
 		// final PreMentions pms = new PreMentions();
 		// pms.computePreMentions(train, test);
 		// pms.computePreMentions(clusteringOutputs);
 
-		outputResults(train, outputTrainFile);
-		outputResults(test, outputTestFile);
-		if (vizOutputFile != null) {
-			outputJsonFile(vizOutputFile, vizPerEntity);
-		}
+		// outputResults(train, outputTrainFile);
+		// outputResults(test, outputTestFile);
+
 	}
 
 	private List<ClusteringOutput> printClusterStats(
@@ -112,27 +95,6 @@ public class ClusteringFeatureFactory {
 		System.out.println("verb clusters " + verbClusters);
 		System.out.println("proper noun clusters " + properNounClusters);
 		return cOutputs;
-	}
-
-	@SuppressWarnings("deprecation")
-	private void outputJsonFile(final File vizOutputFile,
-			final Map<String, List<VizDataObject>> vizPerEntity) {
-		for (final String entity : vizPerEntity.keySet()) {
-			final List<VizDataObject> objects = vizPerEntity.get(entity);
-			final ObjectMapper mapper = new ObjectMapper();
-			try {
-				mapper.defaultPrettyPrintingWriter().writeValue(
-						new File(vizOutputFile, getFilename(entity)),
-						vizPerEntity);
-			} catch (final JsonGenerationException e) {
-				System.out
-						.println("jsonGeneration Exception " + e.getMessage());
-			} catch (final JsonMappingException e) {
-				System.out.println("jsonMapping Exception " + e.getMessage());
-			} catch (final IOException e) {
-				System.out.println("io Exception " + e.getMessage());
-			}
-		}
 	}
 
 	private void outputResults(final Map<String, List<ClusterExample>> map,
@@ -163,7 +125,4 @@ public class ClusteringFeatureFactory {
 		}
 	}
 
-	private String getFilename(final String targetEntity) {
-		return targetEntity.replace(Utils.DIFFEO_URL, "").concat(".json");
-	}
 }

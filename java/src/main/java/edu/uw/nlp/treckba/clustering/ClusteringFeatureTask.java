@@ -1,10 +1,18 @@
 package edu.uw.nlp.treckba.clustering;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+
 import edu.uw.nlp.treckba.clustering.viz.VizDataObject;
+import edu.uw.nlp.treckba.utils.Utils;
 
 public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 
@@ -17,14 +25,15 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 	private final HyperParams nounsParams;
 	private final HyperParams verbsParams;
 	private final long timestampNormalizer;
-	private final List<VizDataObject> vizDataObjects;
 	private final boolean vizEnabled;
+	private final String vizOutput;
+	private int clusterName = 1;
+	private int count = 0; // to generate the json, ugly as hell
 
 	public ClusteringFeatureTask(final String targetId,
 			final List<ClusterExample> train, final List<ClusterExample> test,
 			final HyperParams nounsParams, final HyperParams verbsParams,
-			final long timestampNormalizer,
-			final List<VizDataObject> vizDataObjects) {
+			final long timestampNormalizer, final String vizOutput) {
 		this.targetId = targetId;
 		this.train = train;
 		this.test = test;
@@ -34,17 +43,26 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 		this.nounsParams = nounsParams;
 		this.verbsParams = verbsParams;
 		this.timestampNormalizer = timestampNormalizer;
-		this.vizDataObjects = vizDataObjects;
-		this.vizEnabled = vizDataObjects != null;
+		this.vizEnabled = vizOutput != null;
+		this.vizOutput = vizOutput;
 	}
 
 	@Override
 	public ClusteringOutput call() throws Exception {
 		final long start = System.currentTimeMillis();
+		PrintWriter vizWriter = null;
 		try {
+			if (vizEnabled) {
+				vizWriter = new PrintWriter(new File(vizOutput,
+						getFilename(targetId)));
+				vizWriter.println("[");
+			}
 			System.out.println("processing " + targetId);
-			doProcess(train, "train");
-			doProcess(test, "test");
+			doProcess(train, "train", vizWriter);
+			doProcess(test, "test", vizWriter);
+			if (vizEnabled) {
+				vizWriter.println("]");
+			}
 		} catch (final Exception exc) {
 			System.out.println("error: exception processing " + targetId
 					+ ". msg " + exc.getMessage());
@@ -52,11 +70,16 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 			System.out.println(String.format("finished processing %s, took %s",
 					targetId, (System.currentTimeMillis() - start) / 1000));
 
+			if (vizWriter != null) {
+				vizWriter.close();
+			}
+
 		}
 		return new ClusteringOutput(targetId, nouns, verbs, properNouns);
 	}
 
-	private void doProcess(final List<ClusterExample> set, final String str) {
+	private void doProcess(final List<ClusterExample> set, final String str,
+			final PrintWriter vizWriter) {
 		int left = set.size();
 		for (final ClusterExample example : set) {
 			left -= 1;
@@ -65,7 +88,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 			// populateFeatures(verbs, example, example.getVerbs(), verbsParams,
 			// timestampNormalizer);
 			populateFeatures(nouns, example, example.getNouns(), nounsParams,
-					timestampNormalizer);
+					timestampNormalizer, vizWriter);
 			// populateFeatures(properNouns, example, example.getProperNouns(),
 			// nounsParams, timestampNormalizer);
 
@@ -74,7 +97,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 
 	private float[] populateFeatures(final List<Cluster> clusters,
 			final ClusterExample example, final WordType exampleWordType,
-			final HyperParams params, final long timestampNormalizer) {
+			final HyperParams params, final long timestampNormalizer,
+			final PrintWriter vizWriter) {
 		if (exampleWordType.isZero()) {
 			// do not put it in any cluster
 			exampleWordType.setAllZeros(1);
@@ -84,6 +108,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 			exampleWordType.setLambdaDecrease(0);
 			exampleWordType.setLambdaIncrease(0);
 		} else {
+			count++;
 			VizDataObject vizObject = null;
 			if (vizEnabled) {
 				vizObject = new VizDataObject(example.getStreamId(),
@@ -92,8 +117,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 			}
 			if (clusters.isEmpty()) {
 				// create a new cluster, and add the example to it
-				final Cluster c = new Cluster(example.getTimestamp(),
-						timestampNormalizer);
+				final Cluster c = new Cluster(clusterName++,
+						example.getTimestamp(), timestampNormalizer);
 				c.updateSum(exampleWordType.getArray());
 				c.incrementCount();
 				c.addExample(example);
@@ -158,8 +183,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 					}
 				} else {
 					// create a new cluster, and add the example to it
-					final Cluster c = new Cluster(example.getTimestamp(),
-							timestampNormalizer);
+					final Cluster c = new Cluster(clusterName++,
+							example.getTimestamp(), timestampNormalizer);
 					c.updateSum(exampleWordType.getArray());
 					c.incrementCount();
 					c.addExample(example);
@@ -178,9 +203,33 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 				}
 			}
 			if (vizEnabled) {
-				vizDataObjects.add(vizObject);
+				writeVizObject(vizWriter, vizObject);
 			}
 		}
 		return null;
 	}
+
+	private String getFilename(final String targetEntity) {
+		return targetEntity.replace(Utils.DIFFEO_URL, "").concat(".json");
+	}
+
+	private void writeVizObject(final PrintWriter pw, final VizDataObject obj) {
+		final ObjectMapper mapper = new ObjectMapper();
+		try {
+			final String output = mapper.writeValueAsString(obj);
+			// if is the first one
+			if (count == 1) {
+				pw.println(output);
+			} else {
+				pw.println(", " + output);
+			}
+		} catch (final JsonGenerationException e) {
+			System.out.println("jsonGeneration Exception " + e.getMessage());
+		} catch (final JsonMappingException e) {
+			System.out.println("jsonMapping Exception " + e.getMessage());
+		} catch (final IOException e) {
+			System.out.println("io Exception " + e.getMessage());
+		}
+	}
+
 }

@@ -1,29 +1,34 @@
 package edu.uw.nlp.treckba.clustering.viz;
 
+import java.util.LinkedList;
 import java.util.List;
+
+import org.codehaus.jackson.annotate.JsonProperty;
 
 public class ClusterVizDataObject {
 
-	private float[] cluster;
-
-	private List<float[]> clusters;
+	@JsonProperty("c_i")
+	private ClusterViz cluster;
+	@JsonProperty("c_ijs")
+	private List<ClusterViz> clusters;
 
 	public ClusterVizDataObject() {
+		clusters = new LinkedList<>();
 	}
 
-	public void setCluster(final float[] cluster) {
+	public void setCluster(final ClusterViz cluster) {
 		this.cluster = cluster;
 	}
 
-	public void setClusters(final List<float[]> clusters) {
+	public void setClusters(final List<ClusterViz> clusters) {
 		this.clusters = clusters;
 	}
 
-	public float[] getCluster() {
+	public ClusterViz getCluster() {
 		return cluster;
 	}
 
-	public List<float[]> getClusters() {
+	public List<ClusterViz> getClusters() {
 		return clusters;
 	}
 

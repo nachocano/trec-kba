@@ -22,7 +22,7 @@ public class VizDataObjectTest {
 		final List<VizDataObject> list = new LinkedList<>();
 		final VizDataObject obj1 = new VizDataObject("streamid1", 1L,
 				new float[] { 1, 2, 3 });
-		final Cluster c = new Cluster(1L, 86);
+		final Cluster c = new Cluster(1, 1L, 86);
 		final float[] ex = new float[300];
 		ex[0] = 0.3f;
 		ex[20] = 0.4f;
@@ -36,8 +36,7 @@ public class VizDataObjectTest {
 		objects.put("entity", list);
 		final ObjectMapper mapper = new ObjectMapper();
 		try {
-			mapper.defaultPrettyPrintingWriter().writeValue(
-					new File("test.json"), objects);
+			mapper.writeValue(new File("test.json"), obj1);
 		} catch (final JsonGenerationException e) {
 			System.out.println("jsonGeneration Exception " + e.getMessage());
 		} catch (final JsonMappingException e) {

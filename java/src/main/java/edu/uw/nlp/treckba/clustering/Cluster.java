@@ -5,6 +5,7 @@ import java.util.List;
 
 public class Cluster {
 
+	private final int name;
 	private int count = 0;
 	private float lambdaDecrease = ClusteringConstants.START_TIMELINESS;
 	private float lambdaIncrease = ClusteringConstants.START_TIMELINESS;
@@ -13,9 +14,14 @@ public class Cluster {
 	private long timestamp;
 	private final long T;
 
-	public Cluster(final long timestamp, final long T) {
+	public Cluster(final int name, final long timestamp, final long T) {
+		this.name = name;
 		this.timestamp = timestamp;
 		this.T = T;
+	}
+
+	public int getName() {
+		return name;
 	}
 
 	public float[] meanNormalized() {
