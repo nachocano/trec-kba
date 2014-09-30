@@ -9,7 +9,8 @@ public class WordType {
 	private int allZeros;
 	private float minDistance;
 	private float avgDistance;
-	private float timeliness;
+	private float lambdaDecrease;
+	private float lambdaIncrease;
 
 	public WordType(final float[] array) {
 		this.array = array;
@@ -52,12 +53,20 @@ public class WordType {
 		this.avgDistance = avgDistance;
 	}
 
-	public float getTimeliness() {
-		return timeliness;
+	public float getLambdaDecrease() {
+		return lambdaDecrease;
 	}
 
-	public void setTimeliness(final float timeliness) {
-		this.timeliness = timeliness;
+	public void setLambdaDecrease(final float lambdaDecrease) {
+		this.lambdaDecrease = lambdaDecrease;
+	}
+
+	public float getLambdaIncrease() {
+		return lambdaIncrease;
+	}
+
+	public void setLambdaIncrease(final float lambdaIncrease) {
+		this.lambdaIncrease = lambdaIncrease;
 	}
 
 	@Override
@@ -72,21 +81,22 @@ public class WordType {
 		return new EqualsBuilder().append(this.array, that.array)
 				.append(this.minDistance, that.minDistance)
 				.append(this.avgDistance, that.avgDistance)
-				.append(this.timeliness, that.timeliness)
+				.append(this.lambdaDecrease, that.lambdaDecrease)
+				.append(this.lambdaIncrease, that.lambdaIncrease)
 				.append(this.allZeros, that.allZeros).isEquals();
 	}
 
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(17, 37).append(array).append(minDistance)
-				.append(avgDistance).append(timeliness).append(allZeros)
-				.toHashCode();
+				.append(avgDistance).append(lambdaDecrease)
+				.append(lambdaIncrease).append(allZeros).toHashCode();
 	}
 
 	public String featuresToString() {
 		final StringBuilder sb = new StringBuilder().append(minDistance)
 				.append(ClusteringConstants.WHITE_SPACE).append(avgDistance)
-				.append(ClusteringConstants.WHITE_SPACE).append(timeliness)
+				.append(ClusteringConstants.WHITE_SPACE).append(lambdaDecrease)
 				.append(ClusteringConstants.WHITE_SPACE).append(allZeros);
 		return sb.toString();
 

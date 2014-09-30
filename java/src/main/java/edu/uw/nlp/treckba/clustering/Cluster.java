@@ -6,7 +6,8 @@ import java.util.List;
 public class Cluster {
 
 	private int count = 0;
-	private float timeliness = ClusteringConstants.START_TIMELINESS;
+	private float lambdaDecrease = ClusteringConstants.START_TIMELINESS;
+	private float lambdaIncrease = ClusteringConstants.START_TIMELINESS;
 	private final List<ClusterExample> examples = new LinkedList<>();
 	private final float[] sum = new float[ClusteringConstants.EMBEDDING_DIM];
 	private long timestamp;
@@ -39,8 +40,12 @@ public class Cluster {
 		examples.add(example);
 	}
 
-	public float getTimeliness() {
-		return timeliness;
+	public float getLambdaDecrease() {
+		return lambdaDecrease;
+	}
+
+	public float getLambdaIncrease() {
+		return lambdaIncrease;
 	}
 
 	public long getTimestamp() {
@@ -65,11 +70,11 @@ public class Cluster {
 		final float tDiffNorm = (float) tDiff / this.T;
 		final float exp = (float) Math.exp(-params.getGammaDecrease()
 				* tDiffNorm);
-		final float result = timeliness * exp;
-		return result;
+		lambdaDecrease = lambdaIncrease * exp;
+		return lambdaDecrease;
 	}
 
-	public void incrementTimeliness(final float result, final HyperParams params) {
-		timeliness = 1 - (1 - result) * params.getGammaIncrease();
+	public void incrementLambda(final HyperParams params) {
+		lambdaIncrease = 1 - (1 - lambdaDecrease) * params.getGammaIncrease();
 	}
 }

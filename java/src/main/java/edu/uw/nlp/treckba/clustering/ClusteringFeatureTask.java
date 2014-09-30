@@ -4,6 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import edu.uw.nlp.treckba.clustering.viz.VizDataObject;
+
 public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 
 	private final List<ClusterExample> train;
@@ -15,11 +17,14 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 	private final HyperParams nounsParams;
 	private final HyperParams verbsParams;
 	private final long timestampNormalizer;
+	private final List<VizDataObject> vizDataObjects;
+	private final boolean vizEnabled;
 
 	public ClusteringFeatureTask(final String targetId,
 			final List<ClusterExample> train, final List<ClusterExample> test,
 			final HyperParams nounsParams, final HyperParams verbsParams,
-			final long timestampNormalizer) {
+			final long timestampNormalizer,
+			final List<VizDataObject> vizDataObjects) {
 		this.targetId = targetId;
 		this.train = train;
 		this.test = test;
@@ -29,6 +34,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 		this.nounsParams = nounsParams;
 		this.verbsParams = verbsParams;
 		this.timestampNormalizer = timestampNormalizer;
+		this.vizDataObjects = vizDataObjects;
+		this.vizEnabled = vizDataObjects != null;
 	}
 
 	@Override
@@ -73,9 +80,16 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 			exampleWordType.setAllZeros(1);
 			exampleWordType.setMinDistance(1);
 			exampleWordType.setAvgDistance(1);
-			// timeliness to zero, doesn't belong to any cluster
-			exampleWordType.setTimeliness(0);
+			// lambdas to zero, doesn't belong to any cluster, TODO check
+			exampleWordType.setLambdaDecrease(0);
+			exampleWordType.setLambdaIncrease(0);
 		} else {
+			VizDataObject vizObject = null;
+			if (vizEnabled) {
+				vizObject = new VizDataObject(example.getStreamId(),
+						example.getTimestamp(), exampleWordType.getArray());
+				vizObject.setRelevance(example.getRelevance());
+			}
 			if (clusters.isEmpty()) {
 				// create a new cluster, and add the example to it
 				final Cluster c = new Cluster(example.getTimestamp(),
@@ -84,8 +98,17 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 				c.incrementCount();
 				c.addExample(example);
 				clusters.add(c);
-				// allZeros=0, minDistance=0, avgDistance=0, timeliness=0.5
-				exampleWordType.setTimeliness(c.getTimeliness());
+				// allZeros=0, minDistance=0, avgDistance=0, lambdaDec=0.5,
+				// lambdaInc=0.5
+				exampleWordType.setLambdaDecrease(c.getLambdaDecrease());
+				exampleWordType.setLambdaIncrease(c.getLambdaIncrease());
+				if (vizEnabled) {
+					// no need to set other stuff, cause is the only one in the
+					// cluster
+					vizObject.updateStaleness(c.getLambdaDecrease(),
+							c.getLambdaIncrease());
+					vizObject.updateCluster(c);
+				}
 			} else {
 				float maxSimilarity = Float.MIN_VALUE;
 				float similaritiesSum = 0;
@@ -118,9 +141,20 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 						nearestCluster.addExample(example);
 						nearestCluster.updateSum(exampleWordType.getArray());
 						nearestCluster.incrementCount();
-						exampleWordType.setTimeliness(result);
-						nearestCluster.incrementTimeliness(result, params);
+						nearestCluster.incrementLambda(params);
 						nearestCluster.setTimestamp(example.getTimestamp());
+						exampleWordType.setLambdaDecrease(nearestCluster
+								.getLambdaDecrease());
+						exampleWordType.setLambdaIncrease(nearestCluster
+								.getLambdaIncrease());
+						if (vizEnabled) {
+							vizObject.updateStaleness(
+									exampleWordType.getLambdaDecrease(),
+									exampleWordType.getLambdaIncrease());
+							vizObject.updateCluster(nearestCluster);
+							vizObject.updateClustersAndStalenesses(clusters,
+									nearestCluster);
+						}
 					}
 				} else {
 					// create a new cluster, and add the example to it
@@ -130,13 +164,23 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 					c.incrementCount();
 					c.addExample(example);
 					clusters.add(c);
-					// allZeros=0, minDistance=0, avgDistance=0, timeliness=0.5
-					exampleWordType.setTimeliness(c.getTimeliness());
+					// allZeros=0, minDistance=0, avgDistance=0, lambdaDec=0.5,
+					// lambdaInc=0.5
+					exampleWordType.setLambdaDecrease(c.getLambdaDecrease());
+					exampleWordType.setLambdaIncrease(c.getLambdaIncrease());
+					if (vizEnabled) {
+						vizObject.updateStaleness(
+								exampleWordType.getLambdaDecrease(),
+								exampleWordType.getLambdaIncrease());
+						vizObject.updateCluster(c);
+						vizObject.updateClustersAndStalenesses(clusters, c);
+					}
 				}
 			}
+			if (vizEnabled) {
+				vizDataObjects.add(vizObject);
+			}
 		}
-
 		return null;
 	}
-
 }

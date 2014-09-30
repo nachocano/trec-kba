@@ -2,8 +2,10 @@ package edu.uw.nlp.treckba.clustering;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +13,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import edu.uw.nlp.treckba.clustering.viz.VizDataObject;
+import edu.uw.nlp.treckba.utils.Utils;
 
 public class ClusteringFeatureFactory {
 
@@ -20,15 +29,27 @@ public class ClusteringFeatureFactory {
 			final Map<String, List<ClusterExample>> test,
 			final String outputTrain, final String outputTest,
 			final HyperParams nounsParams, final HyperParams verbsParams,
-			final long timestampNormalizer) {
+			final long timestampNormalizer, final String vizOutput) {
 
 		final File outputTrainFile = new File(outputTrain);
 		final File outputTestFile = new File(outputTest);
+
+		File vizOutputFile = null;
+		Map<String, List<VizDataObject>> vizPerEntity = null;
+		if (vizOutput != null) {
+			vizPerEntity = new HashMap<>();
+			vizOutputFile = new File(vizOutput);
+		}
 		final List<ClusteringFeatureTask> tasks = new ArrayList<>();
 		for (final String targetId : train.keySet()) {
+			List<VizDataObject> vizDataObjects = null;
+			if (vizOutput != null) {
+				vizDataObjects = new LinkedList<>();
+				vizPerEntity.put(targetId, vizDataObjects);
+			}
 			final ClusteringFeatureTask t = new ClusteringFeatureTask(targetId,
 					train.get(targetId), test.get(targetId), nounsParams,
-					verbsParams, timestampNormalizer);
+					verbsParams, timestampNormalizer, vizDataObjects);
 			tasks.add(t);
 		}
 
@@ -36,7 +57,7 @@ public class ClusteringFeatureFactory {
 		try {
 			final List<Future<ClusteringOutput>> futures = executor
 					.invokeAll(tasks);
-			clusteringOutputs = printClusterStats(futures, outputTrainFile);
+			clusteringOutputs = printClusterStats(futures);
 
 		} catch (final InterruptedException e) {
 			System.out.println(String.format(
@@ -52,8 +73,6 @@ public class ClusteringFeatureFactory {
 				train, test);
 		System.out.println(wholeCorpus.size());
 
-		// using nouns params for increase/decrease, maybe should create new
-		// gammas
 		final EntityTimeliness et = new EntityTimeliness(timestampNormalizer);
 		et.computeTimeliness(wholeCorpus, nounsParams);
 
@@ -61,49 +80,59 @@ public class ClusteringFeatureFactory {
 		// pms.computePreMentions(train, test);
 		// pms.computePreMentions(clusteringOutputs);
 
-		// outputResults(train, outputTrainFile);
-		// outputResults(test, outputTestFile);
+		outputResults(train, outputTrainFile);
+		outputResults(test, outputTestFile);
+		if (vizOutputFile != null) {
+			outputJsonFile(vizOutputFile, vizPerEntity);
+		}
 	}
 
 	private List<ClusteringOutput> printClusterStats(
-			final List<Future<ClusteringOutput>> futures, final File outputFile)
+			final List<Future<ClusteringOutput>> futures)
 			throws InterruptedException, ExecutionException, Exception {
 		final List<ClusteringOutput> cOutputs = new LinkedList<>();
-		final int nounClusters = 0;
-		final int verbClusters = 0;
-		final int properNounClusters = 0;
-		final PrintWriter pw = new PrintWriter(outputFile);
+		int nounClusters = 0;
+		int verbClusters = 0;
+		int properNounClusters = 0;
 		for (final Future<ClusteringOutput> future : futures) {
 			final ClusteringOutput output = future.get();
 			cOutputs.add(output);
 			if (output != null) {
-				int i = 0;
-				for (final Cluster c : output.getNounClusters()) {
-					for (final ClusterExample ex : c.getExamples()) {
-						pw.println(String.format("%s %d %s",
-								output.getTargetId(), i, ex.getStreamId()));
-					}
-					i++;
-					// final int nounSize = output.getNounClusters().size();
-					// final int verbSize = output.getVerbClusters().size();
-					// final int properNounSize = output.getProperNounClusters()
-					// .size();
-					// nounClusters += nounSize;
-					// verbClusters += verbSize;
-					// properNounClusters += properNounSize;
-					// System.out.println(String.format("%s,%d,%d,%d",
-					// output.getTargetId(), nounSize, verbSize,
-					// properNounSize));
-
-				}
+				final int nounSize = output.getNounClusters().size();
+				final int verbSize = output.getVerbClusters().size();
+				final int properNounSize = output.getProperNounClusters()
+						.size();
+				nounClusters += nounSize;
+				verbClusters += verbSize;
+				properNounClusters += properNounSize;
 			}
 		}
 
-		// System.out.println("noun clusters " + nounClusters);
-		// System.out.println("verb clusters " + verbClusters);
-		// System.out.println("proper noun clusters " + properNounClusters);
-
+		System.out.println("noun clusters " + nounClusters);
+		System.out.println("verb clusters " + verbClusters);
+		System.out.println("proper noun clusters " + properNounClusters);
 		return cOutputs;
+	}
+
+	@SuppressWarnings("deprecation")
+	private void outputJsonFile(final File vizOutputFile,
+			final Map<String, List<VizDataObject>> vizPerEntity) {
+		for (final String entity : vizPerEntity.keySet()) {
+			final List<VizDataObject> objects = vizPerEntity.get(entity);
+			final ObjectMapper mapper = new ObjectMapper();
+			try {
+				mapper.defaultPrettyPrintingWriter().writeValue(
+						new File(vizOutputFile, getFilename(entity)),
+						vizPerEntity);
+			} catch (final JsonGenerationException e) {
+				System.out
+						.println("jsonGeneration Exception " + e.getMessage());
+			} catch (final JsonMappingException e) {
+				System.out.println("jsonMapping Exception " + e.getMessage());
+			} catch (final IOException e) {
+				System.out.println("io Exception " + e.getMessage());
+			}
+		}
 	}
 
 	private void outputResults(final Map<String, List<ClusterExample>> map,
@@ -134,4 +163,7 @@ public class ClusteringFeatureFactory {
 		}
 	}
 
+	private String getFilename(final String targetEntity) {
+		return targetEntity.replace(Utils.DIFFEO_URL, "").concat(".json");
+	}
 }

@@ -27,6 +27,7 @@ public class ClusteringDriver {
 		options.addOption("gni", true, "gamma noun increase");
 		options.addOption("gnd", true, "gamma noun decrease");
 		options.addOption("tn", true, "timestamp normalizer");
+		options.addOption("viz", true, "vizualization json file");
 
 		final CommandLineParser parser = new BasicParser();
 
@@ -34,6 +35,7 @@ public class ClusteringDriver {
 		String testRelevant = null;
 		String outputTrain = null;
 		String outputTest = null;
+		String vizOutput = null;
 		float alphaVerb = 0;
 		float alphaNoun = 0;
 		float gammaVerbIncrease = 0;
@@ -66,6 +68,7 @@ public class ClusteringDriver {
 			// Validate.isTrue(gammaNounDecrease != 0);
 			timestampNormalizer = Long.parseLong(line.getOptionValue("tn"));
 			Validate.isTrue(timestampNormalizer != 0);
+			vizOutput = line.getOptionValue("viz");
 
 		} catch (final Exception e) {
 			final HelpFormatter formatter = new HelpFormatter();
@@ -88,7 +91,7 @@ public class ClusteringDriver {
 
 		final ClusteringFeatureFactory cff = new ClusteringFeatureFactory();
 		cff.computeFeatures(train, test, outputTrain, outputTest, nounsParams,
-				verbsParams, timestampNormalizer);
+				verbsParams, timestampNormalizer, vizOutput);
 		System.out.println(String.format("total time during processing %s",
 				(System.currentTimeMillis() - start) / 1000));
 	}
