@@ -7,9 +7,9 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 public class ClusterVizDataObject {
 
-	@JsonProperty("c_i")
+	@JsonProperty("ci")
 	private ClusterViz cluster;
-	@JsonProperty("c_ijs")
+	@JsonProperty("cijs")
 	private List<ClusterViz> clusters;
 
 	public ClusterVizDataObject() {

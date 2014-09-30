@@ -7,9 +7,9 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 public class StalenessVizDataObject {
 
-	@JsonProperty("lambda_i")
+	@JsonProperty("li")
 	private Lambda lambda;
-	@JsonProperty("lambda_ijs")
+	@JsonProperty("lijs")
 	private List<Lambda> lambdas;
 
 	public StalenessVizDataObject() {

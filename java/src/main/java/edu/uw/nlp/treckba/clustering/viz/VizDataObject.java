@@ -3,16 +3,18 @@ package edu.uw.nlp.treckba.clustering.viz;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import edu.uw.nlp.treckba.clustering.Cluster;
 
+@JsonIgnoreProperties({ "di", "clusters" })
 public class VizDataObject {
 
 	private long timestamp;
 	private int score;
 	private int relevance;
-	@JsonProperty("d_i")
+	@JsonProperty("di")
 	private float[] document;
 	@JsonProperty("streamid")
 	private String streamId;
