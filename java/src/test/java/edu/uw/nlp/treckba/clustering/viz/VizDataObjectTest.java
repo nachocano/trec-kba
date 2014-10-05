@@ -21,7 +21,7 @@ public class VizDataObjectTest {
 		final Map<String, List<VizDataObject>> objects = new HashMap<String, List<VizDataObject>>();
 		final List<VizDataObject> list = new LinkedList<>();
 		final VizDataObject obj1 = new VizDataObject("streamid1", 1L,
-				new float[] { 1, 2, 3 });
+				new float[] { 1, 2, 3 }, -1);
 		final Cluster c = new Cluster(1, 1L, 86);
 		final float[] ex = new float[300];
 		ex[0] = 0.3f;
@@ -30,8 +30,7 @@ public class VizDataObjectTest {
 		ex[12] = 0.8f;
 		c.updateSum(ex);
 		c.incrementCount();
-		obj1.updateCluster(c);
-		obj1.updateStaleness(0.4f, 0.6f);
+		obj1.setClusterName(c.getName());
 		list.add(obj1);
 		objects.put("entity", list);
 		final ObjectMapper mapper = new ObjectMapper();

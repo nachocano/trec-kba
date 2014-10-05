@@ -4,8 +4,9 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 public class ClusterViz {
 
+	@JsonProperty("cj")
 	private int name;
-	@JsonProperty("cij")
+	@JsonProperty("cj_emb")
 	private float[] emb;
 
 	public ClusterViz() {

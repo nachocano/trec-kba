@@ -34,17 +34,14 @@ def main():
       entity = filename[filename.rfind('/')+1:filename.rfind('.')]
       json_file = json.load(f)
       for d in json_file:
-        d['score'] = run[entity][d['streamid']][1]
         if d['relevance'] == -10:
           d['relevance'] = run[entity][d['streamid']][0]
-          break
+          d['score'] = run[entity][d['streamid']][1]
 
     tmp_file = filename + '.partial'
     with open(tmp_file, 'w') as f:
       f.write(json.dumps(json_file))
     rename(tmp_file, filename)
-    break
-
   
 if __name__ == '__main__':
   main()

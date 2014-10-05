@@ -4,6 +4,8 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 public class Lambda {
 
+	@JsonProperty("cj")
+	private int clusterName;
 	@JsonProperty("inc")
 	private float lambdaInc;
 	@JsonProperty("dec")
@@ -12,7 +14,9 @@ public class Lambda {
 	public Lambda() {
 	}
 
-	public Lambda(final float lambdaDec, final float lambdaInc) {
+	public Lambda(final int clusterName, final float lambdaDec,
+			final float lambdaInc) {
+		this.clusterName = clusterName;
 		this.lambdaDec = lambdaDec;
 		this.lambdaInc = lambdaInc;
 	}
@@ -31,6 +35,14 @@ public class Lambda {
 
 	public float getLambdaDec() {
 		return lambdaDec;
+	}
+
+	public int getClusterName() {
+		return clusterName;
+	}
+
+	public void setClusterName(final int clusterName) {
+		this.clusterName = clusterName;
 	}
 
 }

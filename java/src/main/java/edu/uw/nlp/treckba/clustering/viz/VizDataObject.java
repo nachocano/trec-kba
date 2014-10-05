@@ -19,23 +19,28 @@ public class VizDataObject {
 	@JsonProperty("streamid")
 	private String streamId;
 
-	@JsonProperty("clusters")
-	private ClusterVizDataObject cluster;
+	@JsonProperty("ci")
+	private int clusterName;
+
+	private List<ClusterViz> clusters;
+
 	@JsonProperty("lambdas")
-	private StalenessVizDataObject staleness;
+	private List<Lambda> staleness;
 
 	public VizDataObject() {
+		clusters = new LinkedList<>();
+		staleness = new LinkedList<>();
 	}
 
-	public void setCluster(final ClusterVizDataObject c) {
-		this.cluster = c;
+	public void setClusters(final List<ClusterViz> c) {
+		this.clusters = c;
 	}
 
 	public void setRelevance(final int relevance) {
 		this.relevance = relevance;
 	}
 
-	public void setStaleness(final StalenessVizDataObject s) {
+	public void setStaleness(final List<Lambda> s) {
 		this.staleness = s;
 	}
 
@@ -52,42 +57,30 @@ public class VizDataObject {
 	}
 
 	public VizDataObject(final String streamId, final long timestamp,
-			final float[] document) {
+			final float[] document, final int score) {
+		this.score = -1;
 		this.streamId = streamId;
 		this.timestamp = timestamp;
 		this.document = document;
-		this.cluster = new ClusterVizDataObject();
-		this.staleness = new StalenessVizDataObject();
+		this.clusters = new LinkedList<>();
+		this.staleness = new LinkedList<>();
 	}
 
 	public void setScore(final int score) {
 		this.score = score;
 	}
 
-	public void updateStaleness(final float lambdaDecrease,
-			final float lambdaIncrease) {
-		staleness.setLambda(new Lambda(lambdaDecrease, lambdaIncrease));
+	public void setClusterName(final int clusterName) {
+		this.clusterName = clusterName;
 	}
 
-	public void updateCluster(final Cluster c) {
-		cluster.setCluster(new ClusterViz(c.getName(), c.meanNormalized()));
-	}
-
-	public void updateClustersAndStalenesses(final List<Cluster> clusters,
-			final Cluster c) {
-		final List<ClusterViz> clustersEmbeddings = new LinkedList<>();
-		final List<Lambda> lambdas = new LinkedList<>();
-		for (final Cluster clu : clusters) {
-			// use the object identity
-			if (c != clu) {
-				clustersEmbeddings.add(new ClusterViz(clu.getName(), clu
-						.meanNormalized()));
-				lambdas.add(new Lambda(clu.getLambdaDecrease(), clu
-						.getLambdaIncrease()));
-			}
+	public void updateClustersAndStalenesses(final List<Cluster> cs) {
+		for (final Cluster clu : cs) {
+			this.clusters.add(new ClusterViz(clu.getName(), clu
+					.meanNormalized()));
+			staleness.add(new Lambda(clu.getName(), clu.getLambdaDecrease(),
+					clu.getLambdaIncrease()));
 		}
-		cluster.setClusters(clustersEmbeddings);
-		staleness.setLambdas(lambdas);
 	}
 
 	public long getTimestamp() {
@@ -106,16 +99,20 @@ public class VizDataObject {
 		return streamId;
 	}
 
-	public ClusterVizDataObject getCluster() {
-		return cluster;
+	public List<ClusterViz> getClusters() {
+		return clusters;
 	}
 
-	public StalenessVizDataObject getStaleness() {
+	public List<Lambda> getStaleness() {
 		return staleness;
 	}
 
 	public int getRelevance() {
 		return relevance;
+	}
+
+	public int getClusterName() {
+		return clusterName;
 	}
 
 }

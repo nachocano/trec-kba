@@ -112,7 +112,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 			VizDataObject vizObject = null;
 			if (vizEnabled) {
 				vizObject = new VizDataObject(example.getStreamId(),
-						example.getTimestamp(), exampleWordType.getArray());
+						example.getTimestamp(), exampleWordType.getArray(), -1);
 				vizObject.setRelevance(example.getRelevance());
 			}
 			if (clusters.isEmpty()) {
@@ -128,11 +128,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 				exampleWordType.setLambdaDecrease(c.getLambdaDecrease());
 				exampleWordType.setLambdaIncrease(c.getLambdaIncrease());
 				if (vizEnabled) {
-					// no need to set other stuff, cause is the only one in the
-					// cluster
-					vizObject.updateStaleness(c.getLambdaDecrease(),
-							c.getLambdaIncrease());
-					vizObject.updateCluster(c);
+					vizObject.setClusterName(c.getName());
+					vizObject.updateClustersAndStalenesses(clusters);
 				}
 			} else {
 				float maxSimilarity = Float.MIN_VALUE;
@@ -173,12 +170,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 						exampleWordType.setLambdaIncrease(nearestCluster
 								.getLambdaIncrease());
 						if (vizEnabled) {
-							vizObject.updateStaleness(
-									exampleWordType.getLambdaDecrease(),
-									exampleWordType.getLambdaIncrease());
-							vizObject.updateCluster(nearestCluster);
-							vizObject.updateClustersAndStalenesses(clusters,
-									nearestCluster);
+							vizObject.setClusterName(nearestCluster.getName());
+							vizObject.updateClustersAndStalenesses(clusters);
 						}
 					}
 				} else {
@@ -194,15 +187,12 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 					exampleWordType.setLambdaDecrease(c.getLambdaDecrease());
 					exampleWordType.setLambdaIncrease(c.getLambdaIncrease());
 					if (vizEnabled) {
-						vizObject.updateStaleness(
-								exampleWordType.getLambdaDecrease(),
-								exampleWordType.getLambdaIncrease());
-						vizObject.updateCluster(c);
-						vizObject.updateClustersAndStalenesses(clusters, c);
+						vizObject.setClusterName(c.getName());
+						vizObject.updateClustersAndStalenesses(clusters);
 					}
 				}
 			}
-			if (vizEnabled) {
+			if (vizEnabled && !example.discard()) {
 				writeVizObject(vizWriter, vizObject);
 			}
 		}
