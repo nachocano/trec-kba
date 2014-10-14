@@ -129,7 +129,9 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 				exampleWordType.setLambdaIncrease(c.getLambdaIncrease());
 				if (vizEnabled) {
 					vizObject.setClusterName(c.getName());
-					vizObject.updateClustersAndStalenesses(clusters);
+					// changing this, just put the current cluster values, not
+					// the values of all other clusters
+					vizObject.updateClustersAndStalenesses(c);
 				}
 			} else {
 				float maxSimilarity = Float.MIN_VALUE;
@@ -171,7 +173,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 								.getLambdaIncrease());
 						if (vizEnabled) {
 							vizObject.setClusterName(nearestCluster.getName());
-							vizObject.updateClustersAndStalenesses(clusters);
+							vizObject
+									.updateClustersAndStalenesses(nearestCluster);
 						}
 					}
 				} else {
@@ -188,7 +191,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 					exampleWordType.setLambdaIncrease(c.getLambdaIncrease());
 					if (vizEnabled) {
 						vizObject.setClusterName(c.getName());
-						vizObject.updateClustersAndStalenesses(clusters);
+						vizObject.updateClustersAndStalenesses(c);
 					}
 				}
 			}

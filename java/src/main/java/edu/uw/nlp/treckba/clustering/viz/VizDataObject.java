@@ -9,6 +9,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import edu.uw.nlp.treckba.clustering.Cluster;
 
 @JsonIgnoreProperties({ "di", "clusters" })
+// @JsonIgnoreProperties({ "score", "relevance", "lambdas" })
 public class VizDataObject {
 
 	private long timestamp;
@@ -74,13 +75,12 @@ public class VizDataObject {
 		this.clusterName = clusterName;
 	}
 
-	public void updateClustersAndStalenesses(final List<Cluster> cs) {
-		for (final Cluster clu : cs) {
-			this.clusters.add(new ClusterViz(clu.getName(), clu
-					.meanNormalized()));
-			staleness.add(new Lambda(clu.getName(), clu.getLambdaDecrease(),
-					clu.getLambdaIncrease()));
-		}
+	public void updateClustersAndStalenesses(final Cluster clu) {
+		// for (final Cluster clu : cs) {
+		this.clusters.add(new ClusterViz(clu.getName(), clu.meanNormalized()));
+		staleness.add(new Lambda(clu.getName(), clu.getLambdaDecrease(), clu
+				.getLambdaIncrease()));
+		// }
 	}
 
 	public long getTimestamp() {
