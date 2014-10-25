@@ -343,26 +343,43 @@ The different models differ on the features used to train and test the $uv$ clas
 
 \section{Results \& Discussion}
 
-Table \ref{res} shows the micro precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_d=1$ and $\gamma_i=0.1$.
+Table \ref{resMacro} shows the macro precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_d=1$ and $\gamma_i=0.1$.
+
+%\begin{table}[H]
+%\center
+%\begin{tabular}{|c|c|c|c|c|} \hline
+%\textbf{Model} & \textbf{P} & \textbf{R} & \textbf{F1} \\ \hline\hline
+%{\textit{Baseline Single}} & 0.538 & 0.265 & 0.355 \\ \hline
+%{\textit{Baseline Multi-task}} & \textbf{0.607} & 0.414 & 0.492 \\ \hline
+%{\textit{Embedding Combined}} & 0.547 & \textbf{0.521} & \textbf{0.534} \\ \hline
+%{\textit{Embedding POS}} & 0.538 & 0.464 & 0.498 \\ \hline
+%{\textit{Mean Static}} & 0.573 & 0.476 & 0.520 \\ \hline
+%{\textit{Mean Dynamic}} & 0.572 & 0.482 & 0.524 \\ \hline
+%{\textit{Clustering Static}} & 0.569 & 0.490 & 0.527 \\ \hline
+%{\textit{Clustering Dynamic}} & 0.562 & 0.481 & 0.518 \\ \hline
+%\end{tabular}
+%\caption{TRECKBA14 Vital Filtering scores}
+%\label{resMicro}
+%\end{table}
 
 \begin{table}[H]
 \center
 \begin{tabular}{|c|c|c|c|c|} \hline
 \textbf{Model} & \textbf{P} & \textbf{R} & \textbf{F1} \\ \hline\hline
-{\textit{Baseline Single}} & 0.538 & 0.265 & 0.355 \\ \hline
-{\textit{Baseline Multi-task}} & \textbf{0.607} & 0.414 & 0.492 \\ \hline
-{\textit{Embedding Combined}} & 0.547 & \textbf{0.521} & \textbf{0.534} \\ \hline
-{\textit{Embedding POS}} & 0.538 & 0.464 & 0.498 \\ \hline
-{\textit{Mean Static}} & 0.573 & 0.476 & 0.520 \\ \hline
-{\textit{Mean Dynamic}} & 0.572 & 0.482 & 0.524 \\ \hline
-{\textit{Clustering Static}} & 0.569 & 0.490 & 0.527 \\ \hline
-{\textit{Clustering Dynamic}} & 0.562 & 0.481 & 0.518 \\ \hline
+{\textit{Baseline Single}} & \textbf{0.476} & 0.238 & 0.317 \\ \hline
+{\textit{Baseline Multi-task}} & 0.367 & \textbf{0.405} & 0.385 \\ \hline
+{\textit{Embedding Combined}} & 0.449 & 0.376 & \textbf{0.409} \\ \hline
+{\textit{Embedding POS}} & 0.440 & 0.329 & 0.376 \\ \hline
+{\textit{Mean Static}} & 0.461 & 0.334 & 0.388 \\ \hline
+{\textit{Mean Dynamic}} & 0.475 & 0.338 & 0.395 \\ \hline
+{\textit{Clustering Static}} & 0.464 & 0.342 & 0.394 \\ \hline
+{\textit{Clustering Dynamic}} & 0.461 & 0.326 & 0.382 \\ \hline
 \end{tabular}
 \caption{TRECKBA14 Vital Filtering scores}
-\label{res}
+\label{resMacro}
 \end{table}
 
-The {\textit{Embedding Combined}} approach has the overall best F1 on the $vital$ filtering task. Our two baselines ({\textit{Baseline Single}} and {\textit{Baseline Multi-task}}) perform as expected, i.e. have lower F1 than the other models. The F1 difference between the two baselines evidences that multi-task learning does work.
+The {\textit{Embedding Combined}} approach has the overall best F1 on the $vital$ filtering task. {\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models. On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work. 
 
 \begin{figure}[h!]
 \centering
@@ -371,40 +388,50 @@ The {\textit{Embedding Combined}} approach has the overall best F1 on the $vital
 \label{precrecall}
 \end{figure}
 
-The more advanced models perform better than both baselines. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
+Most of the more advanced models perform better than {\textit{Baseline Multi-task}}. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
 
 Though the staleness and non-parametric clustering runs ({\textit{Mean Static}}, {\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method, they illustrate the importance of these new features as they improve the performance of the {\textit{Embedding POS}} model.
 
-Figure \ref{precrecall} further illustrates the precision-recall for the different methods listed in Table \ref{res}. It's worth noting that on low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
+Figure \ref{precrecall} further illustrates the precision-recall for the different methods listed in Table \ref{resMacro}. It's worth noting that on low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
-Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.6$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
+%Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
 
-\begin{table}[H]
-\center
-\begin{tabular}{|c|c|c|c|c|} \hline
-$\gamma_i$ & $\gamma_d$ & \textbf{P} & \textbf{R} & \textbf{F1} \\ \hline\hline
-0.1 & 0.2 & 0.525 & \textbf{0.518} & 0.521 \\ \hline
-0.1 & 0.5 & 0.537 & 0.514 & \textbf{0.525} \\ \hline
-0.1 & 1   & 0.516 & 0.514 & 0.515 \\ \hline
-0.1 & 20  & 0.512 & 0.506 & 0.509 \\ \hline
-0.1 & 100 & \textbf{0.583} & 0.463 & 0.516 \\ \hline\hline
-0.5 & 0.2 & \textbf{0.592*} & 0.479 & \textbf{0.530*} \\ \hline
-0.5 & 0.5 & 0.537 & 0.523 & 0.529 \\ \hline
-0.5 & 1   & 0.527 & 0.520 & 0.524 \\ \hline
-0.5 & 20  & 0.516 & 0.504 & 0.510 \\ \hline
-0.5 & 100 & 0.528 & \textbf{0.528} & 0.528 \\ \hline\hline
-0.9 & 0.2 & 0.529 & 0.509 & 0.519 \\ \hline
-0.9 & 0.5 & 0.533 & 0.520 & 0.526 \\ \hline
-0.9 & 1   & 0.540 & 0.518 & \textbf{0.529} \\ \hline
-0.9 & 20  & 0.521 & \textbf{0.529*} & 0.525 \\ \hline
-0.9 & 100 & \textbf{0.586} & 0.460 & 0.516 \\ \hline
-\end{tabular}
-\footnotetext{Footnote}
-\caption{Scores for variant of clustering dynamic with a single embedding and $\alpha=0.6$}
-\label{varyinggamma}
-\end{table}
+%\begin{table}[H]
+%\center
+%\begin{tabular}{|c|c|c|c|c|} \hline
+%$\gamma_i$ & $\gamma_d$ & \textbf{P} & \textbf{R} & \textbf{F1} \\ \hline\hline
+%0.1 & 0.2 & 0.525 & \textbf{0.518} & 0.521 \\ \hline
+%0.1 & 0.5 & 0.537 & 0.514 & \textbf{0.525} \\ \hline
+%0.1 & 1   & 0.516 & 0.514 & 0.515 \\ \hline
+%0.1 & 20  & 0.512 & 0.506 & 0.509 \\ \hline
+%0.1 & 100 & \textbf{0.583} & 0.463 & 0.516 \\ \hline\hline
+%0.5 & 0.2 & \textbf{0.592*} & 0.479 & \textbf{0.530*} \\ \hline
+%0.5 & 0.5 & 0.537 & 0.523 & 0.529 \\ \hline
+%0.5 & 1   & 0.527 & 0.520 & 0.524 \\ \hline
+%0.5 & 20  & 0.516 & 0.504 & 0.510 \\ \hline
+%0.5 & 100 & 0.528 & \textbf{0.528} & 0.528 \\ \hline\hline
+%0.9 & 0.2 & 0.529 & 0.509 & 0.519 \\ \hline
+%0.9 & 0.5 & 0.533 & 0.520 & 0.526 \\ \hline
+%0.9 & 1   & 0.540 & 0.518 & \textbf{0.529} \\ \hline
+%0.9 & 20  & 0.521 & \textbf{0.529*} & 0.525 \\ \hline
+%0.9 & 100 & \textbf{0.586} & 0.460 & 0.516 \\ \hline
+%\end{tabular}
+%\footnotetext{Footnote}
+%\caption{Scores for variant of clustering dynamic with a single embedding and $\alpha=0.6$}
+%\label{varyinggamma}
+%\end{table}
 
-We achieve the best result when $\gamma_i=0.5$ and $\gamma_d=0.2$, still lower than \textit{Embedding Combined} but better than previous {\textit{Clustering Dynamic}}. In general, lower $\gamma_d$ seems to be doing a better job. These results further reflect the importance of hyperparameter tuning.
+%We achieve the best result when $\gamma_i=0.5$ and $\gamma_d=0.2$, still lower than \textit{Embedding Combined} but better than previous {\textit{Clustering Dynamic}}. In general, lower $\gamma_d$ seems to be doing a better job. These results further reflect the importance of hyperparameter tuning.
+
+Figure \ref{varyingalpha} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{resMacro}, this new version uses a single embedding representation instead of embeddings per word type. We show the change in micro P-R-F1 for different values of $\alpha$, using $\gamma_i=0.1$ and $\gamma_d=1$. We see that the performance degrades as $\alpha$ increases, which further reflects the importance of hyperparameter tuning.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=.5\textwidth]{fig/alphaPlotMacro.pdf}
+\caption{Precision-Recall-F1 vs. $\alpha$}
+\label{varyingalpha}
+\end{figure}
+
 
 Further, we present some qualitative results on topic clusters of the previous method. Table \ref{clusterresult} illustrates the top 5 words that appear more often in 4 random topic clusters computed for entity Lisa Brown.
 
