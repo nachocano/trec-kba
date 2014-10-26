@@ -1,0 +1,27 @@
+# Chart settings
+set key right center
+set terminal pdf enhanced linewidth 3.0  
+
+set terminal pdf enhanced linewidth 3.0  
+set output "overlapped.pdf"
+# XYChart settings
+set nologscale
+set xr [*:*] noreverse
+set yr [*:*] noreverse
+set xlabel "Recall"
+set ylabel "Precision"
+# XYData Plotting
+plot \
+'overlapped-baseline multi-task.dat'  using 1:2 title "baseline multi-task" with linespoints pointtype 0 , \
+'overlapped-baseline single.dat'  using 1:2 title "baseline single" with linespoints pointtype 0 , \
+'overlapped-clustering dynamic.dat'  using 1:2 title "clustering dynamic" with linespoints pointtype 0 , \
+'overlapped-clustering static.dat'  using 1:2 title "clustering static" with linespoints pointtype 0 , \
+'overlapped-embedding combined.dat'  using 1:2 title "embedding combined" with linespoints pointtype 0 , \
+'overlapped-embedding pos.dat'  using 1:2 title "embedding pos" with linespoints pointtype 0 , \
+'overlapped-mean dynamic.dat'  using 1:2 title "mean dynamic" with linespoints pointtype 0 , \
+'overlapped-mean static.dat'  using 1:2 title "mean static" with linespoints pointtype 0 
+
+unset output
+# Wrapup
+set terminal dumb
+refresh
