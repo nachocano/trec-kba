@@ -462,6 +462,25 @@ Figure \ref{officialruns} complements the results in Table \ref{resMacro} for di
 
 Figure \ref{precrecall} further illustrates the precision-recall for the different methods listed in Table \ref{resMacro}. It's worth noting that on low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
+Further, we present some qualitative results on the topic clusters of {\textit{Clustering Dynamic}} method. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of Shawn Atleo on 11/15/2012.
+
+\begin{table}[H]
+\center
+\begin{tabular}{|c|c|} \hline
+\textbf{C1} & \textbf{C2} \\ \hline\hline
+Monday & conduct \\ \hline
+Tuesday & complication \\ \hline
+month & judicial \\ \hline
+billion & government \\ \hline
+million & guidance \\ \hline
+\end{tabular}
+\caption{Topic clusters closest words for Shawn Atleo}
+\label{clusterresult}
+\end{table}
+
+By doing some manual search on the entity Shawn Atleo, we can easily confirm that C2 elements make sense. Mr. Atleo is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and maybe money. It may be explained by all the articles that talk about Shawn announcing huge investments in different areas.
+
+
 %Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
 
 %\begin{table}[H]
@@ -499,26 +518,6 @@ Figure \ref{varyingalpha} shows the results for a variant of {\textit{Clustering
 \caption{Precision-Recall-F1 vs. $\alpha$}
 \label{varyingalpha}
 \end{figure}
-
-
-Further, we present some qualitative results on topic clusters of the previous method. Table \ref{clusterresult} illustrates the top 5 words that appear more often in 4 random topic clusters computed for entity Lisa Brown.
-
-\begin{table}[H]
-\center
-\begin{tabular}{|c|c|c|c|} \hline
-\textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} \\ \hline\hline
-director & leader & counselor & vagina \\ \hline
-executive & majority & doctors & state \\ \hline
-white\_house & senate & welcomes & michigan \\ \hline
-representative & state & usa & word \\ \hline
-introduced & spokane & nutrition & floor \\ \hline
-\end{tabular}
-\caption{An illustration of 4 (out of 78) topic clusters extracted for entity Lisa Brown}
-\label{clusterresult}
-\end{table}
-
-By doing some manual search on the entity Lisa Brown, we can confirm that the cluster elements make sense. Mrs. Brown is an American politician from the state of Michigan, who has been member of the Michigan State House of Representatives, and she is on the Executive Board of some association.
-Even the word vagina is justifiable as she engaged in a heated debate about abortion legislation in Michigan.
 
 We believe further experimental investigations are needed to account for the correct tunning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. It would also be interesting to assess the effects of using different pre-trained word embeddings.
 
