@@ -4,7 +4,8 @@
 \usepackage{graphicx}
 \usepackage{subfigure}
 \usepackage{mdwlist}
-\usepackage{bbm}
+%\usepackage{bbm}
+\usepackage{microtype}
 
 \usepackage{natbib}
 
@@ -12,8 +13,10 @@
 \usepackage{algorithmic}
 
 \usepackage{hyperref}
+\usepackage{booktabs}
 
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
+\newcommand{\mathbbm}[1]{\mathbf{#1}}
 
 %\usepackage{icml2014} 
 \usepackage[accepted]{icml2014}
@@ -200,9 +203,9 @@ As an example, let's assume document $d_1$ appears in the stream, and talks abou
 
 Figure \ref{obama} illustrates the aforementioned example, assuming that each document is represented in a two-dimensional vector.
 
-\begin{figure}[h!]
+\begin{figure}[tb]
 \centering
-\includegraphics[width=.5\textwidth]{fig/obamaExample.pdf}
+\includegraphics[width=0.7\columnwidth]{fig/obamaExample.pdf}
 \caption{Non-parametric Clustering example for entity Obama}
 \label{obama}
 \end{figure}
@@ -238,9 +241,9 @@ Figures \ref{stalenesslow} and \ref{stalenessmedium} illustrate some toy example
 
 Figure \ref{stalenesslow} intends to show an example of an entity with a decreasing staleness. There are almost no documents in the stream referred to that entity. As soon as some activity is detected, i.e. a document mentioning the entity appears ($t\mathord{=}10$), a slight increase in the curve is seen. Given the fact that there's no much information about the entity, every new document would drive an update to the entity's profile, strongly suggesting vitalness.
 
-\begin{figure}[h!]
+\begin{figure}[tb]
 \centering
-\includegraphics[width=.5\textwidth]{fig/staleness1.pdf}
+\includegraphics[width=0.7\columnwidth]{fig/staleness1.pdf}
 \caption{Staleness of Unpopular Entity}
 \label{stalenesslow}
 \end{figure}
@@ -249,9 +252,9 @@ Figure \ref{stalenessmedium} aims to represent staleness of an entity with fluct
 At the beginning, those documents can be considered vital, but as time goes by and documents continue commenting on the same event, the information starts staling, clearly indicating non-vitalness.
 Near $t\mathord{=}40$, the event can be considered over, a steep decrease in popularity is shown. At a later time, $t=50$, a new event occurs, which denotes vitalness.
 
-\begin{figure}[h!]
+\begin{figure}[tb]
 \centering
-\includegraphics[width=.5\textwidth]{fig/staleness2.pdf}
+\includegraphics[width=0.7\columnwidth]{fig/staleness2.pdf}
 \caption{Staleness of Entity with Fluctuating Popularity}
 \label{stalenessmedium}
 \end{figure}
@@ -373,18 +376,21 @@ Table \ref{resMacro} shows the macro precision, recall and F1 results of the met
 %\end{table}
 
 %MACRO
-\begin{table}[H]
+\begin{table}[tb]
 \center
-\begin{tabular}{|c|c|c|c|c|} \hline
-\textbf{Model} & \textbf{P} & \textbf{R} & \textbf{F1} \\ \hline\hline
-{\textit{Baseline Single}} & \textbf{0.476} & 0.238 & 0.317 \\ \hline
-{\textit{Baseline Multi-task}} & 0.367 & \textbf{0.405} & 0.385 \\ \hline
-{\textit{Embedding Combined}} & 0.449 & 0.376 & \textbf{0.409} \\ \hline
-{\textit{Embedding POS}} & 0.440 & 0.329 & 0.376 \\ \hline
-{\textit{Mean Static}} & 0.461 & 0.334 & 0.388 \\ \hline
-{\textit{Mean Dynamic}} & 0.475 & 0.338 & 0.395 \\ \hline
-{\textit{Clustering Static}} & 0.464 & 0.342 & 0.394 \\ \hline
-{\textit{Clustering Dynamic}} & 0.461 & 0.326 & 0.382 \\ \hline
+\begin{tabular}{ccccc} 
+\toprule
+\textbf{Model} & \textbf{P} & \textbf{R} & \textbf{F1} \\ 
+\midrule
+{\textit{Baseline Single}} & \textbf{0.476} & 0.238 & 0.317 \\ %\hline
+{\textit{Baseline Multi-task}} & 0.367 & \textbf{0.405} & 0.385 \\ %\hline
+{\textit{Embedding Combined}} & 0.449 & 0.376 & \textbf{0.409} \\ %\hline
+{\textit{Embedding POS}} & 0.440 & 0.329 & 0.376 \\ %\hline
+{\textit{Mean Static}} & 0.461 & 0.334 & 0.388 \\ %\hline
+{\textit{Mean Dynamic}} & 0.475 & 0.338 & 0.395 \\ %\hline
+{\textit{Clustering Static}} & 0.464 & 0.342 & 0.394 \\ %\hline
+{\textit{Clustering Dynamic}} & 0.461 & 0.326 & 0.382 \\ 
+\bottomrule
 \end{tabular}
 \caption{UW Vital Filtering scores at TRECKBA 2014}
 \label{resMacro}
@@ -392,7 +398,7 @@ Table \ref{resMacro} shows the macro precision, recall and F1 results of the met
 
 The {\textit{Embedding Combined}} approach has the overall best F1 on the $vital$ filtering task. {\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models. On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work.
 
-\begin{figure}[h!]
+\begin{figure}[tb]
 \begin{minipage}{.25\textwidth}
   \centering
   \includegraphics[width=1\linewidth]{fig/official/f_basic_single.png}
@@ -446,7 +452,7 @@ The {\textit{Embedding Combined}} approach has the overall best F1 on the $vital
 \end{figure}
 
 
-\begin{figure}[h!]
+\begin{figure}[tb]
 \centering
 \includegraphics[width=.5\textwidth]{fig/pr/overlapped.pdf}
 \caption{Precision-Recall}
@@ -464,15 +470,18 @@ Figure \ref{precrecall} further illustrates the precision-recall for the differe
 
 Further, we present some qualitative results on the topic clusters of {\textit{Clustering Dynamic}} method. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of Shawn Atleo on 11/15/2012.
 
-\begin{table}[H]
+\begin{table}[tb]
 \center
-\begin{tabular}{|c|c|} \hline
-\textbf{C1} & \textbf{C2} \\ \hline\hline
-Monday & conduct \\ \hline
-Tuesday & complication \\ \hline
-month & judicial \\ \hline
-billion & government \\ \hline
-million & guidance \\ \hline
+\begin{tabular}{cc}
+\toprule
+\textbf{C1} & \textbf{C2} \\
+\midrule
+Monday & conduct \\ %\hline
+Tuesday & complication \\ %\hline
+month & judicial \\ %\hline
+billion & government \\ %\hline
+million & guidance \\
+\bottomrule
 \end{tabular}
 \caption{Topic clusters closest words for Shawn Atleo}
 \label{clusterresult}
@@ -512,7 +521,7 @@ By doing some manual search on the entity Shawn Atleo, we can easily confirm tha
 
 Figure \ref{varyingalpha} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{resMacro}, this new version uses a single embedding representation instead of embeddings per word type. We show the change in micro P-R-F1 for different values of $\alpha$, using $\gamma_i=0.1$ and $\gamma_d=1$. We see that the performance degrades as $\alpha$ increases, which further reflects the importance of hyperparameter tuning.
 
-\begin{figure}[h!]
+\begin{figure}[tb]
 \centering
 \includegraphics[width=.5\textwidth]{fig/alphaPlotMacro.pdf}
 \caption{Precision-Recall-F1 vs. $\alpha$}
@@ -554,12 +563,12 @@ We propose a browser-based visualization prototype that enables users to switch 
 
 Figures \ref{vitalEvol} and \ref{stalenessEvol} show the timeline charts that intend to capture the previous goals.
 
-\begin{figure}[h!]
+\begin{figure*}[tb]
 \centering
-\includegraphics[width=.5\textwidth]{fig/vitalDistribution.png}
+\includegraphics[width=0.6\textwidth]{fig/vitalDistribution.png}
 \caption{Predictions Distribution chart}
 \label{vitalEvol}
-\end{figure}
+\end{figure*}
 
 Figure \ref{vitalEvol} illustrates the distribution of predictions of the selected entity in a specific period of time. Users can explore the closest words (in cosine distance) to the documents by selecting a particular point in the line.
 
@@ -569,12 +578,12 @@ Both charts contain an active (zoomed) section which can be changed using the ti
 
 Legends also act as filters, users can observe particular clusters or predictions by selecting them accordingly.
 
-\begin{figure}[h!]
+\begin{figure*}[tb]
 \centering
-\includegraphics[width=.5\textwidth]{fig/stalenessDistribution.png}
+\includegraphics[width=0.7\textwidth]{fig/stalenessDistribution.png}
 \caption{Staleness chart}
 \label{stalenessEvol}
-\end{figure}
+\end{figure*}
 
 
 \section{Conclusion \& Future Work}
