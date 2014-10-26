@@ -345,6 +345,7 @@ The different models differ on the features used to train and test the $uv$ clas
 
 Table \ref{resMacro} shows the macro precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_d=1$ and $\gamma_i=0.1$.
 
+% MICRO
 %\begin{table}[H]
 %\center
 %\begin{tabular}{|c|c|c|c|c|} \hline
@@ -362,6 +363,7 @@ Table \ref{resMacro} shows the macro precision, recall and F1 results of the met
 %\label{resMicro}
 %\end{table}
 
+%MACRO
 \begin{table}[H]
 \center
 \begin{tabular}{|c|c|c|c|c|} \hline
@@ -375,15 +377,69 @@ Table \ref{resMacro} shows the macro precision, recall and F1 results of the met
 {\textit{Clustering Static}} & 0.464 & 0.342 & 0.394 \\ \hline
 {\textit{Clustering Dynamic}} & 0.461 & 0.326 & 0.382 \\ \hline
 \end{tabular}
-\caption{TRECKBA14 Vital Filtering scores}
+\caption{UW Vital Filtering scores at TRECKBA 2014}
 \label{resMacro}
 \end{table}
 
-The {\textit{Embedding Combined}} approach has the overall best F1 on the $vital$ filtering task. {\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models. On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work. 
+The {\textit{Embedding Combined}} approach has the overall best F1 on the $vital$ filtering task. {\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models. On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work.
+
+\begin{figure}[h!]
+\begin{minipage}{.25\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{fig/official/f_basic_single.png}
+  \label{fig:basic_single}
+  %\captionof{figure}{}
+\end{minipage}%
+\begin{minipage}{.25\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{fig/official/f_basic_multi.png}
+  %\captionof{figure}{}
+  \label{fig:basic_multi}
+\end{minipage}
+\begin{minipage}{.25\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{fig/official/f_emb_comb.png}
+  %\captionof{figure}{}
+  \label{fig:emb_comb}
+\end{minipage}%
+\begin{minipage}{.25\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{fig/official/f_emb_pos.png}
+  %\captionof{figure}{}
+  \label{fig:emb_pos}
+\end{minipage}
+\begin{minipage}{.25\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{fig/official/f_mean_stat.png}
+  %\captionof{figure}{}
+  \label{fig:mean_stat}
+\end{minipage}%
+\begin{minipage}{.25\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{fig/official/f_mean_dyn.png}
+  %\captionof{figure}{}
+  \label{fig:mean_dyn}
+\end{minipage}
+\begin{minipage}{.25\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{fig/official/f_clust_stat.png}
+  %\captionof{figure}{}
+  \label{fig:clust_stat}
+\end{minipage}%
+\begin{minipage}{.25\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{fig/official/f_clust_dyn.png}
+  %\captionof{figure}{}
+  \label{fig:clust_dyn}
+\end{minipage}
+\label{officialruns}
+\caption{P-R-F1-SU over confidence cutoffs}
+\end{figure}
+
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=.5\textwidth]{fig/overlapped.pdf}
+\includegraphics[width=.5\textwidth]{fig/pr/overlapped.pdf}
 \caption{Precision-Recall}
 \label{precrecall}
 \end{figure}
@@ -391,6 +447,9 @@ The {\textit{Embedding Combined}} approach has the overall best F1 on the $vital
 Most of the more advanced models perform better than {\textit{Baseline Multi-task}}. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
 
 Though the staleness and non-parametric clustering runs ({\textit{Mean Static}}, {\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method, they illustrate the importance of these new features as they improve the performance of the {\textit{Embedding POS}} model.
+
+Figure \ref{officialruns} complements the results in Table \ref{resMacro} for different confidence cutoffs. 
+% TODO add analysis, put 4 figures per line, is that possible with icml format?
 
 Figure \ref{precrecall} further illustrates the precision-recall for the different methods listed in Table \ref{resMacro}. It's worth noting that on low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
@@ -490,7 +549,7 @@ Figures \ref{vitalEvol} and \ref{stalenessEvol} show the timeline charts that in
 \begin{figure}[h!]
 \centering
 \includegraphics[width=.5\textwidth]{fig/vitalDistribution.png}
-\caption{}
+\caption{Predictions Distribution chart}
 \label{vitalEvol}
 \end{figure}
 
@@ -505,11 +564,9 @@ Legends act as filters, users can observe particular clusters or predictions by 
 \begin{figure}[h!]
 \centering
 \includegraphics[width=.5\textwidth]{fig/stalenessDistribution.png}
-\caption{}
+\caption{Staleness chart}
 \label{stalenessEvol}
 \end{figure}
-
-Furthermore, a list of closest words to clusters (or documents) on a click basis.
 
 
 \section{Conclusion \& Future Work}
