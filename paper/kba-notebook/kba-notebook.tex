@@ -452,7 +452,7 @@ introduced & spokane & nutrition & floor \\ \hline
 By doing some manual search on the entity Lisa Brown, we can confirm that the cluster elements make sense. Mrs. Brown is an American politician from the state of Michigan, who has been member of the Michigan State House of Representatives, and she is on the Executive Board of some association.
 Even the word vagina is justifiable as she engaged in a heated debate about abortion legislation in Michigan.
 
-Although Table \ref{varyinggamma} show some results for different $\gamma_i$ and $\gamma_d$, further experimental investigations are needed to account for the correct tunning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. It would also be interesting to assess the effects of using different pre-trained word embeddings.
+We believe further experimental investigations are needed to account for the correct tunning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. It would also be interesting to assess the effects of using different pre-trained word embeddings.
 
 \section{Related Work}
 \label{related}
@@ -470,6 +470,47 @@ Representing words as continuous vectors has been around for a while \cite{Hinto
 To our best knowledge, no recent techniques propose a combination of distributed word embeddings, non-parametric clustering and a staleness notion to solve this problem. 
 
 The closest example we found that addresses the problem of staleness detection is \cite{gamon}, where he builds an association graph connecting sentences and sentence fragments, and uses some graph-based features as good indicators of lack of novelty.
+
+\section{Visualization}
+
+In this section, we present a data visualization prototype for the Accelerate \& Create task.
+
+\subsection{Goals and Challenges}
+
+We intend to provide an easy-to-use vizualization that enables users debug what is going on in the sytem. 
+
+The size of the data plus its fundamental chronological component makes it a non-trivial task. Therefore, we aim to provide different mechanisms to select data based on users interests; in particular we focus our attention on providing interactive time-series widgets.
+
+\subsection{Our Solution}
+
+We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using word clouds.
+
+Figures \ref{vitalEvol} and \ref{stalenessEvol} show the timeline charts that intend to capture the aforementioned goals.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=.5\textwidth]{fig/vitalDistribution.png}
+\caption{}
+\label{vitalEvol}
+\end{figure}
+
+Figure \ref{vitalEvol} illustrates the distribution of predictions of the selected entity in a specific period of time. Users can explore the closest words (in cosine distance) to the documents by selecting a particular point in the line.
+
+Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of that particular entity. Here, a list of the closest words to the clusters centroids is shown when users select some point in the line.
+
+Both charts contain an active (zoomed) section which can be changed using the time range filters. As an example, Figure \ref{vitalEvol} shows the prediction distribution in a filtered time range, while in Figure \ref{stalenessEvol} there is no filter, i.e. the entire range is shown.
+
+Legends act as filters, users can observe particular clusters or predictions by selecting them accordingly.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=.5\textwidth]{fig/stalenessDistribution.png}
+\caption{}
+\label{stalenessEvol}
+\end{figure}
+
+Furthermore, a list of closest words to clusters (or documents) on a click basis.
+
 
 \section{Conclusion \& Future Work}
 \label{conclusion}
