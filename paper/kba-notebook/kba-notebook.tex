@@ -196,7 +196,16 @@ The $j$-th topic cluster at time $i$ is updated, and therefore composed by the s
 %\end{algorithmic}
 %\end{algorithm}
 
-As an example, let's assume document $d_1$ appears in the stream, and talks about the days Barack Obama was a Senator. As is the first document referring to the entity Obama, we add $d_1$ to a new topic cluster $senator$. Then, document $d_2$ appears in the stream. It refers to Obama as being elected President of the United States. The distance with the previous cluster $senator$ is greater than $\alpha$, therefore the algorithm proceeds to add $d_2$ to a new topic cluster $president$. Finally, $d_3$ enters the stream. It talks about Obama as the current President of the U.S. The algorithm compares its distance to the previous clusters and finds that is closest to the $president$ cluster. The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ cluster and updates the cluster center.
+As an example, let's assume document $d_1$ appears in the stream, and talks about the days Barack Obama was a Senator. As is the first document referring to the entity Obama, we add $d_1$ to a new topic cluster $senator$. Then, document $d_2$ appears in the stream. It refers to Obama as being elected President of the United States. The distance with the previous cluster $senator$ is greater than $\alpha$, therefore the algorithm proceeds to add $d_2$ to a new topic cluster $president$. Finally, $d_3$ enters the stream. It talks about Obama as the current President of the U.S. The algorithm compares its distance to the previous clusters and finds that is closest to the $president$ cluster. The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ cluster and updates the cluster center. 
+
+Figure \ref{obama} illustrates the aforementioned example, assuming that each document is represented in a two-dimensional vector.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=.5\textwidth]{fig/obamaExample.pdf}
+\caption{Non-parametric Clustering example for entity Obama}
+\label{obama}
+\end{figure}
 
 \subsection{Staleness}
 \label{staleness}
@@ -542,9 +551,9 @@ The size of the data plus its fundamental chronological component makes it a non
 
 \subsection{Our Solution}
 
-We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using word clouds.
+We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using lists of similar words.
 
-Figures \ref{vitalEvol} and \ref{stalenessEvol} show the timeline charts that intend to capture the aforementioned goals.
+Figures \ref{vitalEvol} and \ref{stalenessEvol} show the timeline charts that intend to capture the previous goals.
 
 \begin{figure}[h!]
 \centering
@@ -555,11 +564,11 @@ Figures \ref{vitalEvol} and \ref{stalenessEvol} show the timeline charts that in
 
 Figure \ref{vitalEvol} illustrates the distribution of predictions of the selected entity in a specific period of time. Users can explore the closest words (in cosine distance) to the documents by selecting a particular point in the line.
 
-Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of that particular entity. Here, a list of the closest words to the clusters centroids is shown when users select some point in the line.
+Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of that particular entity. Similar to the previous chart, here a list of the closest words to the clusters centroids is shown when users select some point in the line.
 
 Both charts contain an active (zoomed) section which can be changed using the time range filters. As an example, Figure \ref{vitalEvol} shows the prediction distribution in a filtered time range, while in Figure \ref{stalenessEvol} there is no filter, i.e. the entire range is shown.
 
-Legends act as filters, users can observe particular clusters or predictions by selecting them accordingly.
+Legends also act as filters, users can observe particular clusters or predictions by selecting them accordingly.
 
 \begin{figure}[h!]
 \centering
