@@ -156,7 +156,7 @@ In case the distance is less than $\alpha$, we add the incoming document to the 
 
 More formally, $\forall\hspace{1mm}c^j_{i-1}$, at time $i$, document $d_i$ is added to the topic cluster that solves the following optimization problem:
 \begin{eqnarray}
-\underset{j}{\argmin}$\;\; $dist(v_{d_i}, v_{c^j_{i-1}}) \nonumber\\
+\underset{j}{\argmin}\;\; dist(v_{d_i}, v_{c^j_{i-1}}) \nonumber\\
 \text{subject to}~dist(v_{d_i}, v_{c^j_{i-1}}) < \alpha 
 \end{eqnarray}
 where $dist(\cdot,\cdot)$ is the cosine distance defined as: %in Equation \ref{cosine}.
