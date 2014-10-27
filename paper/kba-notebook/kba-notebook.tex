@@ -275,7 +275,7 @@ We preprocess the corpus to filter the documents that contain exact string match
 \subsubsection{Categories}
 \label{subcat}
 
-TRECKBA14 corpus contain documents that do not refer to the target entities, even though they may contain references to them. We therefore need to introduce a new category of documents, $non\mathord{-}referent$. 
+TRECKBA14 corpus contain documents that do not refer to the target entities, even though they may contain mentions to them. We therefore need to introduce a new category of documents, $non\mathord{-}referent$. 
 
 A $non\mathord{-}referent$ document means that it doesn't refer to a target entity or the context is so ambiguous that is impossible to decide whether the mention refers to an entity or not. An example for the former case is ``Barack Ferrazzano provides a wide range of business-oriented legal''. For the latter, an example is ``Barack is a great father and a better husband''. The mention ``Barack'' may refer to any married parent named Barack, therefore, we consider it $non\mathord{-}referent$.
 
@@ -537,12 +537,12 @@ Representing words as continuous vectors has been around for a while \cite{Hinto
 
 To our best knowledge, no recent techniques propose a combination of distributed word embeddings, non-parametric clustering and a staleness notion to solve this problem. 
 
-The closest example we found that addresses the problem of staleness detection is \cite{gamon}, where he builds an association graph connecting sentences and sentence fragments, and uses some graph-based features as good indicators of lack of novelty.
+The closest example we found that addresses the problem of staleness detection is \citet{gamon}, where he builds an association graph connecting sentences and sentence fragments, and uses some graph-based features as good indicators of lack of novelty.
 
 \section{Visualization}
 
 %There is an urgent need for efficient analysis of constantly increasing text collections.
-In this section, we present a data visualization prototype for the Accelerate \& Create task. (TODO add stuff)
+Visualization techniques provide natural and effective ways to analyze large collections of documents. In this section, we present our data visualization prototype for the Accelerate \& Create task, suitable for streaming corpora of text documents, that enables the user to enlarge a certain part of the visual space while simultaneously shrinking the context, a technique called focus-plus-context \cite{Artur2010}.
 
 \subsection{Goals and Challenges}
 
@@ -569,6 +569,9 @@ Figure \ref{vitalEvol} illustrates the distribution of predictions of entity Ksh
 Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity Mike Kluse. The user can select any point in the line to further inspect the topic cluster. Figure \ref{wordcloud} is the result of a user click on the point highlighted in Figure \ref{stalenessEvol}. It shows the closest words to the cluster C1 centroid at that time (TODO place it in just half of the page).
 
 Both charts contain an active (zoomed) section which can be changed using the time range filters located below. Legends can also act as filters, users have the possibility to observe particular clusters or predictions by selecting them in the legend region.
+
+With these interactive time-series controls plus word cloud representations, we provide a system that allow users to explore streaming text data and filter information based on their needs.
+
 
 \begin{figure*}[tb]
 \centering
