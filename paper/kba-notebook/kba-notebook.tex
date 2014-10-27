@@ -4,19 +4,18 @@
 \usepackage{times}
 \usepackage{graphicx}
 %\usepackage{mdwlist}
-%\usepackage{bbm}
+\usepackage{bbm}
 \usepackage{microtype}
 \usepackage{color}
 \usepackage{natbib}
 %\usepackage{todonotes}
 \usepackage{algorithm}
 \usepackage{algorithmic}
-
+\usepackage{multirow}
 \usepackage{hyperref}
 \usepackage{booktabs}
 
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
-\newcommand{\mathbbm}[1]{\mathbf{#1}}
 \newcommand{\todo}[1]{\noindent{\textcolor{red}{\{{\bf TODO:}  #1\}}}}
 
 \usepackage{subcaption}
@@ -46,9 +45,9 @@
 
 \begin{abstract} 
 
-Most studies that deal with large corpora of text documents have focused on identifying references to target entities as well as studying their topics evolution over time. However, current systems are unable to handle streaming data, they do not partition entities' references according to topics nor identify the references' vitalness.
-In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. We propose a distributed word embedding representation of entities' contexts. Each context is described by topic clusters that are estimated in a non-parametric manner. Further, we associate a staleness measure to each entity and topic cluster, dynamically estimating their relevances based on document frequencies.
-This approach of distributed word embeddings, non-parametric clustering, and staleness measure, provides an accurate representation of entities' contexts appropriate for streaming settings, while addressing the aforementioned constraints.
+To efficiently explore large corpora of text documents, we need to identify references to entities of interest as well as studying their topics evolve over time. Existing approaches are limited; they are unable to handle streaming data, do not partition entities' references according to topics, or do not accurately estimate temporal vitalness.
+In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. To efficiently handle lexical sparsity, we propose using word embedding representation of the contexts. Each entity context is described by topic clusters that are estimated in a non-parametric manner. Further, we associate a staleness measure to each entity and topic cluster, dynamically estimating their temporal relevance. % based on document frequencies.
+This approach of using distributed word embeddings, non-parametric clustering, and staleness, provides an efficient and appropriate representation of entities' contexts for the streaming setting, facilitating accurate vital filtering.
 
 
 \end{abstract} 
@@ -56,7 +55,7 @@ This approach of distributed word embeddings, non-parametric clustering, and sta
 \section{Introduction}
 \label{intro}
 
-\citet{frank12} observed a considerable time lag between the publication date of cited articles and the date of the corresponding citations created in Wikipedia. The median time is over a year, and the distribution has a long and heavy tail. This gap could be drastically reduced if automatic systems could suggest relevant documents to editors as soon as they are published.
+\citet{frank12} observe a considerable time lag between the publication date of cited articles and the date of the corresponding citations created in Wikipedia. The median time is over a year, and the distribution has a long and heavy tail. This gap could be drastically reduced if automatic systems could suggest relevant documents to editors as soon as they are published.
 
 However, when processing a large corpus of text documents, practitioners are often concerned in finding references to entities of interest \cite{RaoMD10, choi2007}, and studying their topics distributions over time \cite{blei12}. Current tools are somewhat limited; they do not handle online settings, and they do not cluster entities' references according to topics nor identify the references' importance.
 
@@ -116,33 +115,23 @@ We need to represent the unstructured entity's contexts in documents as features
 In order to address the lexical sparsity, given the nice properties exposed in section \ref{emb}, we propose to represent entity's contexts in documents by their mean word embedding vector.
 
 We define a function $f : w \rightarrow v_w \in \mathbf{R^d}$ that computes the word embedding representation of the word string $w$. We further define a function $g : W \rightarrow v_W \in \mathbf{R^d}$ that computes the mean word embedding representation of the set of words in $W$ as defined in Equation \ref{wordembedding}.
-
 \begin{equation}
 \label{wordembedding}
 g(W) = v_W = \frac{1}{|W|} \sum_{w \in W}{f(w)}
 \end{equation}
-
 Given the document $d_i \in D$ that refers to entity $e$ and contains the words $w_i \in W_i$, we can compute its vector representation using function $g$ as follows:
-
 \begin{equation}
 \label{wordembedding1}
 v_{d_i} = v_{W_i} = g(W_i)
 \end{equation}
-
 With this, we intend to capture the context where the entity $e$ is mentioned in a document, i.e. the topic, and represent it with a dense, low-dimensional vector.
 
 Further, let's denote $W_{i_n}$ to the set of all nouns in $W_i$, where $W_{i_n} \subseteq W_i$, and $W_{i_v}$ to the set of all verbs in $W_i$, where $W_{i_v} \subseteq W_i$. We can simply compute the mean embedding vector of all the nouns and verbs that appear in the context of entity $e$ using function $g$, as shown below:
-
-\begin{equation*}
-\label{nouns}
-v_{d_{i_n}} = v_{W_{i_n}} = g(W_{i_n})
-\end{equation*}
-
-\begin{equation*}
-\label{verbs}
-v_{d_{i_v}} = v_{W_{i_v}} = g(W_{i_v})
-\end{equation*}
-
+\begin{eqnarray}
+v_{d_{i_n}} = v_{W_{i_n}} = g(W_{i_n})\label{nouns}
+\\
+v_{d_{i_v}} = v_{W_{i_v}} = g(W_{i_v})\label{verbs}
+\end{eqnarray}
 Being able to compute individual embeddings for different word types is a flexibility our method provides that might better encapsulate the truth underlying context (topic) of the document.
 
 \subsection{Non-parametric Clustering}
@@ -155,7 +144,6 @@ We further want to uncover the hidden thematic structure of each entity referenc
 To address these limitations and be able to generalize to unseen documents, we propose to represent the context of entity $e$ by topic clusters. Each cluster is estimated in a non-parametric manner by assuming that the entity's context in a single document belongs to a single topic. As we are dealing with a streaming setting, topic clusters do evolve over time, i.e. members of each cluster change over time. We therefore represent each topic cluster by the mean embedding vector of the documents in that cluster at a certain timestamp.
 
 Mathematically, the vector representation of the $j$-th topic cluster at timestamp $t_i$, $c^j_i$, can be computed using Equation \ref{nonparamclust}.
-
 \begin{equation}
 \label{nonparamclust}
 v_{c^j_i} = \frac{1}{|D^j_i|} \sum_{d \in D^j_i}{v_d}
@@ -166,19 +154,16 @@ The number of topic clusters for the context of entity $e$ is unknown beforehand
 
 In case the distance is less than $\alpha$, we add the incoming document to the closest topic cluster and update its center. 
 
-More formally, $\forall\hspace{1mm}c^j_{i-1}$, at time $i$, document $d_i$ is added to the topic cluster that solves the following optimization problem:\\
-
-\centerline{$\underset{j}{\argmin}$\;\; $dist(v_{d_i}, v_{c^j_{i-1}})$} 
-\medskip
-\centerline{\text{subject to} $dist(v_{d_i}, v_{c^j_{i-1}}) < \alpha$}
-
-where $dist(\cdot,\cdot)$ is the cosine distance defined in Equation \ref{cosine}
-
+More formally, $\forall\hspace{1mm}c^j_{i-1}$, at time $i$, document $d_i$ is added to the topic cluster that solves the following optimization problem:
+\begin{eqnarray}
+\underset{j}{\argmin}$\;\; $dist(v_{d_i}, v_{c^j_{i-1}}) \nonumber\\
+\text{subject to}~dist(v_{d_i}, v_{c^j_{i-1}}) < \alpha 
+\end{eqnarray}
+where $dist(\cdot,\cdot)$ is the cosine distance defined as: %in Equation \ref{cosine}.
 \begin{equation}
 \label{cosine}
 dist(x,y) = 1 - \cos(x,y) = 1 - \frac{x \cdot y}{||x||||y||}
 \end{equation}
-
 The $j$-th topic cluster at time $i$ is updated, and therefore composed by the subset of documents $D^j_i \subseteq D$, where $D^j_i = D^j_{i-1} \cup \left\{ {d_i}\right\}$.
 
 %\begin{algorithm}[tb]
@@ -288,12 +273,9 @@ In this work we intend to provide an easy-to-use vizualization that enables user
 
 We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using lists of similar words.
 
-\begin{figure*}[tb]
-\centering
-\includegraphics[width=0.6\textwidth]{fig/vitalDistribution.png}
-\caption{Predictions Distribution chart example}
-\label{vitalEvol}
-\end{figure*}
+%\begin{figure}[tb]
+%\centering
+%\end{figure}
 
 Figure \ref{vitalEvol} illustrates the distribution of predictions of entity Kshama Sawant in a specific period of time. The entity search box has been omitted for space reasons.
 
@@ -303,21 +285,27 @@ Both charts contain an active (zoomed) section which can be changed using the ti
 
 With these interactive time-series controls plus word cloud representations, we provide a system that allow users to explore streaming text data and filter information based on their needs.
 
-\begin{figure*}[tb]
+\begin{figure}[tb]
         \centering
-        \begin{subfigure}[b]{0.7\textwidth}
-                \includegraphics[width=\textwidth]{fig/stalenessDistribution.png}
-				\caption{Staleness chart example}
-				\label{stalenessEvol}
+        \begin{subfigure}[b]{0.4\textwidth}
+			\includegraphics[width=\textwidth]{fig/vitalDistribution.png}
+			\caption{Predictions Distribution chart example}
+			\label{vitalEvol}
         \end{subfigure}
-        ~
+        \\
+        \begin{subfigure}[b]{0.4\textwidth}
+            \includegraphics[width=\textwidth]{fig/stalenessDistribution.png}
+			\caption{Staleness chart example}
+			\label{stalenessEvol}
+        \end{subfigure}
+        \\
         \begin{subfigure}[b]{0.25\textwidth}
-        		\raisebox{15mm}{\includegraphics[width=\textwidth]{fig/wordclouds.png}}
-				\caption{Topic cluster example}
-				\label{wordcloud}
+    		\raisebox{0mm}{\includegraphics[width=\textwidth]{fig/wordclouds.png}}
+			\caption{Topic cluster example}
+			\label{wordcloud}
         \end{subfigure}
         \caption{Staleness and Topic cluster evolution}
-\end{figure*}
+\end{figure}
 
 \section{Related Work}
 \label{related}
@@ -363,49 +351,57 @@ The \emph{vital} and \emph{non-vital} classes described in section \ref{setup} f
 \todo{uncomment features table and fix position, don't know how to do it properly}
 A summary of the features we use is presented in Table \ref{features}. Basic features are borrowed from \cite{jingang13}.
 
-\comment{
+%\comment{
 
 \begin{table}[tb]
 \center
-\begin{tabular}{cc} 
+{\small
+\begin{tabular}{p{0.2\columnwidth}p{0.73\columnwidth}}
 \toprule
-\textbf{FEATURE} & \textbf{DESCRIPTION} \\ 
+%\textbf{FEATURE} & \textbf{DESCRIPTION} \\ 
+\multicolumn{2}{c}{\textbf{Basic Features, $F_b$}} \\ %\hline
 \midrule
-{\textbf{Basic Features}} \\ \hline
-Document Level \\ %\hline
-$log(len(d))$ & log of the length of document $d$ \\ %\hline
-$source(d)$ & discretized source of document $d$ \\
-Document-Entity Level \\ %\hline
-$n(d,e)$ & \# of occurrences of target entity $e$ in document $d$ \\
-$n(d,e^p)$ & \# of occurrences of partial name of target entity $e$ in document $d$ \\
-$fpos(d,e)$ & position of first occurrence of entity $e$ in document $d$ \\
-$fpos_n(d,e)$ & $fpos(d,e)$ normalized by document length \\
-$fpos(d,e^p)$ & position of first occurrence of partial name of entity $e$ in document $d$ \\
-$fpos_n(d,e^p)$ & $fpos(d,e_p)$ normalized by document length \\
-$lpos(d,e)$ & position of last occurrence of entity $e$ in document $d$ \\
-$lpos_n(d,e)$ & $lpos(d,e)$ normalized by document length \\
-$lpos(d,e^p)$ & position of last occurrence of partial name of entity $e$ in document $d$ \\
-$lpos_n(d,e^p)$ & $lpos(d,e^p)$ normalized by document length \\ 
-$spread(d,e)$ & $lpos(d,e) - fpos(d,e)$ \\
-$spread_n(d,e)$ & $spread(d,e)$ normalized by document length \\
-$spread(d,e^p)$ & $lpos(d,e^p)\mathord{-}fpos(d,e^p)$ \\
-$spread_n(d,e^p)$ & $spread(d,e^p)$ normalized by document length \\ hline
-{\textbf{Embedding Features}} \\ \hline
-$mean(d)$ & mean word embedding representation of document $d$ \\ hline
-{\textbf{Non-parametric Clustering Features}} \\ \hline
-  $min(mean(d),e)$: minimum distance of the mean word embedding representation of document $d$ to existent topic clusters of target entity $e$ \\
-  $avg(mean(d),e)$: avg distance of the mean word embedding representation of document $d$ to existent topic clusters of target entity $e$ \\
-  $zero(mean(d))$: $\mathbbm{1}_{0}{(d)}$, i.e. flag set to 1 if the mean word embedding representation of document $d$ is $0$ \\ hline
-{\textbf{Staleness Features}} \\ \hline
-$stale(e)$: staleness of entity $e$ \\
-$stale(e,c)$: staleness of topic cluster $c$ of target entity $e$ \\
+\multicolumn{2}{l}{\emph{Based on document $d$}} \\ %\hline
+$\log(len(d))$ & log of the length of $d$ \\ %\hline
+$source(d)$ & discretized source of $d$ \\
+\multicolumn{2}{l}{\emph{Based on document $d$ and target entity $e$}} \\ %\hline
+$n(d,e)$ & \# of occurrences of target entity $e$ in $d$ \\
+$n(d,e^p)$ & \# of occurrences of partial name of $e$ in $d$ \\
+$\text{fpos}(d,e)$ & position of first occurrence of entity $e$ in $d$ \\
+$\text{fpos}_n(d,e)$ & $\text{fpos}(d,e)$ normalized by document length \\
+$\text{fpos}(d,e^p)$ & position of first partial occurrence of $e$ in $d$ \\
+$\text{fpos}_n(d,e^p)$ & $\text{fpos}(d,e_p)$ normalized by document length \\
+$\text{lpos}(d,e)$ & position of last occurrence of entity $e$ in $d$ \\
+$\text{lpos}_n(d,e)$ & $\text{lpos}(d,e)$ normalized by document length \\
+$\text{lpos}(d,e^p)$ & position of last partial occurrence of entity $e$ in $d$ \\
+$\text{lpos}_n(d,e^p)$ & $\text{lpos}(d,e^p)$ normalized by document length \\ 
+$\text{spread}(d,e)$ & $\text{lpos}(d,e) - \text{fpos}(d,e)$ \\
+$\text{spread}_n(d,e)$ & $\text{spread}(d,e)$ normalized by document length \\
+$\text{spread}(d,e^p)$ & $\text{lpos}(d,e^p)\mathord{-}\text{fpos}(d,e^p)$ \\
+$\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length \\ 
+\midrule
+\multicolumn{2}{c}{\textbf{Embedding Features, $F_e$}} \\ %\hline
+\midrule
+  $v_d$ & mean word embedding representation of $d$ \\
+  $\text{zero}(v_d)$& $\mathbbm{1}_{v_d=0}$, set to 1 if $v_d$ is $0$ \\
+\midrule
+\multicolumn{2}{c}{\textbf{Clustering Features, $F_c$}} \\ %\hline
+\midrule
+  $\min_c(v_d,v_c)$& minimum distance of $v_d$ to topic clusters of $e$ \\
+  $\text{avg}_c(v_d,v_c)$& average distance of $v_d$ to topic clusters of $e$ \\
+\midrule
+\multicolumn{2}{c}{\textbf{Temporal Features, $F_t$}} \\ %\hline
+\midrule
+  $\lambda(e)$& current staleness of entity $e$ \\
+  $\lambda(e,c)$& current staleness of topic $c$ of target entity $e$ \\
 \bottomrule
 \end{tabular}
+} % end of small
+\caption{\todo{add better caption}Features}
 \label{features}
-\caption{Features}
 \end{table}
 
-} %end comment
+%} %end comment
 
 \subsection{Methods}
 \label{expe}
@@ -432,7 +428,7 @@ The different models differ on the features used to train and test the $uv$ clas
 
 \section{Results and Discussion}
 
-\todo{Relevant evaluation results... mmm I believe most of them are relevant. Do you think we should cut some stuff out? I'm not good at analyzing the results. Does it make sense what I put here? do you think is enough?}
+\todo{Results of the RNR classification, of all the different approaches, see Table \ref{resMacro}}
 
 Table \ref{resMacro} shows the macro precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool with cutoff=50. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_d=1$ and $\gamma_i=0.1$.
 
@@ -455,30 +451,69 @@ Table \ref{resMacro} shows the macro precision, recall and F1 results of the met
 %\end{table}
 
 %MACRO
-\begin{table}[tb]
-\center
-\begin{tabular}{ccccc} 
+\begin{table*}[tb]
+{\small
+\begin{center}
+\begin{tabular}{llccccccccc} 
 \toprule
-\textbf{Model} & \textbf{P} & \textbf{R} & \textbf{F1} \\ 
+  \multirow{2}{*}{\textbf{Model}} & 
+  \multirow{2}{*}{\textbf{Features}} & 
+  \multicolumn{3}{c}{\textbf{Useful}, \emph{macro}} & 
+  \multicolumn{3}{c}{\textbf{Vital Filtering}, \emph{micro}} &
+  \multicolumn{3}{c}{\textbf{Vital Filtering}, \emph{macro}}
+\\ 
+  \cmidrule(lr){3-5}
+  \cmidrule(lr){6-8}
+  \cmidrule(lr){9-11}
+&   & 
+  \textbf{P} & \textbf{R} & \textbf{F1} & 
+  \textbf{P} & \textbf{R} & \textbf{F1} & 
+  \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 \midrule
-{\textit{Baseline Single}} & \textbf{0.476} & 0.238 & 0.317 \\ %\hline
-{\textit{Baseline Multi-task}} & 0.367 & \textbf{0.405} & 0.385 \\ %\hline
-{\textit{Embedding Combined}} & 0.449 & 0.376 & \textbf{0.409} \\ %\hline
-{\textit{Embedding POS}} & 0.440 & 0.329 & 0.376 \\ %\hline
-{\textit{Mean Static}} & 0.461 & 0.334 & 0.388 \\ %\hline
-{\textit{Mean Dynamic}} & 0.475 & 0.338 & 0.395 \\ %\hline
-{\textit{Clustering Static}} & 0.464 & 0.342 & 0.394 \\ %\hline
-{\textit{Clustering Dynamic}} & 0.461 & 0.326 & 0.382 \\ 
+{\textit{Baseline Single}} & $F_b$ &
+	x & x & x & 
+	x & x & x &
+	 \textbf{0.476} & 0.238 & 0.317 \\
+{\textit{Baseline Multi-task}} & $F_b$ &
+	x & x & x & 
+	x & x & x &
+	0.367 & \textbf{0.405} & 0.385 \\
+{\textit{Embedding Combined}} & $F_b+F_e$ & 
+	x & x & x & 
+	x & x & x &
+	0.449 & 0.376 & \textbf{0.409} \\
+{\textit{Embedding POS}} & $F_b+F_e$ & 
+	x & x & x & 
+	x & x & x &
+	0.440 & 0.329 & 0.376 \\
+{\textit{Mean Static}} & $F_b+F_e$ & 
+	x & x & x & 
+	x & x & x &
+	0.461 & 0.334 & 0.388 \\
+{\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
+	x & x & x & 
+	x & x & x &
+	0.475 & 0.338 & 0.395 \\
+{\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
+	x & x & x & 
+	x & x & x &
+	0.464 & 0.342 & 0.394 \\
+{\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
+	x & x & x & 
+	x & x & x &
+	0.461 & 0.326 & 0.382 \\ 
 \bottomrule
 \end{tabular}
-\caption{UW Vital Filtering scores at TRECKBA 2014}
+\end{center}
+}
+\caption{UW Vital Filtering scores at TRECKBA 2014\todo{need to fill it}}
 \label{resMacro}
-\end{table}
+\end{table*}
 
 We are surprised to see that {\textit{Embedding Combined}} outperformed all methods, achieving an F1 of 0.409. {\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models. On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work.
 
 \def \officialRunWidth {0.23\textwidth}
-\begin{figure*}[tb]
+\begin{figure}[tb]
   \centering
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/official/f_basic_single.png}
@@ -529,7 +564,7 @@ We are surprised to see that {\textit{Embedding Combined}} outperformed all meth
     \end{subfigure}
 \caption{P-R-F1-SU over confidence cutoffs}
 \label{officialruns}
-\end{figure*}
+\end{figure}
 
 
 \begin{figure}[tb]
@@ -621,6 +656,7 @@ Combining these three core ideas, distributed word embeddings, non-parametric cl
 
 Further work needs to be done. A possible line of future research would be exploring hierarchical clustering algorithms to better represent topic clusters. It would also be interesting to assess the effect of learning the hyperparameters of the model instead of just manual tuning them for the specific datasets.
 
+%\clearpage
 \section*{Acknowledgments} 
  
 This work was supported in part by the Argentine Ministry of Science, Technology and Productive Innovation and the TerraSwarm Research Center, supported by the STARnet phase of the Focus Center Research Program (FCRP). Any opinions, findings and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect those of the sponsors.
