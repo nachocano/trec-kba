@@ -355,7 +355,7 @@ The different models differ on the features used to train and test the $uv$ clas
 
 \section{Results \& Discussion}
 
-Table \ref{resMacro} shows the macro precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_d=1$ and $\gamma_i=0.1$.
+Table \ref{resMacro} shows the macro precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool with cutoff=50. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_d=1$ and $\gamma_i=0.1$.
 
 % MICRO
 %\begin{table}[H]
@@ -402,50 +402,42 @@ The {\textit{Embedding Combined}} approach has the overall best F1 on the $vital
 \begin{minipage}{.25\textwidth}
   \centering
   \includegraphics[width=1\linewidth]{fig/official/f_basic_single.png}
-  \label{fig:basic_single}
   %\captionof{figure}{}
 \end{minipage}%
 \begin{minipage}{.25\textwidth}
   \centering
   \includegraphics[width=1\linewidth]{fig/official/f_basic_multi.png}
   %\captionof{figure}{}
-  \label{fig:basic_multi}
 \end{minipage}
 \begin{minipage}{.25\textwidth}
   \centering
   \includegraphics[width=1\linewidth]{fig/official/f_emb_comb.png}
   %\captionof{figure}{}
-  \label{fig:emb_comb}
 \end{minipage}%
 \begin{minipage}{.25\textwidth}
   \centering
   \includegraphics[width=1\linewidth]{fig/official/f_emb_pos.png}
   %\captionof{figure}{}
-  \label{fig:emb_pos}
 \end{minipage}
 \begin{minipage}{.25\textwidth}
   \centering
   \includegraphics[width=1\linewidth]{fig/official/f_mean_stat.png}
   %\captionof{figure}{}
-  \label{fig:mean_stat}
 \end{minipage}%
 \begin{minipage}{.25\textwidth}
   \centering
   \includegraphics[width=1\linewidth]{fig/official/f_mean_dyn.png}
   %\captionof{figure}{}
-  \label{fig:mean_dyn}
 \end{minipage}
 \begin{minipage}{.25\textwidth}
   \centering
   \includegraphics[width=1\linewidth]{fig/official/f_clust_stat.png}
   %\captionof{figure}{}
-  \label{fig:clust_stat}
 \end{minipage}%
 \begin{minipage}{.25\textwidth}
   \centering
   \includegraphics[width=1\linewidth]{fig/official/f_clust_dyn.png}
   %\captionof{figure}{}
-  \label{fig:clust_dyn}
 \end{minipage}
 \label{officialruns}
 \caption{P-R-F1-SU over confidence cutoffs}
@@ -463,32 +455,10 @@ Most of the more advanced models perform better than {\textit{Baseline Multi-tas
 
 Though the staleness and non-parametric clustering runs ({\textit{Mean Static}}, {\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method, they illustrate the importance of these new features as they improve the performance of the {\textit{Embedding POS}} model.
 
-Figure \ref{officialruns} complements the results in Table \ref{resMacro} for different confidence cutoffs. 
+Figure \ref{officialruns} (TODO why the index of figure is not correct?) complements the results in Table \ref{resMacro} for different confidence cutoffs. The metrics in each plot are nearly constant up to cutoff=500, and then decrease for higher cutoffs, which matches our expectations. We are surprised to see that {\textit{Embedding Combined}} outperformed all methods, achieving an F1 of 0.409.
 % TODO add analysis, put 4 figures per line, is that possible with icml format?
 
 Figure \ref{precrecall} further illustrates the precision-recall for the different methods listed in Table \ref{resMacro}. It's worth noting that on low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
-
-Further, we present some qualitative results on the topic clusters of {\textit{Clustering Dynamic}} method. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of Shawn Atleo on 11/15/2012.
-
-\begin{table}[tb]
-\center
-\begin{tabular}{cc}
-\toprule
-\textbf{C1} & \textbf{C2} \\
-\midrule
-Monday & conduct \\ %\hline
-Tuesday & complication \\ %\hline
-month & judicial \\ %\hline
-billion & government \\ %\hline
-million & guidance \\
-\bottomrule
-\end{tabular}
-\caption{Topic clusters closest words for Shawn Atleo}
-\label{clusterresult}
-\end{table}
-
-By doing some manual search on the entity Shawn Atleo, we can easily confirm that C2 elements make sense. Mr. Atleo is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and maybe money. It may be explained by all the articles that talk about Shawn announcing huge investments in different areas.
-
 
 %Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
 
@@ -524,9 +494,31 @@ Figure \ref{varyingalpha} shows the results for a variant of {\textit{Clustering
 \begin{figure}[tb]
 \centering
 \includegraphics[width=.5\textwidth]{fig/alphaPlotMacro.pdf}
-\caption{Precision-Recall-F1 vs. $\alpha$}
+\caption{P-R-F1 vs. $\alpha$}
 \label{varyingalpha}
 \end{figure}
+
+Further, we present some qualitative results on the topic clusters of the previous method using $\alpha\mathord{=}0.8$. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of Shawn Atleo on 11/15/2012.
+
+\begin{table}[tb]
+\center
+\begin{tabular}{cc}
+\toprule
+\textbf{C1} & \textbf{C2} \\
+\midrule
+Monday & conduct \\ %\hline
+Tuesday & complication \\ %\hline
+month & judicial \\ %\hline
+billion & government \\ %\hline
+million & guidance \\
+\bottomrule
+\end{tabular}
+\caption{Topic clusters closest words for Shawn Atleo}
+\label{clusterresult}
+\end{table}
+
+By doing some manual search on the entity Shawn Atleo, we can easily confirm that C2 elements make sense. Mr. Atleo is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and maybe money. It may be explained by all the articles that talk about Shawn announcing huge investments in different areas.
+
 
 We believe further experimental investigations are needed to account for the correct tunning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. It would also be interesting to assess the effects of using different pre-trained word embeddings.
 
@@ -549,42 +541,48 @@ The closest example we found that addresses the problem of staleness detection i
 
 \section{Visualization}
 
-In this section, we present a data visualization prototype for the Accelerate \& Create task.
+%There is an urgent need for efficient analysis of constantly increasing text collections.
+In this section, we present a data visualization prototype for the Accelerate \& Create task. (TODO add stuff)
 
 \subsection{Goals and Challenges}
 
-We intend to provide an easy-to-use vizualization that enables users debug what is going on in the sytem. 
+Visual exploration of text streams is a challenging task. As text streams continuously evolve, visualization methods should allow 
+to trace the temporal evolution of existing topics, detect new ones, and examine the relationships between them. Such systems should also allow 
+users to interactively change the information they are seeking at any time. Interactivity is therefore a crucial factor in a domain where users
+do not know the text documents in advance \cite{AlsakranCLZYDL12}.
 
-The size of the data plus its fundamental chronological component makes it a non-trivial task. Therefore, we aim to provide different mechanisms to select data based on users interests; in particular we focus our attention on providing interactive time-series widgets.
+In this work we intend to provide an easy-to-use vizualization that enables users debug what is going on in the sytem. We provide different mechanisms to select data based on users interests; in particular we focus our attention on providing interactive time-series widgets.
 
 \subsection{Our Solution}
 
 We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using lists of similar words.
 
-Figures \ref{vitalEvol} and \ref{stalenessEvol} show the timeline charts that intend to capture the previous goals.
-
 \begin{figure*}[tb]
 \centering
 \includegraphics[width=0.6\textwidth]{fig/vitalDistribution.png}
-\caption{Predictions Distribution chart}
+\caption{Predictions Distribution chart example}
 \label{vitalEvol}
 \end{figure*}
 
-Figure \ref{vitalEvol} illustrates the distribution of predictions of the selected entity in a specific period of time. Users can explore the closest words (in cosine distance) to the documents by selecting a particular point in the line.
+Figure \ref{vitalEvol} illustrates the distribution of predictions of entity Kshama Sawant in a specific period of time. The entity search box has been omitted for space reasons.
 
-Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of that particular entity. Similar to the previous chart, here a list of the closest words to the clusters centroids is shown when users select some point in the line.
+Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity Mike Kluse. The user can select any point in the line to further inspect the topic cluster. Figure \ref{wordcloud} is the result of a user click on the point highlighted in Figure \ref{stalenessEvol}. It shows the closest words to the cluster C1 centroid at that time (TODO place it in just half of the page).
 
-Both charts contain an active (zoomed) section which can be changed using the time range filters. As an example, Figure \ref{vitalEvol} shows the prediction distribution in a filtered time range, while in Figure \ref{stalenessEvol} there is no filter, i.e. the entire range is shown.
-
-Legends also act as filters, users can observe particular clusters or predictions by selecting them accordingly.
+Both charts contain an active (zoomed) section which can be changed using the time range filters located below. Legends can also act as filters, users have the possibility to observe particular clusters or predictions by selecting them in the legend region.
 
 \begin{figure*}[tb]
 \centering
 \includegraphics[width=0.7\textwidth]{fig/stalenessDistribution.png}
-\caption{Staleness chart}
+\caption{Staleness chart example}
 \label{stalenessEvol}
 \end{figure*}
 
+\begin{figure*}[tb]
+\centering
+\includegraphics[width=.5\textwidth]{fig/wordclouds.png}
+\caption{Word Cloud example}
+\label{wordcloud}
+\end{figure*}
 
 \section{Conclusion \& Future Work}
 \label{conclusion}
