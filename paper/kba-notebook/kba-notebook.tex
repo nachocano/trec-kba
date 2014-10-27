@@ -99,9 +99,9 @@ The learned vectors computed using neural networks are very attractive because t
 
 Given the recent fast estimation of embedding representations at very large scale, there is rising interest in vector-space word embeddings and their use in NLP \cite{Arvind14}.
 
-\section{Method}
+\section{Approach}
 \label{approach}
-\todo{better name for section}
+\todo{better name for section. Used approach instead of method, maybe you have something else on your mind}
 Given a stream of documents $D$ that refer to entity $e$, the task at hand is to predict whether those documents are $vital$ or $non\mathord{-}vital$ to $e$. For this, we propose a three-step method: 1) represent documents with embeddings computed from sets of words in each document, 2) represent the entity's context using non-parametric topic clusters, and 3) estimate the novelty of the document information with respect to entity $e$ using a staleness measure.
 
 In section \ref{docwordemb} we describe the way to determine the word embedding representation of a document given the set of words located close to mentions of entity $e$. In section \ref{non}, we introduce the non-parametric representation of the entity's context. Finally, in section \ref{staleness} we present the staleness measure, which is a good indicator of the novelty of the information contained in a document with respect to $e$.
@@ -109,11 +109,11 @@ In section \ref{docwordemb} we describe the way to determine the word embedding 
 \subsection{Context Embedding Representation of Documents}
 \label{docwordemb}
 
-\todo{better structure in paras: problem, solutions, why they aren't enough, our solution}
+\todo{better structure in paras: problem, solutions, why they aren't enough, our solution.. added BOW, moved the topic models to next subsection, first sentence doesn't sound good enough}
 
-Topic models are a class of statistical models for collections of documents that represent documents as admixtures over topics. More specifically, each topic is modeled as a distribution over words, and each document is a mixture of such topics \cite{InouyeRD14}. Though they can be easily extended and embedded in other models, they do not generalize to new, unseen documents and they are prone to overfitting. 
+We need to represent the unstructured entity's contexts in documents as features for our classifier. A common solution to this problem is using Bag of Words (BOW) models, where a document is represented as the bag of its words, disregarding grammar and even word order. This type of models are generally sparse.
 
-In order to address the lexical sparsity and generalize to unseen documents, given the nice properties exposed in section \ref{emb}, we propose to represent entity's contexts in documents by their mean word embedding vector.
+In order to address the lexical sparsity, given the nice properties exposed in section \ref{emb}, we propose to represent entity's contexts in documents by their mean word embedding vector.
 
 We define a function $f : w \rightarrow v_w \in \mathbf{R^d}$ that computes the word embedding representation of the word string $w$. We further define a function $g : W \rightarrow v_W \in \mathbf{R^d}$ that computes the mean word embedding representation of the set of words in $W$ as defined in Equation \ref{wordembedding}.
 
@@ -148,9 +148,11 @@ Being able to compute individual embeddings for different word types is a flexib
 \subsection{Non-parametric Clustering}
 \label{non}
 
-\todo{better structure in paras: problem, solutions, why they aren't enough, our solution}
+\todo{better structure in paras: problem, solutions, why they aren't enough, our solution. Put something on topic models, take a look}
 
-The context of entity $e$ is further represented by topic clusters, which are estimated in a non-parametric manner by assuming that the entity's context in a single document belongs to a single topic. As we are dealing with a streaming setting, topic clusters do evolve over time, i.e. members of each cluster change over time. We therefore represent each topic cluster by the mean embedding vector of the documents in that cluster at a certain timestamp.
+We further want to uncover the hidden thematic structure of each entity reference in the stream of documents. One typical approach to tackle this problem is by using topic models. This type of models represent documents as admixtures over topics. More specifically, each topic is modeled as a distribution over words, and each document is a mixture of such topics \cite{InouyeRD14}. Though they can be easily extended and embedded in other models, they do not generalize to new, unseen documents and they are prone to overfitting. Furthermore, they are expensive to compute and do not easily fit into the streaming setting.
+
+To address these limitations and be able to generalize to unseen documents, we propose to represent the context of entity $e$ by topic clusters. Each cluster is estimated in a non-parametric manner by assuming that the entity's context in a single document belongs to a single topic. As we are dealing with a streaming setting, topic clusters do evolve over time, i.e. members of each cluster change over time. We therefore represent each topic cluster by the mean embedding vector of the documents in that cluster at a certain timestamp.
 
 Mathematically, the vector representation of the $j$-th topic cluster at timestamp $t_i$, $c^j_i$, can be computed using Equation \ref{nonparamclust}.
 
@@ -217,9 +219,12 @@ Figure \ref{obama} illustrates the aforementioned example, assuming that each do
 \subsection{Staleness}
 \label{staleness}
 
-\todo{better structure in paras: problem, solutions, why they aren't enough, our solution}
+\todo{better structure in paras: problem, solutions, why they aren't enough, our solution. Put something on the timeliness stuff, not sure which are other
+solutions to this}
 
-As mentioned in section \ref{setup}, the notion of $vitalness$ is closely related to the timeliness of the new information. We include a staleness feature $\lambda_i$, which is dynamically updated over time, and $0 < \lambda_i \leq 1$. Low staleness aims to represent vital documents.
+As mentioned in section \ref{setup}, the notion of $vitalness$ is closely related to the timeliness of the new information. The timeliness is a subjective interpretation that can vary per entity and event. As an example let's assume that several documents talk about an event that happened to entity $e$. During a ``short'' timeframe (here is where the subjective interpretation comes in) that information can be considered new. After a while, that new information transitions to a background state, so as the documents transition from being $vital$ to $non\mathord{-}vital$.
+
+In order to capture this temporal dynamics that involve a transition from a $vital$ to a $non\mathord{-}vital$ state, we propose a staleness feature $\lambda_i$, which is dynamically updated over time, and $0 < \lambda_i \leq 1$. Low staleness aims to represent $vital$ documents, while high staleness intend to represent $non\mathord{-}vital$ ones.
 
 This staleness measure can be used both for entities and topic clusters.
 
@@ -292,7 +297,7 @@ We propose a browser-based visualization prototype that enables users to switch 
 
 Figure \ref{vitalEvol} illustrates the distribution of predictions of entity Kshama Sawant in a specific period of time. The entity search box has been omitted for space reasons.
 
-Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity Mike Kluse. The user can select any point in the line to further inspect the topic cluster. Figure \ref{wordcloud} is the result of a user click on the point highlighted in Figure \ref{stalenessEvol}. It shows the closest words to the cluster C1 centroid at that time.\todo{place it in just half of the page}
+Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity Mike Kluse. The user can select any point in the line to further inspect the topic cluster. Figure \ref{wordcloud} is the result of a user click on the point highlighted in Figure \ref{stalenessEvol}. It shows the closest words to the cluster C1 centroid at that time.
 
 Both charts contain an active (zoomed) section which can be changed using the time range filters located below. Legends can also act as filters, users have the possibility to observe particular clusters or predictions by selecting them in the legend region.
 
@@ -308,10 +313,10 @@ With these interactive time-series controls plus word cloud representations, we 
         ~
         \begin{subfigure}[b]{0.25\textwidth}
         		\raisebox{15mm}{\includegraphics[width=\textwidth]{fig/wordclouds.png}}
-				\caption{Word Cloud example}
+				\caption{Topic cluster example}
 				\label{wordcloud}
         \end{subfigure}
-        \caption{\todo{caption}}
+        \caption{Staleness and Topic cluster evolution}
 \end{figure*}
 
 \section{Related Work}
@@ -355,52 +360,52 @@ The \emph{vital} and \emph{non-vital} classes described in section \ref{setup} f
 \subsection{Features}
 \label{feat}
 
-\todo{put features in a table with small font?}
-A summary of the features we use is presented below. Basic features are borrowed from \cite{jingang13}.
+\todo{uncomment features table and fix position, don't know how to do it properly}
+A summary of the features we use is presented in Table \ref{features}. Basic features are borrowed from \cite{jingang13}.
 
-\begin{itemize}
-  \item \textbf{Basic}
-    \begin{itemize}
-      \item \textit{Document}
-        \begin{itemize}
-            \item $log(len(d))$: log of the length of document $d$
-            \item $source(d)$: discretized source of document $d$
-        \end{itemize}
-      \item \textit{Document-Entity}
-        \begin{itemize}
-            \item $n(d,e)$: \# of occurrences of target entity $e$ in document $d$
-            \item $n(d,e^p)$: \# of occurrences of partial name of target entity $e$ in document $d$
-            \item $fpos(d,e)$: position of first occurrence of entity $e$ in document $d$
-            \item $fpos_n(d,e)$: $fpos(d,e)$ normalized by document length
-            \item $fpos(d,e^p)$: position of first occurrence of partial name of entity $e$ in document $d$
-            \item $fpos_n(d,e^p)$: $fpos(d,e_p)$ normalized by document length
-            \item $lpos(d,e)$: position of last occurrence of entity $e$ in document $d$
-            \item $lpos_n(d,e)$: $lpos(d,e)$ normalized by document length
-            \item $lpos(d,e^p)$: position of last occurrence of partial name of entity $e$ in document $d$
-            \item $lpos_n(d,e^p)$: $lpos(d,e^p)$ normalized by document length
-            \item $spread(d,e)$: $lpos(d,e) - fpos(d,e)$
-            \item $spread_n(d,e)$: $spread(d,e)$ normalized by document length
-            \item $spread(d,e^p)$: $lpos(d,e^p)\mathord{-}fpos(d,e^p)$
-            \item $spread_n(d,e^p)$: $spread(d,e^p)$ normalized by document length
-        \end{itemize}
-    \end{itemize}
-  \item \textbf{Embeddings}
-    \begin{itemize}
-        \item $mean(d)$: mean word embedding representation of document $d$
-    \end{itemize}
-  \item \textbf{Non-parametric Clustering}
-    \begin{itemize}
-        \item $min(mean(d),e)$: minimum distance of the mean word embedding representation of document $d$ to existent topic clusters of target entity $e$
-        \item $avg(mean(d),e)$: avg distance of the mean word embedding representation of document $d$ to existent topic clusters of target entity $e$
-        \item $zero(mean(d))$: $\mathbbm{1}_{0}{(d)}$, i.e. flag set to 1 if the mean word embedding representation of document $d$ is $0$
-    \end{itemize}
-  \item \textbf{Staleness}
-    \begin{itemize}
-        \item $stale(e)$: staleness of entity $e$
-        \item $stale(e,c)$: staleness of topic cluster $c$ of target entity $e$
-    \end{itemize}
-\end{itemize}
+\comment{
 
+\begin{table}[tb]
+\center
+\begin{tabular}{cc} 
+\toprule
+\textbf{FEATURE} & \textbf{DESCRIPTION} \\ 
+\midrule
+{\textbf{Basic Features}} \\ \hline
+Document Level \\ %\hline
+$log(len(d))$ & log of the length of document $d$ \\ %\hline
+$source(d)$ & discretized source of document $d$ \\
+Document-Entity Level \\ %\hline
+$n(d,e)$ & \# of occurrences of target entity $e$ in document $d$ \\
+$n(d,e^p)$ & \# of occurrences of partial name of target entity $e$ in document $d$ \\
+$fpos(d,e)$ & position of first occurrence of entity $e$ in document $d$ \\
+$fpos_n(d,e)$ & $fpos(d,e)$ normalized by document length \\
+$fpos(d,e^p)$ & position of first occurrence of partial name of entity $e$ in document $d$ \\
+$fpos_n(d,e^p)$ & $fpos(d,e_p)$ normalized by document length \\
+$lpos(d,e)$ & position of last occurrence of entity $e$ in document $d$ \\
+$lpos_n(d,e)$ & $lpos(d,e)$ normalized by document length \\
+$lpos(d,e^p)$ & position of last occurrence of partial name of entity $e$ in document $d$ \\
+$lpos_n(d,e^p)$ & $lpos(d,e^p)$ normalized by document length \\ 
+$spread(d,e)$ & $lpos(d,e) - fpos(d,e)$ \\
+$spread_n(d,e)$ & $spread(d,e)$ normalized by document length \\
+$spread(d,e^p)$ & $lpos(d,e^p)\mathord{-}fpos(d,e^p)$ \\
+$spread_n(d,e^p)$ & $spread(d,e^p)$ normalized by document length \\ hline
+{\textbf{Embedding Features}} \\ \hline
+$mean(d)$ & mean word embedding representation of document $d$ \\ hline
+{\textbf{Non-parametric Clustering Features}} \\ \hline
+  $min(mean(d),e)$: minimum distance of the mean word embedding representation of document $d$ to existent topic clusters of target entity $e$ \\
+  $avg(mean(d),e)$: avg distance of the mean word embedding representation of document $d$ to existent topic clusters of target entity $e$ \\
+  $zero(mean(d))$: $\mathbbm{1}_{0}{(d)}$, i.e. flag set to 1 if the mean word embedding representation of document $d$ is $0$ \\ hline
+{\textbf{Staleness Features}} \\ \hline
+$stale(e)$: staleness of entity $e$ \\
+$stale(e,c)$: staleness of topic cluster $c$ of target entity $e$ \\
+\bottomrule
+\end{tabular}
+\label{features}
+\caption{Features}
+\end{table}
+
+} %end comment
 
 \subsection{Methods}
 \label{expe}
@@ -427,7 +432,7 @@ The different models differ on the features used to train and test the $uv$ clas
 
 \section{Results and Discussion}
 
-\todo{Relevant evaluation results}
+\todo{Relevant evaluation results... mmm I believe most of them are relevant. Do you think we should cut some stuff out? I'm not good at analyzing the results. Does it make sense what I put here? do you think is enough?}
 
 Table \ref{resMacro} shows the macro precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool with cutoff=50. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_d=1$ and $\gamma_i=0.1$.
 
@@ -470,7 +475,7 @@ Table \ref{resMacro} shows the macro precision, recall and F1 results of the met
 \label{resMacro}
 \end{table}
 
-The {\textit{Embedding Combined}} approach has the overall best F1 on the $vital$ filtering task. {\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models. On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work.
+We are surprised to see that {\textit{Embedding Combined}} outperformed all methods, achieving an F1 of 0.409. {\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models. On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work.
 
 \def \officialRunWidth {0.23\textwidth}
 \begin{figure*}[tb]
@@ -538,8 +543,7 @@ Most of the more advanced models perform better than {\textit{Baseline Multi-tas
 
 Though the staleness and non-parametric clustering runs ({\textit{Mean Static}}, {\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method, they illustrate the importance of these new features as they improve the performance of the {\textit{Embedding POS}} model.
 
-Figure \ref{officialruns} \todo{why the index of figure is not correct?} complements the results in Table \ref{resMacro} for different confidence cutoffs. The metrics in each plot are nearly constant up to cutoff=500, and then decrease for higher cutoffs, which matches our expectations. We are surprised to see that {\textit{Embedding Combined}} outperformed all methods, achieving an F1 of 0.409.
-\todo{add analysis, put 4 figures per line, is that possible with icml format?}
+Figure \ref{officialruns} complements the results in Table \ref{resMacro} for different confidence cutoffs. The metrics in each plot are nearly constant up to cutoff=500, and then decrease for higher cutoffs, which matches our expectations.
 
 Figure \ref{precrecall} further illustrates the precision-recall for the different methods listed in Table \ref{resMacro}. It's worth noting that on low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
