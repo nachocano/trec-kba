@@ -268,7 +268,7 @@ Near $t\mathord{=}40$, the event can be considered over, a steep decrease in pop
 \section{Visualization for Accelerate and Create}
 
 %There is an urgent need for efficient analysis of constantly increasing text collections.
-In this section, we present a data visualization prototype for the Accelerate and Create task. \todo{add stuff}
+Visualization techniques provide natural and effective ways to analyze large collections of documents. In this section, we present our data visualization prototype for the Accelerate \& Create task, suitable for streaming corpora of text documents, that enables the user to enlarge a certain part of the visual space while simultaneously shrinking the context, a technique called focus-plus-context \cite{Artur2010}.
 
 \subsection{Goals and Challenges}
 
@@ -295,6 +295,8 @@ Figure \ref{vitalEvol} illustrates the distribution of predictions of entity Ksh
 Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity Mike Kluse. The user can select any point in the line to further inspect the topic cluster. Figure \ref{wordcloud} is the result of a user click on the point highlighted in Figure \ref{stalenessEvol}. It shows the closest words to the cluster C1 centroid at that time.\todo{place it in just half of the page}
 
 Both charts contain an active (zoomed) section which can be changed using the time range filters located below. Legends can also act as filters, users have the possibility to observe particular clusters or predictions by selecting them in the legend region.
+
+With these interactive time-series controls plus word cloud representations, we provide a system that allow users to explore streaming text data and filter information based on their needs.
 
 \begin{figure*}[tb]
         \centering
@@ -327,7 +329,7 @@ Representing words as continuous vectors has been around for a while \cite{Hinto
 
 To our best knowledge, no recent techniques propose a combination of distributed word embeddings, non-parametric clustering and a staleness notion to solve this problem. 
 
-The closest example we found that addresses the problem of staleness detection is \cite{gamon}, where he builds an association graph connecting sentences and sentence fragments, and uses some graph-based features as good indicators of lack of novelty.
+The closest example we found that addresses the problem of staleness detection is \citet{gamon}, where he builds an association graph connecting sentences and sentence fragments, and uses some graph-based features as good indicators of lack of novelty.
 
 \section{KBA Vital Filtering Evaluation}
 \label{evaluation}
@@ -603,73 +605,7 @@ By doing some manual search on the entity Shawn Atleo, we can easily confirm tha
 
 We believe further experimental investigations are needed to account for the correct tunning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. It would also be interesting to assess the effects of using different pre-trained word embeddings.
 
-\section{Related Work}
-\label{related}
-
-Streaming document filtering is related to several fields, including but not limited to, entity linking \cite{KBP11}, text categorization \cite{HLTCOE12}, news surveillance \cite{Steinberger14}.
-
-Several comparative knowledge based population competitions have run in the recent past testifying on the great progress achieved in these fields \cite{gross_doucet_toivonen_trec12}. 
-
-\citet{xitong12} presented one of the best performing systems in TRECKBA12. They created wider representations of entities' profiles based on a Wikipedia snapshot and considered the anchor text of all internal Wikipedia links as related entities. In TRECKBA13 competition, different families of methods were proposed, query expansion, classification, learning to rank. 
-
-Our strategy is somewhat similar to \citet{jingang13} in the sense that we first target for a high recall system and then apply different classification methods to differentiate between $vital$ and $non\mathord{-}vital$ documents. Nevertheless, one key difference is that we do not exploit any external resources to construct features, e.g. we do not use Wikipedia entity pages nor existing citations in the Wikipedia page of an entity. 
-
-Representing words as continuous vectors has been around for a while \cite{Hinton87, Elman90findingstructure}. The progress of machine learning techniques in recent years enabled training more complex models on much larger data sets \cite{mikolovChen}. One popular approach to increase accuracy in existing system is to use unsupervised methods to create word features, or to download word features that have already been produced \cite{Turian10wordrepresentations}. In our method, we do the latter, we use already induced word embedding features in order to improve its accuracy.
-
-To our best knowledge, no recent techniques propose a combination of distributed word embeddings, non-parametric clustering and a staleness notion to solve this problem. 
-
-The closest example we found that addresses the problem of staleness detection is \citet{gamon}, where he builds an association graph connecting sentences and sentence fragments, and uses some graph-based features as good indicators of lack of novelty.
-
-\section{Visualization}
-
-%There is an urgent need for efficient analysis of constantly increasing text collections.
-Visualization techniques provide natural and effective ways to analyze large collections of documents. In this section, we present our data visualization prototype for the Accelerate \& Create task, suitable for streaming corpora of text documents, that enables the user to enlarge a certain part of the visual space while simultaneously shrinking the context, a technique called focus-plus-context \cite{Artur2010}.
-
-\subsection{Goals and Challenges}
-
-Visual exploration of text streams is a challenging task. As text streams continuously evolve, visualization methods should allow 
-to trace the temporal evolution of existing topics, detect new ones, and examine the relationships between them. Such systems should also allow 
-users to interactively change the information they are seeking at any time. Interactivity is therefore a crucial factor in a domain where users
-do not know the text documents in advance \cite{AlsakranCLZYDL12}.
-
-In this work we intend to provide an easy-to-use vizualization that enables users debug what is going on in the sytem. We provide different mechanisms to select data based on users interests; in particular we focus our attention on providing interactive time-series widgets.
-
-\subsection{Our Solution}
-
-We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using lists of similar words.
-
-\begin{figure*}[tb]
-\centering
-\includegraphics[width=0.6\textwidth]{fig/vitalDistribution.png}
-\caption{Predictions Distribution chart example}
-\label{vitalEvol}
-\end{figure*}
-
-Figure \ref{vitalEvol} illustrates the distribution of predictions of entity Kshama Sawant in a specific period of time. The entity search box has been omitted for space reasons.
-
-Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity Mike Kluse. The user can select any point in the line to further inspect the topic cluster. Figure \ref{wordcloud} is the result of a user click on the point highlighted in Figure \ref{stalenessEvol}. It shows the closest words to the cluster C1 centroid at that time (TODO place it in just half of the page).
-
-Both charts contain an active (zoomed) section which can be changed using the time range filters located below. Legends can also act as filters, users have the possibility to observe particular clusters or predictions by selecting them in the legend region.
-
-With these interactive time-series controls plus word cloud representations, we provide a system that allow users to explore streaming text data and filter information based on their needs.
-
-
-\begin{figure*}[tb]
-\centering
-\includegraphics[width=0.7\textwidth]{fig/stalenessDistribution.png}
-\caption{Staleness chart example}
-\label{stalenessEvol}
-\end{figure*}
-
-\begin{figure*}[tb]
-\centering
-\includegraphics[width=.5\textwidth]{fig/wordclouds.png}
-\caption{Word Cloud example}
-\label{wordcloud}
-\end{figure*}
-
 \section{Conclusion \& Future Work}
->>>>>>> 6c3d84b659e2e71bdc63cf1a7513aaf10c69ff2f
 \label{conclusion}
 
 Filtering streaming documents to accelerate users filling knowledge gaps plays a crucial role in the maintenance and update of knowledge bases.
