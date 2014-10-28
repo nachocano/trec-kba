@@ -260,45 +260,59 @@ The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ clust
 \subsection{Staleness}
 \label{staleness}
 
-\todo{better structure in paras: problem, solutions, why they aren't enough, our solution. Put something on the timeliness stuff, not sure which are other
-solutions to this}
+% problem
+In the representation so far, we have been concerned with detecting whether a document $d$ contains novel context in terms of the documents seen so far for entity $e$.
+By representing the context of an entity as a set of topic clusters, each with an embedding vector, we are able to accurately summarize the information so far, and expect a document that is not close to existing clusters to contain novel information.
+Unfortunately the representation thus far ignores the timeliness of the information, and it is quite possible that a document that is similar to existing clusters contains novel information.
+For example, when a document describes Obama victory in an election, it may be assigned to an existing cluster describing the previous election won by Obama, nonetheless the document contains novel information.
 
-As mentioned in section \ref{setup}, the notion of $vitalness$ is closely related to the timeliness of the new information. The timeliness is a subjective interpretation that can vary per entity and event. As an example let's assume that several documents talk about an event that happened to entity $e$. During a ``short'' timeframe (here is where the subjective interpretation comes in) that information can be considered new. After a while, that new information transitions to a background state, so as the documents transition from being $vital$ to $non\mathord{-}vital$.
+% solution
+A potential solution is to keep track of when the last document was assigned to a cluster, however KBA challenge requires \emph{all} documents that contain novel information within a time-frame to be marked vital as per the timeliness of the document.
+The timeliness is a subjective interpretation that can vary per entity and event. 
+As an example let's assume that several documents talk about an event that happened to entity $e$. 
+During a ``short'' timeframe (here is where the subjective interpretation comes in) that information can be considered new. 
+But after a while, that new information transitions to a background state, so as the documents transition from being \emph{vital} to \emph{non-vital}.
 
-In order to capture this temporal dynamics that involve a transition from a $vital$ to a $non\mathord{-}vital$ state, we propose a staleness feature $\lambda_i$, which is dynamically updated over time, and $0 < \lambda_i \leq 1$. Low staleness aims to represent $vital$ documents, while high staleness intend to represent $non\mathord{-}vital$ ones.
+%As mentioned in section \ref{background}, the notion of $vitalness$ is closely related to the timeliness of the new information. 
 
+In order to capture such temporal dynamics that capture novelty of the information in a document and the transition from a \emph{vital} to a \emph{non-vital} state, we propose a dynamic staleness measure $\lambda_i$, $0 < \lambda_i \leq 1$. 
 This staleness measure can be used both for entities and topic clusters.
+Low staleness of the assigned entity/cluster represents \emph{vital} documents, while high staleness intends to represent \emph{non-vital} ones.
 
-The staleness update is a two-step process, an exponential decrease followed by a constant increase.
-We denote the staleness decrease as $\lambda^{dec}_i$, and is controlled by the hyperparameter $\gamma_d$ following an exponential decay model.
+The staleness of an entity/cluster at any time $t$ depends on the staleness and the time of the last document $d_j$ assigned to the entity/cluster. % when a relevant document is observed is a two-step process, an exponential decrease followed by a constant increase. $t_{i-1}$ is the $i-1$ document timestamp, 
+The rate of decay of staleness is controlled by a hyperparameter $\gamma_{dec}$, following an exponential decay:
 \begin{equation}
 \label{decrease}
-\lambda^{dec}_i = \lambda^{inc}_{{i-1}} \exp{(-\gamma_d \frac{t_i-t_{i-1}}{T})}
+\lambda_t = \lambda_{j} \exp{(-\gamma_{dec} \frac{t-t_j}{T})}
 \end{equation}
-where $\gamma_d \geq 0$, $t_i$ is the $i$-th document timestamp, $t_{i-1}$ is the $i-1$ document timestamp, $T$ is a normalizing constant, and $\lambda^{inc}_{i-1}$ is the staleness increase (defined below) at a previous timestamp.
-In case we use staleness as an entity's measure, $\lambda^{inc}_{i-1}$ alludes to the staleness of the previous document in the stream that refers to the same entity as document $i$.
-If we use staleness as a topic cluster's measure, $\lambda^{inc}_{i-1}$ refers to the staleness of the previous document that belongs to the same topic cluster as document $i$.
+where $\gamma_{dec} \geq 0$, $t_j$ and $\lambda_j$ are the timestamp and staleness of the last document assigned to the entity/clister, and $T$ is a constant (used to transform the units of time). %, and $\lambda^{inc}_{i-1}$ is the staleness increase (defined below) at a previous timestamp.
 
-On the other hand, the staleness increase is denoted as $\lambda^{inc}_i$, and is regulated by $\gamma_i$ according to the following expression
+When a new document $d_i$ is assigned to an entity/cluster at time $t_i$, we can estimate the staleness of the entity/cluster at time $t_i$ using the above equation, $\lambda_{t_i} = \lambda_{i-1} \exp{(-\gamma_{dec} \frac{t_i-t_{i-1}}{T})}$.
+This staleness can be used to estimate the novelty of the information in $d_i$, i.e. a low $\lambda_{t_i}$ suggests the document contains information that has not been observed for a while.
+
+Thereafter, since we have just observed a relevant document for the entity/cluster, we need to increase the staleness. 
+%In case we use staleness as an entity's measure, $\lambda^{inc}_{i-1}$ alludes to the staleness of the previous document in the stream that refers to the same entity as document $i$.
+%If we use staleness as a topic cluster's measure, $\lambda^{inc}_{i-1}$ refers to the staleness of the previous document that belongs to the same topic cluster as document $i$.
+We use a simple interpolation to increase the staleness, using $\gamma_{inc}$ to control the the change as follows:
 \begin{equation}
-\lambda^{inc}_i = 1 - (1 - \lambda^{dec}_i) \gamma_i
+\lambda_i = 1 - \gamma_{inc}(1 - \lambda_{t_i})
 \end{equation}
-where $0 \leq \gamma_i \leq 1$.
+where $0 \leq \gamma_{inc} \leq 1$.
+The staleness for the entity/cluster is now $\lambda_i$, which is used when the next document $d_{i+1}$ is observed.
 
-The final staleness feature reported for the $i$-th document is $\lambda^{dec}_i$.
-
-\subsubsection{Examples}
-
-Figures \ref{stalenesslow} and \ref{stalenessmedium} illustrate some toy examples to further understand the intuition behind staleness.
-
-Figure \ref{stalenesslow} intends to show an example of an entity with a decreasing staleness. There are almost no documents in the stream referred to that entity. As soon as some activity is detected, i.e. a document mentioning the entity appears ($t\mathord{=}10$), a slight increase in the curve is seen. Given the fact that there's no much information about the entity, every new document would drive an update to the entity's profile, strongly suggesting vitalness.
-
+%\subsubsection{Examples}
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.7\columnwidth]{fig/staleness1.pdf}
 \caption{Staleness of Unpopular Entity}
 \label{stalenesslow}
 \end{figure}
+
+%Figures \ref{stalenesslow} and \ref{stalenessmedium} illustrate some toy examples to further understand the intuition behind staleness.
+Figure \ref{stalenesslow} illustrates an example of an entity with a decreasing staleness. 
+There are almost no documents referring to the entity. 
+As soon as some activity is detected, i.e. a document mentioning the entity appears ($t=10$), the staleness increases slightly. 
+Given the fact that there's not much information about the entity, every new document would drive an update to the entity's profile, strongly suggesting vitalness.
 
 Figure \ref{stalenessmedium} aims to represent staleness of an entity with fluctuating activity levels in the stream of documents. At time $t\mathord{=}10$, a main event involving the entity starts and continues for a long period of time, showing a growing trend in popularity. 
 At the beginning, those documents can be considered vital, but as time goes by and documents continue commenting on the same event, the information starts staling, clearly indicating non-vitalness.
@@ -314,32 +328,17 @@ Near $t\mathord{=}40$, the event can be considered over, a steep decrease in pop
 \section{Visualization for Accelerate and Create}
 
 %There is an urgent need for efficient analysis of constantly increasing text collections.
-Visualization techniques provide natural and effective ways to analyze large collections of documents. In this section, we present our data visualization prototype for the Accelerate and Create task, suitable for streaming corpora of text documents, that enables the user to enlarge a certain part of the visual space while simultaneously shrinking the context, a technique called focus-plus-context \cite{Artur2010}.
+Intuitive and effective visualization techniques can provide valuable tools in assisting editors to populate entity profiles and to perform exploratory analysis of large collections of documents. 
+In this section, we describe the requirements from such a visualization tool for streaming documents.
+Then, we present our prototype data visualization software for the Accelerate and Create task, that enables users to enlarge a certain parts of the visual space while simultaneously shrinking the context, a technique called focus-plus-context~\cite{Artur2010}.
 
 \subsection{Goals and Challenges}
 
-Visual exploration of text streams is a challenging task. As text streams continuously evolve, visualization methods should allow 
-to trace the temporal evolution of existing topics, detect new ones, and examine the relationships between them. Such systems should also allow 
-users to interactively change the information they are seeking at any time. Interactivity is therefore a crucial factor in a domain where users
-do not know the text documents in advance \cite{AlsakranCLZYDL12}.
+Visual exploration of text streams is a challenging task. As text streams continuously evolve, visualization methods should allow to tracing of the temporal evolution of existing topics, detection of new ones, and examination of the relationships between them. 
+Such systems should also allow users to interactively change the information they are seeking at any time. 
+Interactivity is therefore a crucial factor in a domain where users do not know the text documents in advance \cite{AlsakranCLZYDL12}.
 
 In this work we intend to provide an easy-to-use vizualization that enables users debug what is going on in the sytem. We provide different mechanisms to select data based on users interests; in particular we focus our attention on providing interactive time-series widgets.
-
-\subsection{Our Solution}
-
-We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using lists of similar words.
-
-%\begin{figure}[tb]
-%\centering
-%\end{figure}
-
-Figure \ref{vitalEvol} illustrates the distribution of predictions of entity Kshama Sawant in a specific period of time. The entity search box has been omitted for space reasons.
-
-Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity Mike Kluse. The user can select any point in the line to further inspect the topic cluster. Figure \ref{wordcloud} is the result of a user click on the point highlighted in Figure \ref{stalenessEvol}. It shows the closest words to the cluster C1 centroid at that time.
-
-Both charts contain an active (zoomed) section which can be changed using the time range filters located below. Legends can also act as filters, users have the possibility to observe particular clusters or predictions by selecting them in the legend region.
-
-With these interactive time-series controls plus word cloud representations, we provide a system that allow users to explore streaming text data and filter information based on their needs.
 
 \begin{figure}[tb]
         \centering
@@ -363,22 +362,51 @@ With these interactive time-series controls plus word cloud representations, we 
         \caption{Staleness and Topic cluster evolution}
 \end{figure}
 
+\subsection{Our Implementation}
+
+We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using lists of similar words.
+
+%\begin{figure}[tb]
+%\centering
+%\end{figure}
+
+The visualization tool initiates with the user selecting an entity of interest using an autocomplete-enabled text-box.
+For the selected entity, our visualization consists of two views: \emph{Document} and \emph{Topic}.
+
+The document view shows the distribution of relevant and vital documents over the whole time line, summarizing and differentiating the time frames when the documents simply refer to the entity, and when they contain vital information.
+Figure \ref{vitalEvol} illustrates the distribution of predictions of entity ``Kshama Sawant'' in a specific period of time. %The entity search box has been omitted for space reasons.
+Once the interesting time frames have been identifies, this view also allows the user to navigate to and read individual documents. 
+
+The topic view shows the evolution of the topic clusters for the entity, showing the predicted proportion of topic clusters over time.
+This view primarily plots the staleness of a cluster over time, indicating when a cluster was started, mentioned in the documents, and falls into obsolescence. 
+The user can also study the topics in finer detail, clicking on at any point on the timeline brings up a word cloud representation of the topic at that time.
+Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity ``Mike Kluse''. 
+%The user can select any point in the line to further inspect the topic cluster. 
+Figure \ref{wordcloud} is the result of a user's click on the point highlighted in Figure \ref{stalenessEvol}. 
+It shows the closest words to the topic cluster C1 at that time.
+
+Both of the views consist of a time-line over the whole stream, allowing the users to quickly navigate the view over different time frames.
+The time-line is an active (zoomed) section which can be changed using the time range filters located below. Legends can also act as filters, users have the possibility to observe particular clusters or predictions by selecting them in the legend region.
+With these interactive time-series controls combined with word cloud representations, we provide a system that allow users to explore streaming data and filter information based on their needs.
+
 \section{Related Work}
 \label{related}
 
-Streaming document filtering is related to several fields, including but not limited to, entity linking \cite{KBP11}, text categorization \cite{HLTCOE12}, news surveillance \cite{Steinberger14}.
+Several knowledge based acquisition competitions have run in the recent past, testifying to the great progress achieved in these fields~\cite{gross_doucet_toivonen_trec12}. 
+\citet{xitong12} present one of the best performing systems in TRECKBA12. 
+They created broader representations of entities' profiles based on a Wikipedia snapshot and considered the anchor text of all internal Wikipedia links as related entities. In TRECKBA13 competition, different families of methods were proposed, including query expansion, classification, and learning to rank. 
 
-Several comparative knowledge based population competitions have run in the recent past testifying on the great progress achieved in these fields \cite{gross_doucet_toivonen_trec12}. 
+Our strategy is somewhat similar to \citet{jingang13} in the sense that we first target a high recall system and then apply different classification methods to differentiate between \emph{vital} and \emph{non-vital} documents. 
+One key difference is that we do not exploit any external resources to construct features, e.g. we do not use Wikipedia entity pages nor existing citations in the Wikipedia page of an entity. 
 
-\citet{xitong12} presented one of the best performing systems in TRECKBA12. They created wider representations of entities' profiles based on a Wikipedia snapshot and considered the anchor text of all internal Wikipedia links as related entities. In TRECKBA13 competition, different families of methods were proposed, query expansion, classification, learning to rank. 
+Representing words as continuous vectors has been around for a while~\cite{Hinton87, Elman90findingstructure}. 
+The progress of machine learning techniques in recent years enabled training more complex models on much larger data sets \cite{mikolovChen}. 
+One popular approach to increase accuracy in existing system is to use unsupervised methods to create word features, or to download word features that have already been produced \cite{Turian10wordrepresentations}. In our method, we do the latter, we use already induced word embedding features in order to improve its accuracy.
 
-Our strategy is somewhat similar to \citet{jingang13} in the sense that we first target for a high recall system and then apply different classification methods to differentiate between $vital$ and $non\mathord{-}vital$ documents. Nevertheless, one key difference is that we do not exploit any external resources to construct features, e.g. we do not use Wikipedia entity pages nor existing citations in the Wikipedia page of an entity. 
+To our best knowledge, no techniques propose a combination of distributed word embeddings, non-parametric clustering, and a notion of staleness to solve this problem. 
+The closest example we found that addresses the problem of staleness detection is \citet{gamon}, where the author builds an association graph connecting sentences and sentence fragments, and uses graph-based features as good indicators of lack of novelty.
 
-Representing words as continuous vectors has been around for a while \cite{Hinton87, Elman90findingstructure}. The progress of machine learning techniques in recent years enabled training more complex models on much larger data sets \cite{mikolovChen}. One popular approach to increase accuracy in existing system is to use unsupervised methods to create word features, or to download word features that have already been produced \cite{Turian10wordrepresentations}. In our method, we do the latter, we use already induced word embedding features in order to improve its accuracy.
-
-To our best knowledge, no recent techniques propose a combination of distributed word embeddings, non-parametric clustering and a staleness notion to solve this problem. 
-
-The closest example we found that addresses the problem of staleness detection is \citet{gamon}, where he builds an association graph connecting sentences and sentence fragments, and uses some graph-based features as good indicators of lack of novelty.
+Streaming document filtering is also related to several other fields, including but not limited to, entity linking \cite{KBP11}, text categorization \cite{HLTCOE12}, news surveillance \cite{Steinberger14}, and cross-document coreference~\cite{RaoMD10,singh11:acl}.
 
 \section{KBA Vital Filtering Evaluation}
 \label{evaluation}
@@ -386,25 +414,17 @@ The closest example we found that addresses the problem of staleness detection i
 \subsection{Data}
 \label{data}
 
-To assess our method we use TRECKBA14 stream corpus. It has around 20M documents annotated with BBN's Serif NLP tools, including within-doc coref and dependency parse trees. Further, we use the 71 target entities given by TRECKBA14 organizers for the Vital Filtering task. Among the 20M documents, around 28K have truth labels. From these, only 8K are training instances while the rest are test examples.
-
-\subsubsection{Preprocess}
-
+To assess our method we use TRECKBA14 stream corpus. It has around 20M documents annotated with BBN's Serif NLP tools, including within-doc coreference and dependency parse trees. Further, we use the 71 target entities given by TRECKBA14 organizers for the Vital Filtering task. Among the 20M documents, around 28K have truth labels. From these, only 8K are training instances while the rest are test examples.
+%\subsubsection{Preprocess}
 We preprocess the corpus to filter the documents that contain exact string matches to the target entities names, including canonical and surface form names.
-
-\subsubsection{Categories}
-\label{subcat}
-
-TRECKBA14 corpus contain documents that do not refer to the target entities, even though they may contain mentions to them. We therefore need to use a \emph{non-referent} category of documents. 
-
-A \emph{non-referent} document means that it doesn't refer to a target entity or the context is so ambiguous that is impossible to decide whether the mention refers to an entity or not. An example for the former case is ``Barack Ferrazzano provides a wide range of business-oriented legal''. For the latter, an example is ``Barack is a great father and a better husband''. The mention ``Barack'' may refer to any married parent named Barack, therefore, we consider it \emph{non-referent}.
-
-The \emph{vital} and \emph{non-vital} classes described in section \ref{setup} fall into a \emph{referent} category, which contains documents that refer to the target entities.
 
 \subsection{Features}
 \label{feat}
 
-A summary of the features we use is presented in Table \ref{features}. Basic features are borrowed from \cite{jingang13}.
+Out approach extends the classifier introduced by \citet{jingang13}.
+We construct a basic set of features based on the document and the entity of interest.
+Using our representation, we include additional features for the embedding, clustering, and staleness.
+A summary of the features we use is presented in Table \ref{features}. 
 
 %\comment{
 
@@ -458,33 +478,36 @@ $\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length 
 
 %} %end comment
 
+\subsection{Relevance Classification}
+
+%\subsubsection{Categories}
+%\label{subcat}
+TRECKBA14 corpus contain documents that do not refer to the target entities, even though they may contain mentions to them. We therefore need to use a \emph{non-referent} category of documents. 
+%
+A \emph{non-referent} document denotes that it does not refer to a target entity or the context is so ambiguous that it is impossible to decide whether the mention refers to an entity or not. An example of the former case is ``Barack Ferrazzano provides a wide range of business-oriented legal''. For the latter, an example is ``Barack is a great father and a better husband''. The mention ``Barack'' may refer to any married parent named Barack, therefore, we consider it \emph{non-referent}.
+%
+The \emph{vital} and \emph{non-vital} classes described in section \ref{background} fall into a \emph{referent} category, which contains documents that refer to the target entities.
+
+Due to the fact that not all documents in the corpus refer to the target entities, we include an extra step in our classification process. We introduce an additional classifier, called $rnr$, which is trained offline and classifies documents as \emph{referent} or \emph{non-referent}.
+Consequently, in every experiment, each document goes first through the \emph{rnr} classifier. Only the \emph{relevant} documents outputted by \emph{rnr} are used as inputs to the $uv$ model, which discriminates between \emph{vital} and \emph{non-vital} documents, the overall focus of this work.
+
 \subsection{Methods}
 \label{expe}
 
-Due to the fact that not all documents in the corpus refer to the target entities (section \ref{subcat}), we include an extra step in our classification process. We introduce an additional classifier, called $rnr$, which acts offline and classifies documents as \emph{referent} or \emph{non-referent}.
-
-Consequently, in every experiment, each document goes first through the \emph{rnr} classifier. Only the \emph{relevant} documents outputted by \emph{rnr} are used as inputs to the $uv$ model, which discriminates between $vital$ and $non\mathord{-}vital$ documents, the overall focus of this work.
-
-We use therefore two extremely randomized tree ensembles classifiers \cite{GEW06a} in cascade, each composed of 100 weak learners. Each tree in the ensembles has depth 150.
-
+We use therefore randomized tree ensembles classifiers \cite{GEW06a} for both \emph{rnr} and \emph{uv}, each composed of $100$ weak learners. Each tree in the ensembles has a maximum depth of $150$.
+%
 All the experiments use the same \emph{rnr} model trained with the basic features listed in section \ref{feat}. 
-The different models differ on the features used to train and test the $uv$ classifier.
+The different methods differ on the features used to train and test the $uv$ classifier.
 
 \begin{itemize}
   \item {\textit{Baseline Single}}: baseline method that uses $F_b$ features. \citet{jingang13, bellogin13} have a similar method, though they train their models with more features.
-  \item {\textit{Baseline Multi-task}}: baseline method similar to {\textit{Basic Single}} but it includes multi-task learning \cite{Caruana93multitasklearning}.
-  \item {\textit{Embedding Combined}}: similar to {\textit{Basic Multi-task}} but includes $F_e$ features. The word embeddings are computed using the pre-trained Google News dataset. Each document has a single combined embedding, which is calculated from the nouns, proper nouns and verbs found near the mentions to entities as explained in section \ref{docwordemb}.
-  \item {\textit{Embedding POS}}: similar to {\textit{Embedding Combined}} but instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns, proper nouns and verbs. It uses the part of speech annotations in the documents to easily extract the different word types.
+  \item {\textit{Baseline Multi-task}}: method similar to {\textit{Basic Single}} but includes multi-task learning \cite{Caruana93multitasklearning}.
+  \item {\textit{Embedding Combined}}: similar to {\textit{Basic Multi-task}} but includes $F_e$ features. The word embeddings are computed using the Google News dataset. Each document has a single combined embedding, which is calculated from the nouns, proper nouns and verbs found around the mentions, as described in section \ref{docwordemb}.
+  \item {\textit{Embedding POS}}: similar to {\textit{Embedding Combined}} but instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns, proper nouns and verbs. %It uses the part of speech annotations in the documents to easily extract the different word types.
   \item {\textit{Mean Dynamic}}: similar to the {\textit{Embedding}} methods but it includes the $F_t$ features.
   \item {\textit{Clustering Static}}: similar to the {\textit{Embedding}} methods but it includes the $F_c$ features.
   \item {\textit{Clustering Dynamic}}: similar to the {\textit{Embedding}} methods but it includes $F_t$ and $F_c$ features.
 \end{itemize}
-
-\section{Results and Discussion}
-
-\todo{Results of the RNR classification, of all the different approaches, see Table \ref{resMacro}}
-
-Table \ref{resMacro} shows the precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool with cutoff=50. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_d=1$ and $\gamma_i=0.1$.
 
 % MICRO
 %\begin{table}[H]
@@ -512,7 +535,7 @@ Table \ref{resMacro} shows the precision, recall and F1 results of the methods e
 \toprule
   \multirow{2}{*}{\textbf{Model}} & 
   \multirow{2}{*}{\textbf{Features}} & 
-  \multicolumn{3}{c}{\textbf{Vital+Useful}, \emph{macro}} & 
+  \multicolumn{3}{c}{\textbf{Relevance}, \emph{macro}} & 
   \multicolumn{3}{c}{\textbf{Vital Filtering}, \emph{micro}} &
   \multicolumn{3}{c}{\textbf{Vital Filtering}, \emph{macro}}
 \\ 
@@ -561,11 +584,21 @@ Table \ref{resMacro} shows the precision, recall and F1 results of the methods e
 \end{tabular}
 \end{center}
 }
-\caption{UW Vital Filtering scores at TRECKBA 2014 \todo{update the bold ones, should they be just the official ones or the overall max}}
+\caption{UW Vital Filtering results for TREC KBA 2014}
 \label{resMacro}
 \end{table*}
 
-We are surprised to see that {\textit{Embedding Combined}} outperformed all methods, achieving an F1 of 0.409. {\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models. On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work.
+\section{Results and Discussion}
+
+%\todo{Results of the RNR classification, of all the different approaches, see Table \ref{resMacro}}
+
+Table \ref{resMacro} shows the precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool with cutoff=50. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
+{\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models. 
+On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work.
+Most of the more advanced models perform better than {\textit{Baseline Multi-task}}. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
+%We are surprised to see that {\textit{Embedding Combined}} outperformed all methods, achieving an F1 of 0.409. 
+Though the staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method, they illustrate the importance of these new features as they improve the performance of the {\textit{Embedding POS}} model.
+
 
 \def \officialRunWidth {0.23\textwidth}
 \begin{figure}[tb]
@@ -579,19 +612,19 @@ We are surprised to see that {\textit{Embedding Combined}} outperformed all meth
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/official/official-recall}
 			\caption{Recall}
-			\label{official:prec}
+			\label{official:recall}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/official/official-f1}
 			\caption{F1}
-			\label{official:prec}
+			\label{official:f1}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/official/official-su}
 			\caption{Scale Utility}
-			\label{official:prec}
+			\label{official:su}
     \end{subfigure}
    %  \begin{subfigure}[b]{\officialRunWidth}
    %          \includegraphics[width=\textwidth]{fig/official/f_basic_single.png}
@@ -652,12 +685,7 @@ We are surprised to see that {\textit{Embedding Combined}} outperformed all meth
 \label{precrecall}
 \end{figure}
 
-Most of the more advanced models perform better than {\textit{Baseline Multi-task}}. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
-
-Though the staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method, they illustrate the importance of these new features as they improve the performance of the {\textit{Embedding POS}} model.
-
-Figure \ref{officialruns} complements the results in Table \ref{resMacro} for different confidence cutoffs. The metrics in each plot are nearly constant up to cutoff=500, and then decrease for higher cutoffs, which matches our expectations.
-
+Figure \ref{officialruns} complements the results in Table \ref{resMacro} for different confidence cutoffs. %The metrics in each plot are nearly constant up to cutoff=500, and then decrease for higher cutoffs, which matches our expectations.
 Figure \ref{precrecall} further illustrates the precision-recall for the different methods listed in Table \ref{resMacro}. It's worth noting that on low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
 %Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
@@ -689,7 +717,7 @@ Figure \ref{precrecall} further illustrates the precision-recall for the differe
 
 %We achieve the best result when $\gamma_i=0.5$ and $\gamma_d=0.2$, still lower than \textit{Embedding Combined} but better than previous {\textit{Clustering Dynamic}}. In general, lower $\gamma_d$ seems to be doing a better job. These results further reflect the importance of hyperparameter tuning.
 
-Figure \ref{varyingalpha} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{resMacro}, this new version uses a single embedding representation instead of embeddings per word type. We show the change in micro P-R-F1 for different values of $\alpha$, using $\gamma_i=0.1$ and $\gamma_d=1$. We see that the performance degrades as $\alpha$ increases, which further reflects the importance of hyperparameter tuning.
+Figure \ref{varyingalpha} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{resMacro}, this new version uses a single embedding representation instead of embeddings per word type. We show the change in micro P-R-F1 for different values of $\alpha$, using $\gamma_{inc}=0.1$ and $\gamma_{dec}=1$. We see that the performance degrades as $\alpha$ increases, which further reflects the importance of hyperparameter tuning.
 
 \begin{figure}[tb]
 \centering
@@ -697,8 +725,6 @@ Figure \ref{varyingalpha} shows the results for a variant of {\textit{Clustering
 \caption{P-R-F1 vs. $\alpha$}
 \label{varyingalpha}
 \end{figure}
-
-Further, we present some qualitative results on the topic clusters of the previous method using $\alpha\mathord{=}0.8$. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of Shawn Atleo on 11/15/2012.
 
 \begin{table}[tb]
 \center
@@ -717,28 +743,28 @@ million & guidance \\
 \label{clusterresult}
 \end{table}
 
-By doing some manual search on the entity Shawn Atleo, we can easily confirm that C2 elements make sense. Mr. Atleo is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and maybe money. It may be explained by all the articles that talk about Shawn announcing huge investments in different areas.
+Further, we present some qualitative results on the topic clusters of the previous method using $\alpha\mathord{=}0.8$. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of Shawn Atleo on 11/15/2012.
+By doing some manual search on the entity Shawn Atleo, we can easily confirm that C2 elements make sense. Mr. Atleo is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and finances. It may be explained by all the articles that talk about Shawn announcing huge investments in different areas.
 
-
-We believe further experimental investigations are needed to account for the correct tunning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. It would also be interesting to assess the effects of using different pre-trained word embeddings.
+We believe further experimental investigations are needed to account for the correct tuning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. 
 
 \section{Conclusion \& Future Work}
 \label{conclusion}
 
 Filtering streaming documents to accelerate users filling knowledge gaps plays a crucial role in the maintenance and update of knowledge bases.
-With the exponential increase of information on the web, it becomes critical to detect relevant documents and incorporate their information to entities in a timely manner \cite{jingang13}.
+With the exponential increase of information on the web, it becomes critical to detect relevant documents and incorporate their information to entities in a timely manner. % \cite{jingang13}.
 
-In this paper we introduce a semi-supervised learning model for document filtering tasks. We propose a distributed, non-parametric representation of documents suitable for streaming settings, that groups entities' references into topic clusters. Further, we present a notion of staleness computed per entity as well as per topic cluster, which dynamically estimates entities' and clusters' relevances.
-
+In this paper we introduced a semi-supervised learning model for document filtering tasks. We proposed a distributed, non-parametric representation of documents suitable for streaming settings, that groups entities' references into topic clusters. Further, we present a notion of staleness computed per entity as well as per topic cluster, which dynamically estimates entities' and clusters' relevances.
 Combining these three core ideas, distributed word embeddings, non-parametric clustering, and staleness, results in a more accurate representation of entities' contexts, and simultaneously addresses the filtering requirements of large corpora of streaming text documents.
 
 Further work needs to be done. A possible line of future research would be exploring hierarchical clustering algorithms to better represent topic clusters. It would also be interesting to assess the effect of learning the hyperparameters of the model instead of just manual tuning them for the specific datasets.
+It would be worthwhile to assess the effects of using different pre-trained word embeddings.
 
-%\clearpage
 \section*{Acknowledgments} 
  
 This work was supported in part by the Argentine Ministry of Science, Technology and Productive Innovation and the TerraSwarm Research Center, supported by the STARnet phase of the Focus Center Research Program (FCRP). Any opinions, findings and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect those of the sponsors.
 
+\newpage
 \small
 \bibliography{../kba}
 \bibliographystyle{icml2014}
