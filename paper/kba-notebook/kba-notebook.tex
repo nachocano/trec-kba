@@ -55,104 +55,154 @@ This approach of using distributed word embeddings, non-parametric clustering, a
 \section{Introduction}
 \label{intro}
 
-\citet{frank12} observe a considerable time lag between the publication date of cited articles and the date of the corresponding citations created in Wikipedia. The median time is over a year, and the distribution has a long and heavy tail. This gap could be drastically reduced if automatic systems could suggest relevant documents to editors as soon as they are published.
+% general problem,  \cite{RaoMD10,singh11:acl},  \cite{blei12}
+To extract relevant information from streaming text corpora, we often need to find references to entities of interest, and to study their topic trends over time. 
+This is, unfortunately, an incredibly difficult task, and thus a large number of articles that are pertinent are more than too often not retrieved by automated approaches.
+As a consequence, \citet{frank12} observe a considerable lag between the publication date of articles and the date of its citation in Wikipedia.
+The median time is over a year, and the distribution has a long and heavy tail. 
+This gap can be drastically reduced if automated systems can accurately and efficiently suggest relevant documents to editors as soon as they are published.
 
-However, when processing a large corpus of text documents, practitioners are often concerned in finding references to entities of interest \cite{RaoMD10, choi2007}, and studying their topics distributions over time \cite{blei12}. Current tools are somewhat limited; they do not handle online settings, and they do not cluster entities' references according to topics nor identify the references' importance.
+% existing solutions
+Recent submissions to TREC KBA~\cite{xitong13, bouvier13, efron13, zhang13, bellogin13} center their attention on solving the above problems with supervised methods, using mainly document, document-entity and temporal level features.
+% what is wrong with them
+They are, however, somewhat limited; they depend heavily on labeled data, do not handle context sparsity appropriately, and do not identify the topics in the references. %, and do not estimate temporal relevance.
+% \citet{Turian10wordrepresentations} show that by using unlabeled examples to reduce data sparsity in the labeled training data, semi-supervised approaches can improve the generalization accuracy of those supervised systems.
 
-Recent studies \cite{xitong13, bouvier13, efron13, zhang13, bellogin13} have centered their attention on solving the above problems with supervised methods, using mainly document, document-entity and temporal level features. \citet{Turian10wordrepresentations} showed that by using unlabeled examples to reduce data sparsity in the labeled training data, semi-supervised approaches can improve the generalization accuracy of those supervised systems.
 
-We therefore introduce a semi-supervised approach suitable for streaming settings that uses a distributed word embedding and a non-parametric topic cluster representation of entities' contexts. We also include a staleness measure that approximates the relevance of each entity and its topic clusters according to document frequencies. Further, we update the topic identities, number of topics, and the entities and topics staleness in an online fashion, observing only a single document at a time.
+% what we're proposing
+In this submission, we introduce a semi-supervised approach suitable for streaming settings that uses low-dimensional vectors and non-parametric topic clusters to represent entity contexts. We also include a staleness measure that approximates the relevance of the topic clusters. % according to document frequencies. 
+Further, we update the topic identities, number of topics, and the entities and topics staleness in an online fashion, observing only a single document at a time.
+To utilize labeled data, we include features based on our representation of unlabeled documents to a supervised classifier.
 
+% how it solves it
 This combination of distributed word embeddings, non-parametric clustering, and staleness measure provides an efficient yet accurate representation of entities' contexts that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
+% experiments
+We present experimental results that demonstrate the benefits of our method and present our performance on the UW TREC KBA 2014 Vital Filtering task.
+As part of the Accelerate and Create task, we also describe an exploratory tool for efficient and intuitive visualization of large streams.
 
-We present experimental results demonstrating the benefits of our method and show that it surpasses previous supervised approaches in TRECKBA14 Vital Filtering task.
-
-\section{Background}
+\section{Vital Filtering Task}
 \label{background}
 
-\subsection{Problem Setup}
-\label{setup}
-
+In this section, we formalize the problem setup, and introduce our notation. 
+%\subsection{Problem Setup}
+%\label{setup}
 We assume a set of $m$ target entities $E = \left\{ {e_1, ..., e_m}\right\}$. We further assume a set of $n$ documents $D = \left\{ {d_{1}, ..., d_{n}}\right\}$ that arrive in chronological order. 
  
 Each document is a sequence of sentences composed by collections of words, annotated with NLP tools.
-Further, we assume w.l.o.g. that every document in $D$ refers to a single entity $e \in E$. For illustrative purposes we let $e\mathord{=}Barack\hspace{1mm}Obama$.
+Further, we assume w.l.o.g. that every document in $D$ refers to a single entity $e \in E$. %For illustrative purposes we let $e\mathord{=}Barack\hspace{1mm}Obama$.
+Since our focus here is to distinguish vital and non-vital references, we use a naive classifier based resolution to identify the documents relevant to each entity (details in Section~\ref{expe}), although in practice this is a challenging task, and more sophisticated techniques are required~\citep{RaoMD10,singh11:acl}.
+%We further assume \emph{coreferent} references within a document is provided.
 
-We represent each $d_i \in D$ as a compound of a timestamp $t_i$ and a set of $p$ words $W_i = \left\{ {w_{i1}, ..., w_{ip}}\right\}$ located around (and including) mentions to the entity $e$. A mention to $e$ is found by a string matching algorithm that searches for exact matches of canonical and surface form names of the entity $e$.
+A mention to $e$ in a document $d_i \in D$ is identified by a string matching algorithm that searches for exact matches of canonical and surface form names of the entity $e$.
+We represent each $d_i$ as a compound of a timestamp $t_i$ and a bag of words $W_i = \left\{ {w_{i1}, ..., w_{ip}}\right\}$ located in the context of (and including) mentions to the entity $e$. 
+Finally, we assume an online setting, i.e. the algorithm should provide predictions for documents arriving at time $t$ before seeing any documents arriving at time $t+1$.
 
-We assume an online setting, i.e. the algorithm should provide predictions for documents arriving at time $t$ before seeing documents arriving at time $t+1$.
-
-Further, documents can be categorized as follows:
-
+Given this setup, the vital filtering task requires classification of each document $d$ relevant to an entity $e$ as follows:
 \begin{itemize}
-    \item $Vital$: the document contains information that at the time it enters the stream, it drives an update to the entity $e$ with timely, new information about the entity's current state, actions or situation, e.g. ``Barack Obama has been elected President''.
-    \item $Non\mathord{-}Vital$: the document contains information that can be used when building an initial profile of the entity $e$, it means that the document is possibly citable but the information is not timely, e.g. ``Barack Obama was born on August 4th, 1961''.
+    \item \emph{Vital} if the document contains information that, at the time $d$ enters the stream, would cause an update to the entity $e$ with timely, new information about the entity's current state, actions or situation, e.g. ``Barack Obama has been elected President''.
+    \item \emph{Non-Vital} if the document is relevant, but contains information that in not timely, i.e. it may contain information relevant when building an initial profile of the entity $e$, but does not contain information that an accurate, updated profile would not have, e.g. ``Barack Obama was born on August 4th, 1961''.
 \end{itemize}
 
-\subsection{Word Embeddings}
-\label{emb}
-
-A word embedding is a dense, low-dimensional, and real-valued vector associated with a word. Each dimension of the embedding represents a latent feature of the word, and hopefully captures useful syntactic and semantic properties \cite{Turian10wordrepresentations}.
-
-The learned vectors computed using neural networks are very attractive because they explicitly encode many linguistic regularities and patterns. Many of these patterns can be represented with simple algebraic operations. For example, the result of $v_{paris} - v_{france} + v_{germany}$ is closer to $v_{berlin}$ than to any other word vector \cite{mikolovChen,mikolovYih}.
-
-Given the recent fast estimation of embedding representations at very large scale, there is rising interest in vector-space word embeddings and their use in NLP \cite{Arvind14}.
-
-\section{Approach}
+\section{Proposed Approach}
 \label{approach}
-\todo{better name for section. Used approach instead of method, maybe you have something else on your mind}
-Given a stream of documents $D$ that refer to entity $e$, the task at hand is to predict whether those documents are $vital$ or $non\mathord{-}vital$ to $e$. For this, we propose a three-step method: 1) represent documents with embeddings computed from sets of words in each document, 2) represent the entity's context using non-parametric topic clusters, and 3) estimate the novelty of the document information with respect to entity $e$ using a staleness measure.
 
-In section \ref{docwordemb} we describe the way to determine the word embedding representation of a document given the set of words located close to mentions of entity $e$. In section \ref{non}, we introduce the non-parametric representation of the entity's context. Finally, in section \ref{staleness} we present the staleness measure, which is a good indicator of the novelty of the information contained in a document with respect to $e$.
+Given a stream of documents $D$ that refer to entity $e$, the task at hand is to predict whether those documents are \emph{vital} or \emph{non-vital} to $e$. 
+To detect whether a document contains novel information, one needs to provide accurate and generalizable representation of historical contexts and capture the temporal dynamics of the references.
 
-\subsection{Context Embedding Representation of Documents}
+To this end, we propose a three-pronged solution:
+(1) represent documents with low-dimensional embeddings that address sparsity and generalization~(Section~\ref{docwordemb}), 
+(2) represent the entity's context using non-parametric topic clustering~(Section~\ref{non}), and 
+(3) estimate the novelty of the document information using a staleness measure~(Section~\ref{staleness}).
+
+%In section \ref{docwordemb} we describe the way to determine the word embedding representation of a document given the set of words located close to mentions of entity $e$. In section \ref{non}, we introduce the non-parametric representation of the entity's context. Finally, in section \ref{staleness} we present the staleness measure, which is a good indicator of the novelty of the information contained in a document with respect to $e$.
+
+\subsection{Distributed Document Representation}
 \label{docwordemb}
 
-\todo{better structure in paras: problem, solutions, why they aren't enough, our solution.. added BOW, moved the topic models to next subsection, first sentence doesn't sound good enough}
+% problem
+To identify whether an entity's context in a document contains novel information, or even if it is relevant for an entity, we need a structured representation of the context. % We need to represent the unstructured entity's contexts in documents as features for our classifier. 
+% solution
+A common solution to this problem is to use vector space models, often the Bag of Words (BOW) models, where a document is represented as the bag of its words, disregarding grammar and even word order. 
+% why aren't they enough
+Unfortunately, vector space models are often too sparse to represent fine-grained information in contexts, for example, straightforward BOW representations will have minimal overlap between ``Barack was elected president today'' and ``Obama has won the election'', treating the other as novel information even after having seen one of them.
+Further, BOW representations ignore the syntactic structure as it will further increase sparsity, for example, BOW will have a high overlap for ``Obama defeated Bush'' and ``Bush defeated Obama''.
+%\subsection{Word Embeddings}
+%\label{emb}
 
-We need to represent the unstructured entity's contexts in documents as features for our classifier. A common solution to this problem is using Bag of Words (BOW) models, where a document is represented as the bag of its words, disregarding grammar and even word order. This type of models are generally sparse.
+% what is our solution
+In order to address these concerns, we propose to represent entity's contexts in documents using word embeddings.
+A word embedding is a dense, low-dimensional, and real-valued vector associated with every word in a vocabulary such that they capture useful syntctic and semantic properties of the contexts that the word appears in.
+The low-dimensionality of the embeddings as compared to vector space models (hundreds as compared to millions) make them an elegant solution to address lexical sparsity in settings with very few labels~\cite{Turian10wordrepresentations}, and further, they can be efficiently trained on massive corpora.
+% The learned vectors computed using neural networks are quite attractive because they explicitly encode many linguistic regularities and patterns. 
+Many of the syntactic patterns can be represented with simple algebraic operations. For example, the result of $v_{paris} - v_{france} + v_{germany}$ is closer to $v_{berlin}$ than to any other word vector \cite{mikolovChen,mikolovYih}.
 
-In order to address the lexical sparsity, given the nice properties exposed in section \ref{emb}, we propose to represent entity's contexts in documents by their mean word embedding vector.
+%Given the recent fast estimation of embedding representations at very large scale, there is rising interest in vector-space word embeddings and their use in NLP \cite{Arvind14}.
 
-We define a function $f : w \rightarrow v_w \in \mathbf{R^d}$ that computes the word embedding representation of the word string $w$. We further define a function $g : W \rightarrow v_W \in \mathbf{R^d}$ that computes the mean word embedding representation of the set of words in $W$ as defined in Equation \ref{wordembedding}.
+We define a function $f : w \rightarrow v_w \in \mathbf{R^d}$ that computes the word embedding representation of the word string $w$. 
+To define embedding for a set of words $W$, we use a function $g : W \rightarrow v_W \in \mathbf{R^d}$ that computes embeddings as: % defined in Equation \ref{wordembedding}.
 \begin{equation}
 \label{wordembedding}
 g(W) = v_W = \frac{1}{|W|} \sum_{w \in W}{f(w)}
 \end{equation}
-Given the document $d_i \in D$ that refers to entity $e$ and contains the words $w_i \in W_i$, we can compute its vector representation using function $g$ as follows:
+Given the document $d_i \in D$ that refers to entity $e$ and contains the words $w_i \in W_i$, we compute its vector representation using function $g$ as follows:
 \begin{equation}
 \label{wordembedding1}
 v_{d_i} = v_{W_i} = g(W_i)
 \end{equation}
 With this, we intend to capture the context where the entity $e$ is mentioned in a document, i.e. the topic, and represent it with a dense, low-dimensional vector.
 
-Further, let's denote $W_{i_n}$ to the set of all nouns in $W_i$, where $W_{i_n} \subseteq W_i$, and $W_{i_v}$ to the set of all verbs in $W_i$, where $W_{i_v} \subseteq W_i$. We can simply compute the mean embedding vector of all the nouns and verbs that appear in the context of entity $e$ using function $g$, as shown below:
+Further, it may be useful to separately capture the context in terms of different parts of speech.
+Let $W_{i_n}$ denote the set of all nouns in $W_i$, where $W_{i_n} \subseteq W_i$, and $W_{i_v}$ to the set of all verbs in $W_i$, where $W_{i_v} \subseteq W_i$. We compute the embedding vector of all the nouns and verbs that appear in the context of entity $e$ using function $g$, as: % shown below:
 \begin{eqnarray}
 v_{d_{i_n}} = v_{W_{i_n}} = g(W_{i_n})\label{nouns}
 \\
 v_{d_{i_v}} = v_{W_{i_v}} = g(W_{i_v})\label{verbs}
 \end{eqnarray}
-Being able to compute individual embeddings for different word types is a flexibility our method provides that might better encapsulate the truth underlying context (topic) of the document.
+Computing separate embeddings for different word types is a flexibility our method provides that may better encapsulate the underlying context (topic) of the document.
 
 \subsection{Non-parametric Clustering}
 \label{non}
 
-\todo{better structure in paras: problem, solutions, why they aren't enough, our solution. Put something on topic models, take a look}
+% problem
+Although word embeddings can capture context around a single topic quite accurately, they are unable to represent the variety of topics that an entity may be mentioned in.
+For example, Obama in context of \emph{elections} is quite different in context of \emph{presidential speech} or \emph{international visit}.
+Using a single word embedding to represent multiple such topics may result in embeddings that conflate them, being inaccurate for all of them.
 
-We further want to uncover the hidden thematic structure of each entity reference in the stream of documents. One typical approach to tackle this problem is by using topic models. This type of models represent documents as admixtures over topics. More specifically, each topic is modeled as a distribution over words, and each document is a mixture of such topics \cite{InouyeRD14}. Though they can be easily extended and embedded in other models, they do not generalize to new, unseen documents and they are prone to overfitting. Furthermore, they are expensive to compute and do not easily fit into the streaming setting.
+% solution
+One typical approach to tackle this problem is by using topic models~\cite{blei12}.
+Such models can be trained in an offline manner over a large corpus, followed by streaming inference for each document.
+% its problem
+However the number of topics often need to be decided apriori, which is quite difficult to specify for each entity of interest (non-parametric approaches to LDA are quite expensive).
+Further, drift over time can make the topic distributions obsolete.
+Finally, it is difficult to learn per entity topic distribution if some of the entities have very few relevant documents.
 
-To address these limitations and be able to generalize to unseen documents, we propose to represent the context of entity $e$ by topic clusters. Each cluster is estimated in a non-parametric manner by assuming that the entity's context in a single document belongs to a single topic. As we are dealing with a streaming setting, topic clusters do evolve over time, i.e. members of each cluster change over time. We therefore represent each topic cluster by the mean embedding vector of the documents in that cluster at a certain timestamp.
+% our solution
+%We further want to uncover the hidden thematic structure of each entity reference in the stream of documents. 
+%This type of models represent documents as admixtures over topics. 
+%More specifically, each topic is modeled as a distribution over words, and each document is a mixture of such topics \cite{InouyeRD14}. 
 
-Mathematically, the vector representation of the $j$-th topic cluster at timestamp $t_i$, $c^j_i$, can be computed using Equation \ref{nonparamclust}.
+Instead of representing the context only using a single embedding, we instead propose to use a number of embeddings that capture the different \emph{topic clusters} of the entity, thus retaining the advantages of using word embedding while still having a precise context representation.
+%To address these limitations, we propose to represent the context of entity $e$ by topic clusters. 
+We assume that the context in a single document belongs to a single topic, however dynamically estimate the number of clusters in a non-parametric manner. 
+As we are concerned with a streaming setting, topic clusters evolve over time, i.e. identities, members, and number of clusters change over time. 
+
+We represent each topic cluster by the mean embedding vector of the documents assigned to that cluster at a certain timestamp.
+More precisely, the vector representation of the $j$-th topic cluster at timestamp $t_i$, $c^j_i$, can be computed using: % Equation \ref{nonparamclust}.
 \begin{equation}
 \label{nonparamclust}
 v_{c^j_i} = \frac{1}{|D^j_i|} \sum_{d \in D^j_i}{v_d}
 \end{equation}
 where $D^j_i$ is the subset of all the documents that belong to cluster $j$ at timestamp $t_i$, and $\forall\hspace{1mm}d_q \in D^j_i, t_q \leq t_i$.
 
-The number of topic clusters for the context of entity $e$ is unknown beforehand. Initially, the entity's context does not have topic clusters. We create the first topic cluster for the entity's context on its first occurrence in the training data. After creating the first cluster for the context, a new topic cluster is created when the cosine distance between the word embedding representation of the new arriving document with every topic cluster center of the entity is greater than or equal to $\alpha$, where $\alpha$ is an hyperparameter of the model, and $0 \leq \alpha \leq 1$. Our approach is closely related to the online non-parametric clustering procedure described in \citet{Arvind14}.
+The number of topic clusters for the context of entity $e$ is unknown beforehand. Initially, we let the entity's context to have zero topic clusters. 
+We create the first topic cluster for the entity's context when the first relevant document is observed. 
+For any following relevant document $d$, the topic clusters are updated as follows.
+We first compute a distance of $v_d$ with every existing topic embedding.
+If minimum distance to any topic cluster is greater than or equal to $\alpha$ ($0 \leq \alpha \leq 1$), we create a new topic cluster just containing the document $d$, otherwise merge the document into the closest cluster to $v_d$, and update it's vector representation.
+Our approach is closely related to the online non-parametric clustering procedure described in \citet{Arvind14}.
 
-In case the distance is less than $\alpha$, we add the incoming document to the closest topic cluster and update its center. 
+%After creating the first cluster for the context, a new topic cluster is created when the cosine distance between of the entity is , where $\alpha$ is an hyperparameter of the model, and . 
+%In case the distance is less than $\alpha$, we add the incoming document to the closest topic cluster and update its center. 
 
 More formally, $\forall\hspace{1mm}c^j_{i-1}$, at time $i$, document $d_i$ is added to the topic cluster that solves the following optimization problem:
 \begin{eqnarray}
@@ -165,6 +215,7 @@ where $dist(\cdot,\cdot)$ is the cosine distance defined as: %in Equation \ref{c
 dist(x,y) = 1 - \cos(x,y) = 1 - \frac{x \cdot y}{||x||||y||}
 \end{equation}
 The $j$-th topic cluster at time $i$ is updated, and therefore composed by the subset of documents $D^j_i \subseteq D$, where $D^j_i = D^j_{i-1} \cup \left\{ {d_i}\right\}$.
+Note that the cluster center is updated in constant time by incrementally maintaining the sum of the member embeddings.
 
 %\begin{algorithm}[tb]
 %   \caption{Non-parametric Clustering}
@@ -190,16 +241,21 @@ The $j$-th topic cluster at time $i$ is updated, and therefore composed by the s
 %\end{algorithmic}
 %\end{algorithm}
 
-As an example, let's assume document $d_1$ appears in the stream, and talks about the days Barack Obama was a Senator. As is the first document referring to the entity Obama, we add $d_1$ to a new topic cluster $senator$. Then, document $d_2$ appears in the stream. It refers to Obama as being elected President of the United States. The distance with the previous cluster $senator$ is greater than $\alpha$, therefore the algorithm proceeds to add $d_2$ to a new topic cluster $president$. Finally, $d_3$ enters the stream. It talks about Obama as the current President of the U.S. The algorithm compares its distance to the previous clusters and finds that is closest to the $president$ cluster. The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ cluster and updates the cluster center. 
-
-Figure \ref{obama} illustrates the aforementioned example, assuming that each document is represented in a two-dimensional vector.
-
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.7\columnwidth]{fig/obamaExample.pdf}
-\caption{Non-parametric Clustering example for entity Obama}
+\caption{Example of Non-parametric Clustering}
 \label{obama}
 \end{figure}
+
+Figure \ref{obama} illustrates an example of such clustering, using two-dimensions to represent the vectors.
+Let's assume document $d_1$ appears in the stream first, and mentions the days Barack Obama was a Senator. As it is the first document referring to the entity Obama, we add a new topic cluster $senator$ with vector $v_{d_1}$. 
+Then document $d_2$ appears in the stream which refers to Obama as being elected President of the United States. 
+The distance with the previous cluster $senator$ is greater than $\alpha$ due to semantic difference in the words, therefore the algorithm proceeds to create a new topic cluster $president$ centered at $v_{d_2}$. 
+Finally, $d_3$ enters the stream. 
+It talks about Obama as the current President of the U.S. 
+The algorithm compares its distance to the previous clusters and finds that it is closest to the $president$ cluster. 
+The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ cluster and updates the cluster center. 
 
 \subsection{Staleness}
 \label{staleness}
