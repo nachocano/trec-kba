@@ -261,7 +261,7 @@ The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ clust
 \label{staleness}
 
 % problem
-In the representation so far, we have been concerned with detecting whether a document $d$ contains novel context in terms of the documents seen so far for entity $e$.
+\todo{too much so far, thus far?}In the representation so far, we have been concerned with detecting whether a document $d$ contains novel context in terms of the documents seen so far for entity $e$.
 By representing the context of an entity as a set of topic clusters, each with an embedding vector, we are able to accurately summarize the information so far, and expect a document that is not close to existing clusters to contain novel information.
 Unfortunately the representation thus far ignores the timeliness of the information, and it is quite possible that a document that is similar to existing clusters contains novel information.
 For example, when a document describes Obama victory in an election, it may be assigned to an existing cluster describing the previous election won by Obama, nonetheless the document contains novel information.
@@ -293,7 +293,7 @@ This staleness can be used to estimate the novelty of the information in $d_i$, 
 Thereafter, since we have just observed a relevant document for the entity/cluster, we need to increase the staleness. 
 %In case we use staleness as an entity's measure, $\lambda^{inc}_{i-1}$ alludes to the staleness of the previous document in the stream that refers to the same entity as document $i$.
 %If we use staleness as a topic cluster's measure, $\lambda^{inc}_{i-1}$ refers to the staleness of the previous document that belongs to the same topic cluster as document $i$.
-We use a simple interpolation to increase the staleness, using $\gamma_{inc}$ to control the the change as follows:
+We use a simple interpolation to increase the staleness, using $\gamma_{inc}$ to control the change as follows:
 \begin{equation}
 \lambda_i = 1 - \gamma_{inc}(1 - \lambda_{t_i})
 \end{equation}
@@ -364,7 +364,7 @@ In this work we intend to provide an easy-to-use vizualization that enables user
 
 \subsection{Our Implementation}
 
-We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using lists of similar words.
+\todo{timeline, time line or time-line?}We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using lists of similar words.
 
 %\begin{figure}[tb]
 %\centering
@@ -375,7 +375,7 @@ For the selected entity, our visualization consists of two views: \emph{Document
 
 The document view shows the distribution of relevant and vital documents over the whole time line, summarizing and differentiating the time frames when the documents simply refer to the entity, and when they contain vital information.
 Figure \ref{vitalEvol} illustrates the distribution of predictions of entity ``Kshama Sawant'' in a specific period of time. %The entity search box has been omitted for space reasons.
-Once the interesting time frames have been identifies, this view also allows the user to navigate to and read individual documents. 
+Once the interesting time frames have been identified, this view also allows the user to navigate to and read individual documents. 
 
 The topic view shows the evolution of the topic clusters for the entity, showing the predicted proportion of topic clusters over time.
 This view primarily plots the staleness of a cluster over time, indicating when a cluster was started, mentioned in the documents, and falls into obsolescence. 
