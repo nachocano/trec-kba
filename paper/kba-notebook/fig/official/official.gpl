@@ -1,9 +1,9 @@
 # Chart settings
-set key right bottom
+set key left top
 # Input file contains comma-separated values fields
 set datafile separator ","
 
-set terminal pdf enhanced linewidth 2.0 size 3in,2in  
+set terminal pdf enhanced linewidth 2.0 size 3in,3in  
 set output "official-prec.pdf"
 # XYChart settings
 set nologscale
@@ -21,7 +21,7 @@ plot \
 'uw-f_clust_stat-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "emb+clust" with lines, \
 'uw-f_clust_dyn-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "emb+clust+staleness" with lines
 
-set terminal pdf enhanced linewidth 2.0 size 3in,2in  
+set terminal pdf enhanced linewidth 2.0 size 3in,3in  
 set output "official-recall.pdf"
 # XYChart settings
 set nologscale
@@ -39,7 +39,8 @@ plot \
 'uw-f_clust_stat-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:3 title "emb+clust" with lines, \
 'uw-f_clust_dyn-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:3 title "emb+clust+staleness" with lines
 
-set terminal pdf enhanced linewidth 2.0 size 3in,2in  
+set nokey
+set terminal pdf enhanced linewidth 2.0 size 3in,3in  
 set output "official-f1.pdf"
 # XYChart settings
 set nologscale
@@ -57,7 +58,7 @@ plot \
 'uw-f_clust_stat-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:4 title "emb+clust" with lines, \
 'uw-f_clust_dyn-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:4 title "emb+clust+staleness" with lines
 
-set terminal pdf enhanced linewidth 2.0 size 3in,2in  
+set terminal pdf enhanced linewidth 2.0 size 3in,3in  
 set output "official-su.pdf"
 # XYChart settings
 set nologscale
