@@ -512,7 +512,7 @@ Table \ref{resMacro} shows the precision, recall and F1 results of the methods e
 \toprule
   \multirow{2}{*}{\textbf{Model}} & 
   \multirow{2}{*}{\textbf{Features}} & 
-  \multicolumn{3}{c}{\textbf{Useful}, \emph{macro}} & 
+  \multicolumn{3}{c}{\textbf{Vital+Useful}, \emph{macro}} & 
   \multicolumn{3}{c}{\textbf{Vital Filtering}, \emph{micro}} &
   \multicolumn{3}{c}{\textbf{Vital Filtering}, \emph{macro}}
 \\ 
@@ -525,11 +525,11 @@ Table \ref{resMacro} shows the precision, recall and F1 results of the methods e
   \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 \midrule
 {\textit{Baseline Single}} & $F_b$ &
-	x & x & x & 
+	0.644 & 0.645 & 0.645 & 
 	0.538 & 0.265 & 0.355 &
 	 \textbf{0.476} & 0.238 & 0.317 \\
 {\textit{Baseline Multi-task}} & $F_b$ &
-	x & x & x & 
+	0.646 & 0.655 & 0.650 & 
 	\textbf{0.607} & 0.414 & 0.492 &
 	0.367 & \textbf{0.405} & 0.385 \\
 {\textit{Embedding Combined}} & $F_b+F_e$ & 
@@ -561,7 +561,7 @@ Table \ref{resMacro} shows the precision, recall and F1 results of the methods e
 \end{tabular}
 \end{center}
 }
-\caption{UW Vital Filtering scores at TRECKBA 2014}
+\caption{UW Vital Filtering scores at TRECKBA 2014 \todo{update the bold ones, should they be just the official ones or the overall max}}
 \label{resMacro}
 \end{table*}
 
