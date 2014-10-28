@@ -100,7 +100,7 @@ Finally, we assume an online setting, i.e. the algorithm should provide predicti
 Given this setup, the vital filtering task requires classification of each document $d$ relevant to an entity $e$ as follows:
 \begin{itemize}
     \item \emph{Vital} if the document contains information that, at the time $d$ enters the stream, would cause an update to the entity $e$ with timely, new information about the entity's current state, actions or situation, e.g. ``Barack Obama has been elected President''.
-    \item \emph{Non-Vital} if the document is relevant, but contains information that in not timely, i.e. it may contain information relevant when building an initial profile of the entity $e$, but does not contain information that an accurate, updated profile would not have, e.g. ``Barack Obama was born on August 4th, 1961''.
+    \item \emph{Non-Vital} if the document is relevant, but contains information that is not timely, i.e. it may contain information relevant when building an initial profile of the entity $e$, but does not contain information that an accurate, updated profile would not have, e.g. ``Barack Obama was born on August 4th, 1961''.
 \end{itemize}
 
 \section{Proposed Approach}
@@ -131,7 +131,7 @@ Further, BOW representations ignore the syntactic structure as it will further i
 
 % what is our solution
 In order to address these concerns, we propose to represent entity's contexts in documents using word embeddings.
-A word embedding is a dense, low-dimensional, and real-valued vector associated with every word in a vocabulary such that they capture useful syntctic and semantic properties of the contexts that the word appears in.
+A word embedding is a dense, low-dimensional, and real-valued vector associated with every word in a vocabulary such that they capture useful syntactic and semantic properties of the contexts that the word appears in.
 The low-dimensionality of the embeddings as compared to vector space models (hundreds as compared to millions) make them an elegant solution to address lexical sparsity in settings with very few labels~\cite{Turian10wordrepresentations}, and further, they can be efficiently trained on massive corpora.
 % The learned vectors computed using neural networks are quite attractive because they explicitly encode many linguistic regularities and patterns. 
 Many of the syntactic patterns can be represented with simple algebraic operations. For example, the result of $v_{paris} - v_{france} + v_{germany}$ is closer to $v_{berlin}$ than to any other word vector \cite{mikolovChen,mikolovYih}.
@@ -198,7 +198,7 @@ The number of topic clusters for the context of entity $e$ is unknown beforehand
 We create the first topic cluster for the entity's context when the first relevant document is observed. 
 For any following relevant document $d$, the topic clusters are updated as follows.
 We first compute a distance of $v_d$ with every existing topic embedding.
-If minimum distance to any topic cluster is greater than or equal to $\alpha$ ($0 \leq \alpha \leq 1$), we create a new topic cluster just containing the document $d$, otherwise merge the document into the closest cluster to $v_d$, and update it's vector representation.
+If minimum distance to any topic cluster is greater than or equal to $\alpha$ ($0 \leq \alpha \leq 1$), we create a new topic cluster just containing the document $d$, otherwise merge the document into the closest cluster to $v_d$, and update its vector representation.
 Our approach is closely related to the online non-parametric clustering procedure described in \citet{Arvind14}.
 
 %After creating the first cluster for the context, a new topic cluster is created when the cosine distance between of the entity is , where $\alpha$ is an hyperparameter of the model, and . 
@@ -525,38 +525,42 @@ Table \ref{resMacro} shows the precision, recall and F1 results of the methods e
   \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 \midrule
 {\textit{Baseline Single}} & $F_b$ &
-	0.644 & 0.645 & 0.645 & 
-	0.538 & 0.265 & 0.355 &
-	 \textbf{0.476} & 0.238 & 0.317 \\
+	0.630 & 0.626 & 0.628 & 
+	0.468 & 0.246 & 0.323 &
+  0.409 & 0.235 & 0.298 \\
 {\textit{Baseline Multi-task}} & $F_b$ &
-	0.646 & 0.655 & 0.650 & 
-	\textbf{0.607} & 0.414 & 0.492 &
-	0.367 & \textbf{0.405} & 0.385 \\
+	0.632 & 0.632 & 0.632 & 
+	0.465 & 0.403 & 0.432 &
+	0.319 & 0.377 & 0.346 \\
 {\textit{Embedding Combined}} & $F_b+F_e$ & 
-	x & x & x & 
-	0.547 & \textbf{0.521} & \textbf{0.534} &
-	0.449 & 0.376 & \textbf{0.409} \\
+	- & - & - & 
+	0.467 & 0.465 & 0.466 &
+	0.413 & 0.331 & 0.367 \\
 {\textit{Embedding POS}} & $F_b+F_e$ & 
-	x & x & x & 
-	0.538 & 0.464 & 0.498 &
-	0.440 & 0.329 & 0.376 \\
+	- & - & - & 
+	0.480 & 0.419 & 0.447 &
+	0.412 & 0.299 & 0.346 \\
 {\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
-	x & x & x & 
-	0.572 & 0.482 & 0.524 &
-	0.475 & 0.338 & 0.395 \\
+	- & - & - & 
+	0.483 & 0.436 & 0.459 &
+	0.440 & 0.308 & 0.362 \\
 {\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
-	x & x & x & 
-	0.569 & 0.490 & 0.527 & 
-	0.464 & 0.342 & 0.394 \\
+	- & - & - & 
+	0.483 & 0.440 & 0.460 &
+	0.420 & 0.306 & 0.354 \\
 {\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
-	x & x & x & 
-	0.562 & 0.481 & 0.518 &
-	0.461 & 0.326 & 0.382 \\ 
+	- & - & - & 
+  0.481 & 0.435 & 0.457 &
+	0.423 & 0.293 & 0.346 \\
 \midrule
+{\textit{Mean Dynamic*}} & $F_b+F_e+F_t$ & 
+  - & - & - & 
+  0.456 & 0.459 & 0.457 &
+  0.388 & 0.323 & 0.352 \\
 {\textit{Clustering Dynamic*}} & $F_b+F_e+F_c+F_t$ & 
-  x & x & x & 
-  0.550 & 0.525 & 0.538 &
-  0.453 & 0.378 & 0.412 \\ 
+  - & - & - & 
+  0.467 & 0.468 & 0.467 &
+  0.415 & 0.340 & 0.374 \\ 
 \bottomrule
 \end{tabular}
 \end{center}
