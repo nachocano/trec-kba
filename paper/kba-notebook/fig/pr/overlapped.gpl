@@ -1,8 +1,8 @@
 # Chart settings
-set key right top
-set terminal pdf enhanced linewidth 3.0
+set key right center
+set terminal pdf enhanced linewidth 3.0  
 
-set terminal pdf enhanced linewidth 3.0 size 3in,2in  
+set terminal pdf enhanced linewidth 3.0  
 set output "overlapped.pdf"
 # XYChart settings
 set nologscale
@@ -12,14 +12,13 @@ set xlabel "Recall"
 set ylabel "Precision"
 # XYData Plotting
 plot \
-'overlapped-baseline single.dat' every 10 using 1:2 title "baseline single" with lines, \
-'overlapped-baseline multi-task.dat' every 10 using 1:2 title "baseline multi-task" with lines, \
-'overlapped-embedding combined.dat' every 10 using 1:2 title "embedding combined" with lines, \
-'overlapped-embedding pos.dat' every 10 using 1:2 title "embedding pos" with lines, \
-'overlapped-mean static.dat' every 10 using 1:2 title "mean static" with lines, \
-'overlapped-clustering static.dat' every 10 using 1:2 title "clustering static" with lines, \
-'overlapped-mean dynamic.dat' every 10 using 1:2 title "mean dynamic" with lines, \
-'overlapped-clustering dynamic.dat' every 10 using 1:2 title "clustering dynamic" with lines
+'overlapped-basic multi.dat'  using 1:2 title "basic multi" with linespoints pointtype 0 , \
+'overlapped-basic single.dat'  using 1:2 title "basic single" with linespoints pointtype 0 , \
+'overlapped-clust dyn.dat'  using 1:2 title "clust dyn" with linespoints pointtype 0 , \
+'overlapped-clust stat.dat'  using 1:2 title "clust stat" with linespoints pointtype 0 , \
+'overlapped-embedding comb.dat'  using 1:2 title "embedding comb" with linespoints pointtype 0 , \
+'overlapped-embedding pos.dat'  using 1:2 title "embedding pos" with linespoints pointtype 0 , \
+'overlapped-mean dyn.dat'  using 1:2 title "mean dyn" with linespoints pointtype 0 
 
 unset output
 # Wrapup
