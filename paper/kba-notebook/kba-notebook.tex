@@ -45,7 +45,7 @@
 
 \begin{abstract} 
 
-To efficiently explore large corpora of text documents, we need to identify references to entities of interest as well as studying their topics evolve over time. Existing approaches are limited; they are unable to handle streaming data, do not partition entities' references according to topics, or do not accurately estimate temporal vitalness.
+To efficiently explore large corpora of text documents, we need to identify references to entities of interest as well as studying their topics evolution over time. Existing approaches are limited; they are unable to handle streaming data, do not partition entities' references according to topics, or do not accurately estimate temporal vitalness.
 In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. To efficiently handle lexical sparsity, we propose using word embedding representation of the contexts. Each entity context is described by topic clusters that are estimated in a non-parametric manner. Further, we associate a staleness measure to each entity and topic cluster, dynamically estimating their temporal relevance. % based on document frequencies.
 This approach of using distributed word embeddings, non-parametric clustering, and staleness, provides an efficient and appropriate representation of entities' contexts for the streaming setting, facilitating accurate vital filtering.
 
@@ -156,7 +156,7 @@ In case the distance is less than $\alpha$, we add the incoming document to the 
 
 More formally, $\forall\hspace{1mm}c^j_{i-1}$, at time $i$, document $d_i$ is added to the topic cluster that solves the following optimization problem:
 \begin{eqnarray}
-\underset{j}{\argmin}$\;\; $dist(v_{d_i}, v_{c^j_{i-1}}) \nonumber\\
+\underset{j}{\argmin}\;\; dist(v_{d_i}, v_{c^j_{i-1}}) \nonumber\\
 \text{subject to}~dist(v_{d_i}, v_{c^j_{i-1}}) < \alpha 
 \end{eqnarray}
 where $dist(\cdot,\cdot)$ is the cosine distance defined as: %in Equation \ref{cosine}.
@@ -258,7 +258,7 @@ Near $t\mathord{=}40$, the event can be considered over, a steep decrease in pop
 \section{Visualization for Accelerate and Create}
 
 %There is an urgent need for efficient analysis of constantly increasing text collections.
-Visualization techniques provide natural and effective ways to analyze large collections of documents. In this section, we present our data visualization prototype for the Accelerate \& Create task, suitable for streaming corpora of text documents, that enables the user to enlarge a certain part of the visual space while simultaneously shrinking the context, a technique called focus-plus-context \cite{Artur2010}.
+Visualization techniques provide natural and effective ways to analyze large collections of documents. In this section, we present our data visualization prototype for the Accelerate and Create task, suitable for streaming corpora of text documents, that enables the user to enlarge a certain part of the visual space while simultaneously shrinking the context, a technique called focus-plus-context \cite{Artur2010}.
 
 \subsection{Goals and Challenges}
 
@@ -339,16 +339,15 @@ We preprocess the corpus to filter the documents that contain exact string match
 \subsubsection{Categories}
 \label{subcat}
 
-TRECKBA14 corpus contain documents that do not refer to the target entities, even though they may contain mentions to them. We therefore need to introduce a new category of documents, \emph{non-referent}. 
+TRECKBA14 corpus contain documents that do not refer to the target entities, even though they may contain mentions to them. We therefore need to use a \emph{non-referent} category of documents. 
 
 A \emph{non-referent} document means that it doesn't refer to a target entity or the context is so ambiguous that is impossible to decide whether the mention refers to an entity or not. An example for the former case is ``Barack Ferrazzano provides a wide range of business-oriented legal''. For the latter, an example is ``Barack is a great father and a better husband''. The mention ``Barack'' may refer to any married parent named Barack, therefore, we consider it \emph{non-referent}.
 
-The \emph{vital} and \emph{non-vital} classes described in section \ref{setup} fall into a \emph{relevant} category, which contains documents that refer to the target entities.
+The \emph{vital} and \emph{non-vital} classes described in section \ref{setup} fall into a \emph{referent} category, which contains documents that refer to the target entities.
 
 \subsection{Features}
 \label{feat}
 
-\todo{uncomment features table and fix position, don't know how to do it properly}
 A summary of the features we use is presented in Table \ref{features}. Basic features are borrowed from \cite{jingang13}.
 
 %\comment{
@@ -397,7 +396,7 @@ $\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length 
 \bottomrule
 \end{tabular}
 } % end of small
-\caption{\todo{add better caption}Features}
+\caption{Features for Vital Filtering classification}
 \label{features}
 \end{table}
 
@@ -416,21 +415,20 @@ All the experiments use the same \emph{rnr} model trained with the basic feature
 The different models differ on the features used to train and test the $uv$ classifier.
 
 \begin{itemize}
-  \item {\textit{Baseline Single}}: baseline method that uses basic document and document-entity features. \citet{jingang13, bellogin13} have a similar method, though they train their models with more features.
-  \item {\textit{Baseline Multi-task}}: another baseline method. It's similar to {\textit{Basic Single}} but it includes multi-task learning \cite{Caruana93multitasklearning}.
-  \item {\textit{Embedding Combined}}: similar to {\textit{Basic Multi-task}}. It also includes the embeddings features. The word embeddings are computed using the pre-trained Google News dataset. Each document has a single combined embedding, which is calculated from the nouns, proper nouns and verbs found near the mentions to entities as explained in section \ref{docwordemb}.
+  \item {\textit{Baseline Single}}: baseline method that uses $F_b$ features. \citet{jingang13, bellogin13} have a similar method, though they train their models with more features.
+  \item {\textit{Baseline Multi-task}}: baseline method similar to {\textit{Basic Single}} but it includes multi-task learning \cite{Caruana93multitasklearning}.
+  \item {\textit{Embedding Combined}}: similar to {\textit{Basic Multi-task}} but includes $F_e$ features. The word embeddings are computed using the pre-trained Google News dataset. Each document has a single combined embedding, which is calculated from the nouns, proper nouns and verbs found near the mentions to entities as explained in section \ref{docwordemb}.
   \item {\textit{Embedding POS}}: similar to {\textit{Embedding Combined}} but instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns, proper nouns and verbs. It uses the part of speech annotations in the documents to easily extract the different word types.
-  \item {\textit{Mean Static}}: similar to {\textit{Embedding POS}}. It also includes the staleness measure, which is constant throughout the stream, as $\gamma_d = 0$ and $\gamma_i = 1$. No topic clusters are formed, this means that $\alpha = 1$.
-  \item {\textit{Mean Dynamic}}: similar to {\textit{Embedding POS}}. Further, it includes the staleness measure, which fluctuates over time as $\gamma_d \neq 0$ and $\gamma_i \neq 1$. Still no topic clusters are formed, i.e. $\alpha = 1$.
-  \item {\textit{Clustering Static}}: similar to {\textit{Mean Static}} in the sense that the staleness is constant over time, i.e. $\gamma_d = 0$ and $\gamma_i = 1$, but it also includes topic clusters by making $\alpha \neq 1$.
-  \item {\textit{Clustering Dynamic}}: similar to {\textit{Mean Dynamic}} in the sense that the staleness fluctuates over time, i.e. $\gamma_d \neq 0$ and $\gamma_i \neq 1$, but it also adds topic clusters by making $\alpha \neq 1$.
+  \item {\textit{Mean Dynamic}}: similar to the {\textit{Embedding}} methods but it includes the $F_t$ features.
+  \item {\textit{Clustering Static}}: similar to the {\textit{Embedding}} methods but it includes the $F_c$ features.
+  \item {\textit{Clustering Dynamic}}: similar to the {\textit{Embedding}} methods but it includes $F_t$ and $F_c$ features.
 \end{itemize}
 
 \section{Results and Discussion}
 
 \todo{Results of the RNR classification, of all the different approaches, see Table \ref{resMacro}}
 
-Table \ref{resMacro} shows the macro precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool with cutoff=50. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_d=1$ and $\gamma_i=0.1$.
+Table \ref{resMacro} shows the precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool with cutoff=50. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_d=1$ and $\gamma_i=0.1$.
 
 % MICRO
 %\begin{table}[H]
@@ -472,41 +470,42 @@ Table \ref{resMacro} shows the macro precision, recall and F1 results of the met
 \midrule
 {\textit{Baseline Single}} & $F_b$ &
 	x & x & x & 
-	x & x & x &
+	0.538 & 0.265 & 0.355 &
 	 \textbf{0.476} & 0.238 & 0.317 \\
 {\textit{Baseline Multi-task}} & $F_b$ &
 	x & x & x & 
-	x & x & x &
+	\textbf{0.607} & 0.414 & 0.492 &
 	0.367 & \textbf{0.405} & 0.385 \\
 {\textit{Embedding Combined}} & $F_b+F_e$ & 
 	x & x & x & 
-	x & x & x &
+	0.547 & \textbf{0.521} & \textbf{0.534} &
 	0.449 & 0.376 & \textbf{0.409} \\
 {\textit{Embedding POS}} & $F_b+F_e$ & 
 	x & x & x & 
-	x & x & x &
+	0.538 & 0.464 & 0.498 &
 	0.440 & 0.329 & 0.376 \\
-{\textit{Mean Static}} & $F_b+F_e$ & 
-	x & x & x & 
-	x & x & x &
-	0.461 & 0.334 & 0.388 \\
 {\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
 	x & x & x & 
-	x & x & x &
+	0.572 & 0.482 & 0.524 &
 	0.475 & 0.338 & 0.395 \\
 {\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
 	x & x & x & 
-	x & x & x &
+	0.569 & 0.490 & 0.527 & 
 	0.464 & 0.342 & 0.394 \\
 {\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
 	x & x & x & 
-	x & x & x &
+	0.562 & 0.481 & 0.518 &
 	0.461 & 0.326 & 0.382 \\ 
+\midrule
+{\textit{Clustering Dynamic*}} & $F_b+F_e+F_c+F_t$ & 
+  x & x & x & 
+  0.550 & 0.525 & 0.538 &
+  0.453 & 0.378 & 0.412 \\ 
 \bottomrule
 \end{tabular}
 \end{center}
 }
-\caption{UW Vital Filtering scores at TRECKBA 2014\todo{need to fill it}}
+\caption{UW Vital Filtering scores at TRECKBA 2014}
 \label{resMacro}
 \end{table*}
 
@@ -576,7 +575,7 @@ We are surprised to see that {\textit{Embedding Combined}} outperformed all meth
 
 Most of the more advanced models perform better than {\textit{Baseline Multi-task}}. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
 
-Though the staleness and non-parametric clustering runs ({\textit{Mean Static}}, {\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method, they illustrate the importance of these new features as they improve the performance of the {\textit{Embedding POS}} model.
+Though the staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method, they illustrate the importance of these new features as they improve the performance of the {\textit{Embedding POS}} model.
 
 Figure \ref{officialruns} complements the results in Table \ref{resMacro} for different confidence cutoffs. The metrics in each plot are nearly constant up to cutoff=500, and then decrease for higher cutoffs, which matches our expectations.
 
