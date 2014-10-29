@@ -45,9 +45,9 @@
 
 \begin{abstract} 
 
-To efficiently explore large corpora of text documents, we need to identify references to entities of interest as well as studying their topics evolution over time. Existing approaches are limited; they are unable to handle streaming data, do not partition entities' references according to topics, or do not accurately estimate temporal vitalness.
+To efficiently explore large corpora of text documents, we need to identify references to entities of interest as well as studying their topics evolution over time. Existing approaches are limited; they are unable to handle streaming data, do not partition entities' references according to topics, and do not accurately estimate temporal vitalness.
 In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. To efficiently handle lexical sparsity, we propose using word embedding representation of the contexts. Each entity context is described by topic clusters that are estimated in a non-parametric manner. Further, we associate a staleness measure to each entity and topic cluster, dynamically estimating their temporal relevance. % based on document frequencies.
-This approach of using distributed word embeddings, non-parametric clustering, and staleness, provides an efficient and appropriate representation of entities' contexts for the streaming setting, facilitating accurate vital filtering.
+This approach of using distributed word embeddings, non-parametric clustering, and staleness, provides an efficient yet appropriate representation of entities' contexts for streaming settings, facilitating accurate vital filtering.
 
 
 \end{abstract} 
@@ -56,9 +56,9 @@ This approach of using distributed word embeddings, non-parametric clustering, a
 \label{intro}
 
 % general problem,  \cite{RaoMD10,singh11:acl},  \cite{blei12}
-To extract relevant information from streaming text corpora, we often need to find references to entities of interest, and to study their topic trends over time. 
-This is, unfortunately, an incredibly difficult task, and thus a large number of articles that are pertinent are more than too often not retrieved by automated approaches.
-As a consequence, \citet{frank12} observe a considerable lag between the publication date of articles and the date of its citation in Wikipedia.
+To extract relevant information from streaming text corpora, we often need to find references to entities of interest, and study their topic trends over time. 
+This is, unfortunately, an incredibly difficult task, and thus a large number of pertinent articles are seldom retrieved by automated approaches.
+As a consequence, \citet{frank12} observe a considerable lag between the publication date of articles and the date of their citations in Wikipedia.
 The median time is over a year, and the distribution has a long and heavy tail. 
 This gap can be drastically reduced if automated systems can accurately and efficiently suggest relevant documents to editors as soon as they are published.
 
@@ -70,9 +70,9 @@ They are, however, somewhat limited; they depend heavily on labeled data, do not
 
 
 % what we're proposing
-In this submission, we introduce a semi-supervised approach suitable for streaming settings that uses low-dimensional vectors and non-parametric topic clusters to represent entity contexts. We also include a staleness measure that approximates the relevance of the topic clusters. % according to document frequencies. 
+In this submission, we introduce a semi-supervised approach suitable for streaming settings that uses low-dimensional vectors and non-parametric topic clusters to represent entities' contexts. We also include a staleness measure that approximates the relevance of the topic clusters. % according to document frequencies. 
 Further, we update the topic identities, number of topics, and the entities and topics staleness in an online fashion, observing only a single document at a time.
-To utilize labeled data, we include features based on our representation of unlabeled documents to a supervised classifier.
+To utilize labeled data, we add features based on our representation of unlabeled documents to a supervised classifier.
 
 % how it solves it
 This combination of distributed word embeddings, non-parametric clustering, and staleness measure provides an efficient yet accurate representation of entities' contexts that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
@@ -83,14 +83,14 @@ As part of the Accelerate and Create task, we also describe an exploratory tool 
 \section{Vital Filtering Task}
 \label{background}
 
-In this section, we formalize the problem setup, and introduce our notation. 
+In this section, we formalize the problem setup and introduce our notation. 
 %\subsection{Problem Setup}
 %\label{setup}
 We assume a set of $m$ target entities $E = \left\{ {e_1, ..., e_m}\right\}$. We further assume a set of $n$ documents $D = \left\{ {d_{1}, ..., d_{n}}\right\}$ that arrive in chronological order. 
  
 Each document is a sequence of sentences composed by collections of words, annotated with NLP tools.
 Further, we assume w.l.o.g. that every document in $D$ refers to a single entity $e \in E$. %For illustrative purposes we let $e\mathord{=}Barack\hspace{1mm}Obama$.
-Since our focus here is to distinguish vital and non-vital references, we use a naive classifier based resolution to identify the documents relevant to each entity (details in Section~\ref{expe}), although in practice this is a challenging task, and more sophisticated techniques are required~\citep{RaoMD10,singh11:acl}.
+Since our focus here is to distinguish vital and non-vital references, we use a naive classifier based resolution to identify the documents relevant to each entity (details in Section~\ref{expe}), although in practice this is a challenging task and more sophisticated techniques are required~\citep{RaoMD10,singh11:acl}.
 %We further assume \emph{coreferent} references within a document is provided.
 
 A mention to $e$ in a document $d_i \in D$ is identified by a string matching algorithm that searches for exact matches of canonical and surface form names of the entity $e$.
@@ -99,7 +99,7 @@ Finally, we assume an online setting, i.e. the algorithm should provide predicti
 
 Given this setup, the vital filtering task requires classification of each document $d$ relevant to an entity $e$ as follows:
 \begin{itemize}
-    \item \emph{Vital} if the document contains information that, at the time $d$ enters the stream, would cause an update to the entity $e$ with timely, new information about the entity's current state, actions or situation, e.g. ``Barack Obama has been elected President''.
+    \item \emph{Vital} if the document contains information that, at the time it enters the stream, would cause an update to the entity $e$ with timely, new information about the entity's current state, actions or situation, e.g. ``Barack Obama has been elected President''.
     \item \emph{Non-Vital} if the document is relevant, but contains information that is not timely, i.e. it may contain information relevant when building an initial profile of the entity $e$, but does not contain information that an accurate, updated profile would not have, e.g. ``Barack Obama was born on August 4th, 1961''.
 \end{itemize}
 
@@ -107,7 +107,7 @@ Given this setup, the vital filtering task requires classification of each docum
 \label{approach}
 
 Given a stream of documents $D$ that refer to entity $e$, the task at hand is to predict whether those documents are \emph{vital} or \emph{non-vital} to $e$. 
-To detect whether a document contains novel information, one needs to provide accurate and generalizable representation of historical contexts and capture the temporal dynamics of the references.
+To detect whether a document contains novel information, one needs to provide an accurate and generalizable representation of historical contexts and capture the temporal dynamics of the references.
 
 To this end, we propose a three-pronged solution:
 (1) represent documents with low-dimensional embeddings that address sparsity and generalization~(Section~\ref{docwordemb}), 
@@ -120,7 +120,7 @@ To this end, we propose a three-pronged solution:
 \label{docwordemb}
 
 % problem
-To identify whether an entity's context in a document contains novel information, or even if it is relevant for an entity, we need a structured representation of the context. % We need to represent the unstructured entity's contexts in documents as features for our classifier. 
+To identify whether an entity's context in a document contains novel information, or even if it is relevant for the entity, we need a structured representation of the context. % We need to represent the unstructured entity's contexts in documents as features for our classifier. 
 % solution
 A common solution to this problem is to use vector space models, often the Bag of Words (BOW) models, where a document is represented as the bag of its words, disregarding grammar and even word order. 
 % why aren't they enough
@@ -130,7 +130,7 @@ Further, BOW representations ignore the syntactic structure as it will further i
 %\label{emb}
 
 % what is our solution
-In order to address these concerns, we propose to represent entity's contexts in documents using word embeddings.
+In order to address these concerns, we propose to represent contexts of entities in documents using word embeddings.
 A word embedding is a dense, low-dimensional, and real-valued vector associated with every word in a vocabulary such that they capture useful syntactic and semantic properties of the contexts that the word appears in.
 The low-dimensionality of the embeddings as compared to vector space models (hundreds as compared to millions) make them an elegant solution to address lexical sparsity in settings with very few labels~\cite{Turian10wordrepresentations}, and further, they can be efficiently trained on massive corpora.
 % The learned vectors computed using neural networks are quite attractive because they explicitly encode many linguistic regularities and patterns. 
