@@ -394,8 +394,8 @@ These interactive time-series controls combined with the word cloud representati
 \label{related}
 
 Several knowledge based acceleration competitions have been done in the recent past, testifying the great progress achieved in these fields~\cite{gross_doucet_toivonen_trec12}. 
-\citet{xitong12} present one of the best performing systems in TRECKBA12. 
-They created broader representations of entities' profiles based on a Wikipedia snapshot and considered the anchor text of all internal Wikipedia links as related entities. In TRECKBA13 competition, different families of methods were proposed, including query expansion, classification, and learning to rank. 
+\citet{xitong12} present one of the best performing systems in TREC KBA 2012. 
+They created broader representations of entities' profiles based on a Wikipedia snapshot and considered the anchor text of all internal Wikipedia links as related entities. In TREC KBA 2013 competition, different families of methods were proposed, including query expansion, classification, and learning to rank. 
 
 Our strategy is somewhat similar to \citet{jingang13} in the sense that we first target a high recall system and then apply different classification methods to differentiate between \emph{vital} and \emph{non-vital} documents. 
 One key difference is that we do not exploit any external resources to construct features, e.g. we do not use Wikipedia entity pages nor existing citations in the Wikipedia page of an entity. 
@@ -415,7 +415,7 @@ Streaming document filtering is also related to several other fields, including 
 \subsection{Data}
 \label{data}
 
-To assess our method we use TRECKBA14 stream corpus. It has around 20M documents annotated with BBN's Serif NLP tools, including within-doc coreference and dependency parse trees. Further, we use the 71 target entities given by TRECKBA14 organizers for the Vital Filtering task. Among the 20M documents, around 28K have truth labels. From these, only 8K are training instances while the rest are test examples.
+To assess our method we use TREC KBA 2014 filtered stream corpus. It has around 20M documents annotated with BBN's Serif NLP tools, including within-doc coreference and dependency parse trees. Further, we use the 71 target entities given by KBA organizers for the Vital Filtering task. Among the 20M documents, around 28K have truth labels. From these, only 8K are training instances while the rest are test examples.
 %\subsubsection{Preprocess}
 We preprocess the corpus to filter the documents that contain exact string matches to the target entities names, including canonical and surface form names.
 
@@ -483,11 +483,11 @@ $\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length 
 
 %\subsubsection{Categories}
 %\label{subcat}
-TRECKBA14 corpus contain documents that do not refer to the target entities, even though they may contain mentions to them. We therefore need to use a \emph{non-referent} category of documents. 
+TREC KBA 2014 corpus contain documents that do not refer to the target entities, even though they may contain mentions to them. We therefore need to use a \emph{non-referent} category of documents. 
 %
 A \emph{non-referent} document denotes that it does not refer to a target entity or the context is so ambiguous that it is impossible to decide whether the mention refers to an entity or not. An example of the former case is ``Barack Ferrazzano provides a wide range of business-oriented legal''. For the latter, an example is ``Barack is a great father and a better husband''. The mention ``Barack'' may refer to any married parent named Barack, therefore, we consider it \emph{non-referent}.
 %
-The \emph{vital} and \emph{non-vital} classes described in section \ref{background} fall into a \emph{referent} category, which contains documents that refer to the target entities.
+The \emph{vital} and \emph{non-vital} classes described in section \ref{background} fall into a \emph{referent} (or \emph{relevant}) category, which contains documents that refer to the target entities.
 
 Due to the fact that not all documents in the corpus refer to the target entities, we include an extra step in our classification process. We introduce an additional classifier, called $rnr$, which is trained offline and classifies documents as \emph{referent} or \emph{non-referent}.
 Consequently, in every experiment, each document goes first through the \emph{rnr} classifier. Only the \emph{relevant} documents outputted by \emph{rnr} are used as inputs to the $uv$ model, which discriminates between \emph{vital} and \emph{non-vital} documents, the overall focus of this work.
@@ -497,7 +497,7 @@ Consequently, in every experiment, each document goes first through the \emph{rn
 
 We use randomized tree ensembles classifiers \cite{GEW06a} for both \emph{rnr} and \emph{uv}, each composed of $100$ weak learners. Each tree in the ensembles has a maximum depth of $150$.
 %
-All the experiments use the same \emph{rnr} model trained with the basic features listed in section \ref{feat}. 
+All the experiments use the same \emph{rnr} model trained with the basic features listed in section \ref{feat}.
 The different methods differ on the features used to train and test the $uv$ classifier.
 
 \begin{itemize}
@@ -505,9 +505,9 @@ The different methods differ on the features used to train and test the $uv$ cla
   \item {\textit{Baseline Multi-task}}: method similar to {\textit{Basic Single}} but includes multi-task learning \cite{Caruana93multitasklearning}.
   \item {\textit{Embedding Combined}}: similar to {\textit{Basic Multi-task}} but includes $F_e$ features. The word embeddings are computed using the Google News dataset. Each document has a single combined embedding, which is calculated from the nouns, proper nouns and verbs found around the mentions, as described in section \ref{docwordemb}.
   \item {\textit{Embedding POS}}: similar to {\textit{Embedding Combined}} but instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns, proper nouns and verbs. %It uses the part of speech annotations in the documents to easily extract the different word types.
-  \item {\textit{Mean Dynamic}}: similar to the {\textit{Embedding}} methods but it includes the $F_t$ features.
-  \item {\textit{Clustering Static}}: similar to the {\textit{Embedding}} methods but it includes the $F_c$ features.
-  \item {\textit{Clustering Dynamic}}: similar to the {\textit{Embedding}} methods but it includes $F_t$ and $F_c$ features.
+  \item {\textit{Mean Dynamic}}: similar to the {\textit{Embedding POS}} method but it includes the $F_t$ features.
+  \item {\textit{Clustering Static}}: similar to the {\textit{Embedding POS}} method but it includes the $F_c$ features.
+  \item {\textit{Clustering Dynamic}}: similar to the {\textit{Embedding POS}} method but it includes $F_t$ and $F_c$ features.
 \end{itemize}
 
 % MICRO
@@ -536,59 +536,58 @@ The different methods differ on the features used to train and test the $uv$ cla
 \toprule
   \multirow{2}{*}{\textbf{Model}} & 
   \multirow{2}{*}{\textbf{Features}} & 
-  \multicolumn{3}{c}{\textbf{Relevance}, \emph{macro}} & 
-  \multicolumn{3}{c}{\textbf{Vital Filtering}, \emph{micro}} &
-  \multicolumn{3}{c}{\textbf{Vital Filtering}, \emph{macro}}
+  %\multicolumn{3}{c}{\textbf{Relevance}, \emph{macro}} & 
+  \multicolumn{3}{c}{\textbf{Vital only}, \emph{micro}} &
+  \multicolumn{3}{c}{\textbf{Vital only}, \emph{macro}}
 \\ 
   \cmidrule(lr){3-5}
   \cmidrule(lr){6-8}
-  \cmidrule(lr){9-11}
+  %\cmidrule(lr){9-11}
 &   & 
-  \textbf{P} & \textbf{R} & \textbf{F1} & 
+  %\textbf{P} & \textbf{R} & \textbf{F1} & 
   \textbf{P} & \textbf{R} & \textbf{F1} & 
   \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 \midrule
 {\textit{Baseline Single}} & $F_b$ &
-	0.630 & 0.626 & 0.628 & 
+	%0.630 & 0.626 & 0.628 & 
 	0.468 & 0.246 & 0.323 &
   0.409 & 0.235 & 0.298 \\
 {\textit{Baseline Multi-task}} & $F_b$ &
-	0.632 & 0.632 & 0.632 & 
+	%0.632 & 0.632 & 0.632 & 
 	0.465 & 0.403 & 0.432 &
-	0.319 & 0.377 & 0.346 \\
+	0.319 & \textbf{0.377} & 0.346 \\
 {\textit{Embedding Combined}} & $F_b+F_e$ & 
-	0.632 & 0.626 & 0.629 & 
-	0.467 & 0.465 & 0.466 &
-	0.413 & 0.331 & 0.367 \\
+	%0.632 & 0.626 & 0.629 & 
+	0.467 & \textbf{0.465} & \textbf{0.466} &
+	0.413 & 0.331 & \textbf{0.367} \\
 {\textit{Embedding POS}} & $F_b+F_e$ & 
-	- & - & - & 
+	%- & - & - & 
 	0.480 & 0.419 & 0.447 &
 	0.412 & 0.299 & 0.346 \\
 {\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
-	- & - & - & 
-	0.483 & 0.436 & 0.459 &
-	0.440 & 0.308 & 0.362 \\
+	%- & - & - & 
+	\textbf{0.483} & 0.436 & 0.459 &
+	\textbf{0.440} & 0.308 & 0.362 \\
 {\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
-	- & - & - & 
+	%- & - & - & 
 	0.483 & 0.440 & 0.460 &
 	0.420 & 0.306 & 0.354 \\
 {\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
-	- & - & - & 
+	%- & - & - & 
   0.481 & 0.435 & 0.457 &
 	0.423 & 0.293 & 0.346 \\
-\midrule
-{\textit{Mean Dynamic*}} & $F_b+F_e+F_t$ & 
-  - & - & - & 
-  0.456 & 0.459 & 0.457 &
-  0.388 & 0.323 & 0.352 \\
-{\textit{Clustering Static*}} & $F_b+F_e+F_c$ & 
-  - & - & - & 
-  0.466 & 0.454 & 0.460 &
-  0.384 & 0.329 & 0.354 \\
-{\textit{Clustering Dynamic*}} & $F_b+F_e+F_c+F_t$ & 
-  - & - & - & 
-  0.467 & 0.468 & 0.467 &
-  0.415 & 0.340 & 0.374 \\ 
+%{\textit{Mean Dynamic*}} & $F_b+F_e+F_t$ & 
+  %- & - & - & 
+%  0.456 & 0.459 & 0.457 &
+%  0.388 & 0.323 & 0.352 \\
+%{\textit{Clustering Static*}} & $F_b+F_e+F_c$ & 
+  %- & - & - & 
+%  0.466 & 0.454 & 0.460 &
+%  0.384 & 0.329 & 0.354 \\
+%{\textit{Clustering Dynamic*}} & $F_b+F_e+F_c+F_t$ & 
+  %- & - & - & 
+%  0.467 & 0.468 & 0.467 &
+%  0.415 & 0.340 & 0.374 \\ 
 \bottomrule
 \end{tabular}
 \end{center}
@@ -602,11 +601,12 @@ The different methods differ on the features used to train and test the $uv$ cla
 %\todo{Results of the RNR classification, of all the different approaches, see Table \ref{resMacro}}
 
 Table \ref{resMacro} shows the precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool with cutoff=50. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
-{\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models. 
+{\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models.
 On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work.
 Most of the more advanced models perform better than {\textit{Baseline Multi-task}}. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
 %We are surprised to see that {\textit{Embedding Combined}} outperformed all methods, achieving an F1 of 0.409. 
-Though the staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method, they illustrate the importance of these new features as they improve the performance of the {\textit{Embedding POS}} model.
+The staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method.
+Nevertheless, they illustrate the importance of these new features as they use separate embeddings for the different word types, and they all improve the performance of the simple {\textit{Embedding POS}} model.
 
 
 \def \officialRunWidth {0.23\textwidth}
@@ -695,7 +695,7 @@ Though the staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}
 \end{figure}
 
 Figure \ref{officialruns} complements the results in Table \ref{resMacro} for different confidence cutoffs. %The metrics in each plot are nearly constant up to cutoff=500, and then decrease for higher cutoffs, which matches our expectations.
-Figure \ref{precrecall} further illustrates the precision-recall for the different methods listed in Table \ref{resMacro}. It's worth noting that on low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
+Figure \ref{precrecall} further illustrates the precision-recall for the different methods. On low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, in general outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
 %Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
 
@@ -748,12 +748,12 @@ billion & government \\ %\hline
 million & guidance \\
 \bottomrule
 \end{tabular}
-\caption{Topic clusters closest words for ``Shawn Atleo''}
+\caption{Topic clusters closest words for \emph{Shawn Atleo}}
 \label{clusterresult}
 \end{table}
 
-Further, we present some qualitative results on the topic clusters of the previous method using $\alpha\mathord{=}0.8$. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of Shawn Atleo on 11/15/2012.
-By doing some manual search on the entity Shawn Atleo, we can easily confirm that C2 elements make sense. Mr. Atleo is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and finances. It may be explained by all the articles that talk about Shawn announcing huge investments in different areas.
+Further, we present some qualitative results on the topic clusters of this variant of {\textit{Clustering Dynamic}} using $\alpha\mathord{=}0.8$. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of the entity \emph{Shawn Atleo} on 11/15/2012.
+By doing some manual search on \emph{Shawn Atleo}, we can easily confirm that C2 elements make sense. Mr. Atleo is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and finances. It may be explained by all the articles that talk about Shawn announcing huge investments in different areas.
 
 We believe further experimental investigations are needed to account for the correct tuning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. 
 
