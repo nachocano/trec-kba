@@ -15,11 +15,11 @@ set ylabel "Precision"
 plot \
 'uw-f_basic_single-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "basic single" with lines, \
 'uw-f_basic_multi-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "basic multi" with lines, \
-'uw-f_emb_comb-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "embedding (comb)" with lines, \
-'uw-f_emb_pos-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "embedding (multi)" with lines, \
-'uw-f_mean_dyn-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "emb+staleness" with lines, \
-'uw-f_clust_stat-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "emb+clust" with lines, \
-'uw-f_clust_dyn-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "emb+clust+staleness" with lines
+'uw-f_emb_comb-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "embedding comb" with lines, \
+'uw-f_emb_pos-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "embedding pos" with lines, \
+'uw-f_mean_dyn-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "mean dyn" with lines, \
+'uw-f_clust_stat-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "clust static" with lines, \
+'uw-f_clust_dyn-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:2 title "clust dyn" with lines
 
 set terminal pdf enhanced linewidth 2.0 size 3in,3in  
 set output "official-recall.pdf"
@@ -39,7 +39,6 @@ plot \
 'uw-f_clust_stat-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:3 title "clust static" with lines, \
 'uw-f_clust_dyn-ccr-all-entities-vital-require-positives=4-any-up-cutoff-step-size-1.txt' using 1:3 title "clust dyn" with lines
 
-set nokey
 set terminal pdf enhanced linewidth 2.0 size 3in,3in  
 set output "official-f1.pdf"
 # XYChart settings
