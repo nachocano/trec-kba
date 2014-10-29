@@ -261,39 +261,39 @@ The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ clust
 \label{staleness}
 
 % problem
-\todo{too much so far, thus far?}In the representation so far, we have been concerned with detecting whether a document $d$ contains novel context in terms of the documents seen so far for entity $e$.
-By representing the context of an entity as a set of topic clusters, each with an embedding vector, we are able to accurately summarize the information so far, and expect a document that is not close to existing clusters to contain novel information.
-Unfortunately the representation thus far ignores the timeliness of the information, and it is quite possible that a document that is similar to existing clusters contains novel information.
-For example, when a document describes Obama victory in an election, it may be assigned to an existing cluster describing the previous election won by Obama, nonetheless the document contains novel information.
+We have been concerned with detecting whether a document $d$ contains a novel context in terms of the documents seen so far.
+By representing the context of an entity as a set of topic clusters, each with an embedding vector, we are able to accurately summarize the entity's context information. We expect that documents that are not close to existing clusters contain novel information.
+Unfortunately, this representation ignores the timeliness of the information, and it is quite possible that a document that is similar to existing clusters contains novel information.
+For example, when a document describes Obama victory in an election, it may be assigned to an existing cluster describing a previous election he won, nonetheless it actually contains new information.
 
 % solution
-A potential solution is to keep track of when the last document was assigned to a cluster, however KBA challenge requires \emph{all} documents that contain novel information within a time-frame to be marked vital as per the timeliness of the document.
-The timeliness is a subjective interpretation that can vary per entity and event. 
+A potential solution is to keep track of when the last document was assigned to a cluster, however, KBA challenge requires \emph{all} documents that contain novel information within a time frame to be marked vital as per the timeliness of the document.
+Such timeliness is a subjective interpretation that can vary per entity and event. 
 As an example let's assume that several documents talk about an event that happened to entity $e$. 
-During a ``short'' timeframe (here is where the subjective interpretation comes in) that information can be considered new. 
-But after a while, that new information transitions to a background state, so as the documents transition from being \emph{vital} to \emph{non-vital}.
+During a ``short'' time frame (here is where the subjective interpretation comes in) that information can be considered new. 
+After a while, that new information transitions to a background state, so as the documents transition from being \emph{vital} to \emph{non-vital}.
 
 %As mentioned in section \ref{background}, the notion of $vitalness$ is closely related to the timeliness of the new information. 
 
-In order to capture such temporal dynamics that capture novelty of the information in a document and the transition from a \emph{vital} to a \emph{non-vital} state, we propose a dynamic staleness measure $\lambda_i$, $0 < \lambda_i \leq 1$. 
+In order to address such temporal dynamics that capture novelty and transition documents from a \emph{vital} to a \emph{non-vital} state, we propose a dynamic staleness measure $\lambda_i$, $0 < \lambda_i \leq 1$. 
 This staleness measure can be used both for entities and topic clusters.
 Low staleness of the assigned entity/cluster represents \emph{vital} documents, while high staleness intends to represent \emph{non-vital} ones.
 
 The staleness of an entity/cluster at any time $t$ depends on the staleness and the time of the last document $d_j$ assigned to the entity/cluster. % when a relevant document is observed is a two-step process, an exponential decrease followed by a constant increase. $t_{i-1}$ is the $i-1$ document timestamp, 
-The rate of decay of staleness is controlled by a hyperparameter $\gamma_{dec}$, following an exponential decay:
+The staleness decay rate is exponential, and is controlled by the hyperparameter $\gamma_{dec}$:
 \begin{equation}
 \label{decrease}
 \lambda_t = \lambda_{j} \exp{(-\gamma_{dec} \frac{t-t_j}{T})}
 \end{equation}
-where $\gamma_{dec} \geq 0$, $t_j$ and $\lambda_j$ are the timestamp and staleness of the last document assigned to the entity/clister, and $T$ is a constant (used to transform the units of time). %, and $\lambda^{inc}_{i-1}$ is the staleness increase (defined below) at a previous timestamp.
+where $\gamma_{dec} \geq 0$, $t_j$ and $\lambda_j$ are the timestamp and staleness of the last document assigned to the entity/cluster, and $T$ is a constant (used to transform the units of time). %, and $\lambda^{inc}_{i-1}$ is the staleness increase (defined below) at a previous timestamp.
 
-When a new document $d_i$ is assigned to an entity/cluster at time $t_i$, we can estimate the staleness of the entity/cluster at time $t_i$ using the above equation, $\lambda_{t_i} = \lambda_{i-1} \exp{(-\gamma_{dec} \frac{t_i-t_{i-1}}{T})}$.
+When a new document $d_i$ is assigned to an entity/cluster at time $t_i$, we can estimate the staleness of the entity/cluster at that time using the above equation, $\lambda_{t_i} = \lambda_{i-1} \exp{(-\gamma_{dec} \frac{t_i-t_{i-1}}{T})}$.
 This staleness can be used to estimate the novelty of the information in $d_i$, i.e. a low $\lambda_{t_i}$ suggests the document contains information that has not been observed for a while.
 
-Thereafter, since we have just observed a relevant document for the entity/cluster, we need to increase the staleness. 
+Thereafter, since we have just observed a relevant document for the entity/cluster, we need to increase its staleness. 
 %In case we use staleness as an entity's measure, $\lambda^{inc}_{i-1}$ alludes to the staleness of the previous document in the stream that refers to the same entity as document $i$.
 %If we use staleness as a topic cluster's measure, $\lambda^{inc}_{i-1}$ refers to the staleness of the previous document that belongs to the same topic cluster as document $i$.
-We use a simple interpolation to increase the staleness, using $\gamma_{inc}$ to control the change as follows:
+We use a simple interpolation to increase it, using $\gamma_{inc}$ to control the change as follows:
 \begin{equation}
 \lambda_i = 1 - \gamma_{inc}(1 - \lambda_{t_i})
 \end{equation}
@@ -303,7 +303,8 @@ The staleness for the entity/cluster is now $\lambda_i$, which is used when the 
 %\subsubsection{Examples}
 \begin{figure}[tb]
 \centering
-\includegraphics[width=0.7\columnwidth]{fig/staleness1.pdf}
+% use the png to remove the lambdaInc and decrease from the figures
+\includegraphics[width=0.7\columnwidth]{fig/staleness1.png}
 \caption{Staleness of Unpopular Entity}
 \label{stalenesslow}
 \end{figure}
@@ -320,7 +321,7 @@ Near $t\mathord{=}40$, the event can be considered over, a steep decrease in pop
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=0.7\columnwidth]{fig/staleness2.pdf}
+\includegraphics[width=0.7\columnwidth]{fig/staleness2.png}
 \caption{Staleness of Entity with Fluctuating Popularity}
 \label{stalenessmedium}
 \end{figure}
@@ -329,12 +330,12 @@ Near $t\mathord{=}40$, the event can be considered over, a steep decrease in pop
 
 %There is an urgent need for efficient analysis of constantly increasing text collections.
 Intuitive and effective visualization techniques can provide valuable tools in assisting editors to populate entity profiles and to perform exploratory analysis of large collections of documents. 
-In this section, we describe the requirements from such a visualization tool for streaming documents.
-Then, we present our prototype data visualization software for the Accelerate and Create task, that enables users to enlarge a certain parts of the visual space while simultaneously shrinking the context, a technique called focus-plus-context~\cite{Artur2010}.
+In this section, we describe the requirements of such visualization tools for streaming documents.
+Then, we present our prototype data visualization software for the Accelerate and Create task, that enables users to enlarge certain parts of the visual space while simultaneously shrinking the context, a technique called focus-plus-context~\cite{Artur2010}.
 
 \subsection{Goals and Challenges}
 
-Visual exploration of text streams is a challenging task. As text streams continuously evolve, visualization methods should allow to tracing of the temporal evolution of existing topics, detection of new ones, and examination of the relationships between them. 
+Visual exploration of text streams is a challenging task. As text streams continuously evolve, visualization methods should allow tracing the temporal evolution of existing topics, detection of new ones, and examination of the relationships between them.
 Such systems should also allow users to interactively change the information they are seeking at any time. 
 Interactivity is therefore a crucial factor in a domain where users do not know the text documents in advance \cite{AlsakranCLZYDL12}.
 
@@ -364,7 +365,7 @@ In this work we intend to provide an easy-to-use vizualization that enables user
 
 \subsection{Our Implementation}
 
-\todo{timeline, time line or time-line?}We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using lists of similar words.
+We propose a browser-based visualization prototype that enables users to switch between multiple entities of interest, select the time ranges to explore over, explore the prominence of topics over time, and understand the topics using lists of similar words.
 
 %\begin{figure}[tb]
 %\centering
@@ -373,21 +374,21 @@ In this work we intend to provide an easy-to-use vizualization that enables user
 The visualization tool initiates with the user selecting an entity of interest using an autocomplete-enabled text-box.
 For the selected entity, our visualization consists of two views: \emph{Document} and \emph{Topic}.
 
-The document view shows the distribution of relevant and vital documents over the whole time line, summarizing and differentiating the time frames when the documents simply refer to the entity, and when they contain vital information.
-Figure \ref{vitalEvol} illustrates the distribution of predictions of entity ``Kshama Sawant'' in a specific period of time. %The entity search box has been omitted for space reasons.
+The \emph{Document} view shows the distribution of relevant and vital documents over the whole timeline, summarizing and differentiating the time frames when the documents simply refer to the entity, and when they contain vital information.
+Figure \ref{vitalEvol} illustrates the distribution of predictions of entity \emph{Kshama Sawant} in a specific period of time. %The entity search box has been omitted for space reasons.
 Once the interesting time frames have been identified, this view also allows the user to navigate to and read individual documents. 
 
-The topic view shows the evolution of the topic clusters for the entity, showing the predicted proportion of topic clusters over time.
-This view primarily plots the staleness of a cluster over time, indicating when a cluster was started, mentioned in the documents, and falls into obsolescence. 
-The user can also study the topics in finer detail, clicking on at any point on the timeline brings up a word cloud representation of the topic at that time.
-Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity ``Mike Kluse''. 
+The \emph{Topic} view shows the evolution of the topic clusters for the entity, showing the predicted proportion of topic clusters over time.
+This view primarily plots the staleness of a cluster over time, indicating when a cluster was started, mentioned in the documents, and fall into obsolescence. 
+The user can also study the topics in finer detail, clicking on any point in the timeline brings up a word cloud representation of the topic at that time.
+Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity \emph{Mike Kluse}. 
 %The user can select any point in the line to further inspect the topic cluster. 
 Figure \ref{wordcloud} is the result of a user's click on the point highlighted in Figure \ref{stalenessEvol}. 
 It shows the closest words to the topic cluster C1 at that time.
 
-Both of the views consist of a time-line over the whole stream, allowing the users to quickly navigate the view over different time frames.
-The time-line is an active (zoomed) section which can be changed using the time range filters located below. Legends can also act as filters, users have the possibility to observe particular clusters or predictions by selecting them in the legend region.
-With these interactive time-series controls combined with word cloud representations, we provide a system that allow users to explore streaming data and filter information based on their needs.
+Both views consist of a timeline over the whole stream, allowing users to quickly navigate them over different time frames.
+The timeline is an active (zoomed) section which can be changed using the time range filters located below. Legends can also act as filters, users have the possibility to observe particular clusters or predictions by selecting them in the legend region.
+These interactive time-series controls combined with the word cloud representations allow users to explore streaming data and filter information based on their needs.
 
 \section{Related Work}
 \label{related}
