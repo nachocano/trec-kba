@@ -393,7 +393,7 @@ These interactive time-series controls combined with the word cloud representati
 \section{Related Work}
 \label{related}
 
-Several knowledge based acquisition competitions have run in the recent past, testifying to the great progress achieved in these fields~\cite{gross_doucet_toivonen_trec12}. 
+Several knowledge based acceleration competitions have been done in the recent past, testifying the great progress achieved in these fields~\cite{gross_doucet_toivonen_trec12}. 
 \citet{xitong12} present one of the best performing systems in TRECKBA12. 
 They created broader representations of entities' profiles based on a Wikipedia snapshot and considered the anchor text of all internal Wikipedia links as related entities. In TRECKBA13 competition, different families of methods were proposed, including query expansion, classification, and learning to rank. 
 
@@ -422,7 +422,7 @@ We preprocess the corpus to filter the documents that contain exact string match
 \subsection{Features}
 \label{feat}
 
-Out approach extends the classifier introduced by \citet{jingang13}.
+Our approach extends the classifier introduced by \citet{jingang13}.
 We construct a basic set of features based on the document and the entity of interest.
 Using our representation, we include additional features for the embedding, clustering, and staleness.
 A summary of the features we use is presented in Table \ref{features}. 
@@ -495,7 +495,7 @@ Consequently, in every experiment, each document goes first through the \emph{rn
 \subsection{Methods}
 \label{expe}
 
-We use therefore randomized tree ensembles classifiers \cite{GEW06a} for both \emph{rnr} and \emph{uv}, each composed of $100$ weak learners. Each tree in the ensembles has a maximum depth of $150$.
+We use randomized tree ensembles classifiers \cite{GEW06a} for both \emph{rnr} and \emph{uv}, each composed of $100$ weak learners. Each tree in the ensembles has a maximum depth of $150$.
 %
 All the experiments use the same \emph{rnr} model trained with the basic features listed in section \ref{feat}. 
 The different methods differ on the features used to train and test the $uv$ classifier.
