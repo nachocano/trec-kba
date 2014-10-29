@@ -726,7 +726,7 @@ Figure \ref{precrecall} further illustrates the precision-recall for the differe
 
 %We achieve the best result when $\gamma_i=0.5$ and $\gamma_d=0.2$, still lower than \textit{Embedding Combined} but better than previous {\textit{Clustering Dynamic}}. In general, lower $\gamma_d$ seems to be doing a better job. These results further reflect the importance of hyperparameter tuning.
 
-Figure \ref{varyingalpha} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{resMacro}, this new version uses a single embedding representation instead of embeddings per word type. We show the change in micro P-R-F1 for different values of $\alpha$, using $\gamma_{inc}=0.1$ and $\gamma_{dec}=1$. We see that the performance degrades as $\alpha$ increases, which further reflects the importance of hyperparameter tuning.
+Figure \ref{varyingalpha} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{resMacro}, this new version uses a single embedding representation instead of embeddings per word type. We show the change in macro P-R-F1 for different values of $\alpha$, using $\gamma_{inc}=0.1$ and $\gamma_{dec}=1$. We see that the performance degrades as $\alpha$ increases, which further reflects the importance of hyperparameter tuning. Even more, this variant with $\alpha=0.2$ performed the best, achieving a macro F1 of 0.374.
 
 \begin{figure}[tb]
 \centering
@@ -753,7 +753,7 @@ million & guidance \\
 \end{table}
 
 Further, we present some qualitative results on the topic clusters of this variant of {\textit{Clustering Dynamic}} using $\alpha\mathord{=}0.8$. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of the entity \emph{Shawn Atleo} on 11/15/2012.
-By doing some manual search on \emph{Shawn Atleo}, we can easily confirm that C2 elements make sense. Mr. Atleo is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and finances. It may be explained by all the articles that talk about Shawn announcing huge investments in different areas.
+By doing some manual search on \emph{Shawn Atleo}, we can easily confirm that C2 elements make sense. \emph{Mr. Atleo} is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and finances. It may be explained by all the articles that talk about \emph{Shawn} announcing huge investments in different areas.
 
 We believe further experimental investigations are needed to account for the correct tuning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. 
 
