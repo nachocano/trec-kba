@@ -165,26 +165,26 @@ Computing separate embeddings for different word types is a flexibility our meth
 
 % problem
 Although word embeddings can capture context around a single topic quite accurately, they are unable to represent the variety of topics that an entity may be mentioned in.
-For example, Obama in context of \emph{elections} is quite different in context of \emph{presidential speech} or \emph{international visit}.
+For example, Obama in the context of \emph{elections} is quite different to Obama in the context of \emph{presidential speech} or \emph{international visit}.
 Using a single word embedding to represent multiple such topics may result in embeddings that conflate them, being inaccurate for all of them.
 
 % solution
-One typical approach to tackle this problem is by using topic models~\cite{blei12}.
+One typical approach to tackle this problem is using topic models~\cite{blei12}.
 Such models can be trained in an offline manner over a large corpus, followed by streaming inference for each document.
 % its problem
-However the number of topics often need to be decided apriori, which is quite difficult to specify for each entity of interest (non-parametric approaches to LDA are quite expensive).
+However, the number of topics often needs to be decided apriori, which is quite difficult to specify for each entity of interest (non-parametric approaches to LDA are quite expensive).
 Further, drift over time can make the topic distributions obsolete.
-Finally, it is difficult to learn per entity topic distribution if some of the entities have very few relevant documents.
+Finally, it is difficult to learn per entity topic distributions if some of the entities have very few relevant documents.
 
 % our solution
 %We further want to uncover the hidden thematic structure of each entity reference in the stream of documents. 
 %This type of models represent documents as admixtures over topics. 
 %More specifically, each topic is modeled as a distribution over words, and each document is a mixture of such topics \cite{InouyeRD14}. 
 
-Instead of representing the context only using a single embedding, we instead propose to use a number of embeddings that capture the different \emph{topic clusters} of the entity, thus retaining the advantages of using word embedding while still having a precise context representation.
+Instead of representing the context using only a single embedding, we propose to use a number of embeddings that capture the different \emph{topic clusters} of the entity, thus retaining the advantages of using word embedding while still having a precise context representation.
 %To address these limitations, we propose to represent the context of entity $e$ by topic clusters. 
-We assume that the context in a single document belongs to a single topic, however dynamically estimate the number of clusters in a non-parametric manner. 
-As we are concerned with a streaming setting, topic clusters evolve over time, i.e. identities, members, and number of clusters change over time. 
+We assume that the context in a single document belongs to a single topic, though we dynamically estimate the number of clusters in a non-parametric manner.
+As we are concerned with a streaming setting, topic clusters evolve over time, i.e. identities, members and number of clusters change over time. 
 
 We represent each topic cluster by the mean embedding vector of the documents assigned to that cluster at a certain timestamp.
 More precisely, the vector representation of the $j$-th topic cluster at timestamp $t_i$, $c^j_i$, can be computed using: % Equation \ref{nonparamclust}.
@@ -198,7 +198,7 @@ The number of topic clusters for the context of entity $e$ is unknown beforehand
 We create the first topic cluster for the entity's context when the first relevant document is observed. 
 For any following relevant document $d$, the topic clusters are updated as follows.
 We first compute a distance of $v_d$ with every existing topic embedding.
-If minimum distance to any topic cluster is greater than or equal to $\alpha$ ($0 \leq \alpha \leq 1$), we create a new topic cluster just containing the document $d$, otherwise merge the document into the closest cluster to $v_d$, and update its vector representation.
+If the minimum distance to any topic cluster is greater than or equal to $\alpha$ ($0 \leq \alpha \leq 1$), we create a new topic cluster just containing document $d$, otherwise we merge document $d$ into the closest cluster to $v_d$, and update the cluster's vector representation.
 Our approach is closely related to the online non-parametric clustering procedure described in \citet{Arvind14}.
 
 %After creating the first cluster for the context, a new topic cluster is created when the cosine distance between of the entity is , where $\alpha$ is an hyperparameter of the model, and . 
@@ -249,8 +249,8 @@ Note that the cluster center is updated in constant time by incrementally mainta
 \end{figure}
 
 Figure \ref{obama} illustrates an example of such clustering, using two-dimensions to represent the vectors.
-Let's assume document $d_1$ appears in the stream first, and mentions the days Barack Obama was a Senator. As it is the first document referring to the entity Obama, we add a new topic cluster $senator$ with vector $v_{d_1}$. 
-Then document $d_2$ appears in the stream which refers to Obama as being elected President of the United States. 
+Let's assume document $d_1$ appears in the stream first, and mentions the days Barack Obama was a senator. As it is the first document referring to the entity Obama, we add a new topic cluster $senator$ with vector $v_{d_1}$. 
+Then, document $d_2$ appears in the stream, and refers to Obama as being elected President of the United States.
 The distance with the previous cluster $senator$ is greater than $\alpha$ due to semantic difference in the words, therefore the algorithm proceeds to create a new topic cluster $president$ centered at $v_{d_2}$. 
 Finally, $d_3$ enters the stream. 
 It talks about Obama as the current President of the U.S. 
