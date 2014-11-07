@@ -19,18 +19,18 @@ public class ClusteringUtils {
 			final String filename) {
 		final Map<String, List<ClusterExample>> examples = new HashMap<>();
 		BufferedReader br = null;
-		int count = 0;
+		final int count = 0;
 		try {
 			br = new BufferedReader(new FileReader(new File(filename)));
 			String line = null;
 
 			while ((line = br.readLine()) != null) {
 				final String[] str = line.split("\\|");
-				Validate.isTrue(str.length == 3);
-				final String streamId = String.valueOf(++count);
-				final String targetId = str[0];
-				final String dateHour = str[1];
-				final String[] embeddings = str[2].split(" ");
+				Validate.isTrue(str.length == 4);
+				final String streamId = str[0];
+				final String targetId = str[1];
+				final String dateHour = str[2];
+				final String[] embeddings = str[3].split(" ");
 				Validate.isTrue(embeddings.length == ClusteringConstants.EMBEDDING_DIM);
 				// final float[] features = new
 				// float[ClusteringConstants.NR_FEATURES];
