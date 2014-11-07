@@ -36,11 +36,11 @@ public class ClusteringFeatureFactory {
 			tasks.add(t);
 		}
 
-		final List<ClusteringOutput> clusteringOutputs = null;
+		List<ClusteringOutput> clusteringOutputs = null;
 		try {
 			final List<Future<ClusteringOutput>> futures = executor
 					.invokeAll(tasks);
-			// clusteringOutputs = printClusterStats(futures);
+			clusteringOutputs = printClusterStats(futures);
 
 		} catch (final InterruptedException e) {
 			System.out.println(String.format(
@@ -52,12 +52,11 @@ public class ClusteringFeatureFactory {
 			executor.shutdown();
 		}
 
-		// final List<ClusterExample> wholeCorpus = ClusteringUtils.sort(train);
-		// System.out.println(wholeCorpus.size());
+		final List<ClusterExample> wholeCorpus = ClusteringUtils.sort(train);
+		System.out.println(wholeCorpus.size());
 		//
-		// final EntityTimeliness et = new
-		// EntityTimeliness(timestampNormalizer);
-		// et.computeTimeliness(wholeCorpus, nounsParams);
+		final EntityTimeliness et = new EntityTimeliness(timestampNormalizer);
+		et.computeTimeliness(wholeCorpus, nounsParams);
 
 		// final PreMentions pms = new PreMentions();
 		// pms.computePreMentions(train, test);
@@ -73,25 +72,25 @@ public class ClusteringFeatureFactory {
 			throws InterruptedException, ExecutionException, Exception {
 		final List<ClusteringOutput> cOutputs = new LinkedList<>();
 		int nounClusters = 0;
-		int verbClusters = 0;
-		int properNounClusters = 0;
+		// int verbClusters = 0;
+		// int properNounClusters = 0;
 		for (final Future<ClusteringOutput> future : futures) {
 			final ClusteringOutput output = future.get();
 			cOutputs.add(output);
 			if (output != null) {
 				final int nounSize = output.getNounClusters().size();
-				final int verbSize = output.getVerbClusters().size();
-				final int properNounSize = output.getProperNounClusters()
-						.size();
+				// final int verbSize = output.getVerbClusters().size();
+				// final int properNounSize = output.getProperNounClusters()
+				// .size();
 				nounClusters += nounSize;
-				verbClusters += verbSize;
-				properNounClusters += properNounSize;
+				// verbClusters += verbSize;
+				// properNounClusters += properNounSize;
 			}
 		}
 
-		System.out.println("noun clusters " + nounClusters);
-		System.out.println("verb clusters " + verbClusters);
-		System.out.println("proper noun clusters " + properNounClusters);
+		System.out.println("clusters " + nounClusters);
+		// System.out.println("verb clusters " + verbClusters);
+		// System.out.println("proper noun clusters " + properNounClusters);
 		return cOutputs;
 	}
 

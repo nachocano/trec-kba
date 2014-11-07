@@ -165,7 +165,8 @@ public class ClusterExample {
 		// preMentionsNounsAsStr, preMentionsVerbsAsStr,
 		// preMentionsProperNounsAsStr);
 
-		return String.format("%s|%s", sb.toString(), nounsFeaturesAsStr);
+		return String.format("%s|%s %s", sb.toString(), nounsFeaturesAsStr,
+				entityTimelinessAsStr);
 
 	}
 
