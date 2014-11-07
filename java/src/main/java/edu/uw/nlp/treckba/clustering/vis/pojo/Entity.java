@@ -14,6 +14,15 @@ public class Entity {
 	@JsonProperty("cluster_staleness")
 	private List<ClusterStaleness> clusterStaleness;
 	private List<Document> docs;
+	private List<Cluster> clusters;
+
+	public List<Cluster> getClusters() {
+		return clusters;
+	}
+
+	public void setClusters(final List<Cluster> clusters) {
+		this.clusters = clusters;
+	}
 
 	public Entity() {
 		this(null);
@@ -24,6 +33,7 @@ public class Entity {
 		staleness = new ArrayList<>();
 		docs = new ArrayList<>();
 		clusterStaleness = new ArrayList<>();
+		clusters = new ArrayList<>();
 	}
 
 	public String getId() {
@@ -70,7 +80,10 @@ public class Entity {
 
 	public void addClusterStaleness(final ClusterStaleness staleness) {
 		this.clusterStaleness.add(staleness);
+	}
 
+	public void addCluster(final Cluster cluster) {
+		this.clusters.add(cluster);
 	}
 
 }

@@ -67,6 +67,10 @@ public class ClusteringFeatureTask implements Callable<Entity> {
 			System.out.println(String.format("finished processing %s, took %s",
 					targetId, (System.currentTimeMillis() - start) / 1000));
 		}
+		for (final Cluster c : nouns) {
+			entity.addCluster(new edu.uw.nlp.treckba.clustering.vis.pojo.Cluster(
+					c.getName(), c.meanNormalized()));
+		}
 		return this.entity;
 	}
 
