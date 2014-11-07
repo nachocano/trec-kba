@@ -59,7 +59,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 			}
 			System.out.println("processing " + targetId);
 			doProcess(train, "train", vizWriter);
-			doProcess(test, "test", vizWriter);
+			// doProcess(test, "test", vizWriter);
 			if (vizEnabled) {
 				vizWriter.println("]");
 			}

@@ -40,7 +40,7 @@ public class ClusterExample {
 		this.targetId = targetId;
 		this.dateHour = dateHour;
 		this.relevance = relevance;
-		this.timestamp = Long.valueOf(this.streamId.split("-")[0]);
+		this.timestamp = Long.valueOf(dateHour);
 		this.preMentions = new int[BUCKETS];
 		this.preMentionsNouns = new int[BUCKETS];
 		this.preMentionsVerbs = new int[BUCKETS];
@@ -131,15 +131,14 @@ public class ClusterExample {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder(streamId)
-				.append(ClusteringConstants.WHITE_SPACE).append(targetId)
-				.append(ClusteringConstants.WHITE_SPACE).append(dateHour)
-				.append(ClusteringConstants.WHITE_SPACE).append(relevance)
-				.append(ClusteringConstants.WHITE_SPACE).append(features[0]);
-		for (int i = 1; i < features.length; i++) {
-			sb.append(ClusteringConstants.WHITE_SPACE).append(features[i]);
-		}
-		final String nounsArrayAsStr = nouns.arrayToString();
+		final StringBuilder sb = new StringBuilder(targetId).append("|")
+				.append(streamId).append("|").append(timestamp);
+		// .append(ClusteringConstants.WHITE_SPACE).append(relevance)
+		// .append(ClusteringConstants.WHITE_SPACE).append(features[0]);
+		// for (int i = 1; i < features.length; i++) {
+		// sb.append(ClusteringConstants.WHITE_SPACE).append(features[i]);
+		// }
+		// final String nounsArrayAsStr = nouns.arrayToString();
 		// final String verbsArrayAsStr = verbs.arrayToString();
 		// final String properNounsArrayAsStr = properNouns.arrayToString();
 		final String nounsFeaturesAsStr = nouns.featuresToString();
@@ -166,8 +165,7 @@ public class ClusterExample {
 		// preMentionsNounsAsStr, preMentionsVerbsAsStr,
 		// preMentionsProperNounsAsStr);
 
-		return String.format("%s %s %s %s", sb.toString(), nounsArrayAsStr,
-				nounsFeaturesAsStr, entityTimelinessAsStr);
+		return String.format("%s|%s", sb.toString(), nounsFeaturesAsStr);
 
 	}
 

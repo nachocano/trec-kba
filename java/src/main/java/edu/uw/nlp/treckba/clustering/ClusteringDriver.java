@@ -49,9 +49,9 @@ public class ClusteringDriver {
 			trainRelevant = line.getOptionValue("trr");
 			Validate.notNull(trainRelevant);
 			testRelevant = line.getOptionValue("tr");
-			Validate.notNull(testRelevant);
+			// Validate.notNull(testRelevant);
 			outputTest = line.getOptionValue("ot");
-			Validate.notNull(outputTest);
+			// Validate.notNull(outputTest);
 			outputTrain = line.getOptionValue("otr");
 			Validate.notNull(outputTrain);
 			alphaVerb = Float.parseFloat(line.getOptionValue("av"));
@@ -83,14 +83,14 @@ public class ClusteringDriver {
 		final Map<String, List<ClusterExample>> train = ClusteringUtils
 				.readInput(trainRelevant);
 		System.out.println(sort(train));
-		final Map<String, List<ClusterExample>> test = ClusteringUtils
-				.readInput(testRelevant);
-		System.out.println(sort(test));
-		Validate.isTrue(train.keySet().equals(test.keySet()));
+		// final Map<String, List<ClusterExample>> test = ClusteringUtils
+		// .readInput(testRelevant);
+		// System.out.println(sort(test));
+		// Validate.isTrue(train.keySet().equals(test.keySet()));
 		final long start = System.currentTimeMillis();
 
 		final ClusteringFeatureFactory cff = new ClusteringFeatureFactory();
-		cff.computeFeatures(train, test, outputTrain, outputTest, nounsParams,
+		cff.computeFeatures(train, null, outputTrain, null, nounsParams,
 				verbsParams, timestampNormalizer, vizOutput);
 		System.out.println(String.format("total time during processing %s",
 				(System.currentTimeMillis() - start) / 1000));

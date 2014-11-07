@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -26,20 +25,21 @@ public class ClusteringUtils {
 			String line = null;
 
 			while ((line = br.readLine()) != null) {
-				final String[] str = line.split(" ");
-				Validate.isTrue(str.length == ClusteringConstants.D);
-				count += 1;
-				final String streamId = str[0];
-				final String targetId = str[1];
-				final String dateHour = str[2];
-				final int relevance = Integer.valueOf(str[3]);
-				final float[] features = new float[ClusteringConstants.NR_FEATURES];
-				for (int j = 0, i = 4; j < 25 && i < 29; j++, i++) {
-					features[j] = Float.valueOf(str[i]);
-				}
+				final String[] str = line.split("\\|");
+				Validate.isTrue(str.length == 3);
+				final String streamId = String.valueOf(++count);
+				final String targetId = str[0];
+				final String dateHour = str[1];
+				final String[] embeddings = str[2].split(" ");
+				Validate.isTrue(embeddings.length == ClusteringConstants.EMBEDDING_DIM);
+				// final float[] features = new
+				// float[ClusteringConstants.NR_FEATURES];
+				// for (int j = 0, i = 4; j < 25 && i < 29; j++, i++) {
+				// features[j] = Float.valueOf(str[i]);
+				// }
 				final float[] nouns = new float[ClusteringConstants.EMBEDDING_DIM];
-				for (int j = 0, i = 29; j < 300 && i < 329; j++, i++) {
-					nouns[j] = Float.valueOf(str[i]);
+				for (int j = 0; j < ClusteringConstants.EMBEDDING_DIM; j++) {
+					nouns[j] = Float.valueOf(embeddings[j]);
 				}
 				// final float[] verbs = new
 				// float[ClusteringConstants.EMBEDDING_DIM];
@@ -52,11 +52,11 @@ public class ClusteringUtils {
 				// properNouns[j] = Float.valueOf(str[i]);
 				// }
 				final ClusterExample ce = new ClusterExample(streamId,
-						targetId, dateHour, relevance);
+						targetId, dateHour, -10);
 				ce.setNouns(new WordType(nouns));
 				// ce.setVerbs(new WordType(verbs));
 				// ce.setProperNouns(new WordType(properNouns));
-				ce.setFeatures(features);
+				// ce.setFeatures(features);
 				if (!examples.containsKey(targetId)) {
 					final List<ClusterExample> set = new LinkedList<>();
 					examples.put(targetId, set);
@@ -107,15 +107,14 @@ public class ClusteringUtils {
 		return (float) Math.sqrt(norm);
 	}
 
-	public static List<ClusterExample> mergeAndSort(
-			final Map<String, List<ClusterExample>> train,
-			final Map<String, List<ClusterExample>> test) {
-		System.out.println("merging and sorting");
+	public static List<ClusterExample> sort(
+			final Map<String, List<ClusterExample>> train) {
+		System.out.println("sorting");
 		final List<ClusterExample> result = new LinkedList<ClusterExample>();
 		for (final String targetId : train.keySet()) {
 			result.addAll(train.get(targetId));
-			result.addAll(test.get(targetId));
 		}
+		System.out.println(result.size());
 		Collections.sort(result, new TimestampComparator());
 		System.out.println("sorted");
 		return result;

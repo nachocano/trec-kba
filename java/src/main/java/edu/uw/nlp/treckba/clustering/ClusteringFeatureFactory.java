@@ -25,22 +25,22 @@ public class ClusteringFeatureFactory {
 			final long timestampNormalizer, final String vizOutput) {
 
 		final File outputTrainFile = new File(outputTrain);
-		final File outputTestFile = new File(outputTest);
+		// final File outputTestFile = new File(outputTest);
 
 		final List<ClusteringFeatureTask> tasks = new ArrayList<>();
 		for (final String targetId : train.keySet()) {
 			final List<VizDataObject> vizDataObjects = null;
 			final ClusteringFeatureTask t = new ClusteringFeatureTask(targetId,
-					train.get(targetId), test.get(targetId), nounsParams,
-					verbsParams, timestampNormalizer, vizOutput);
+					train.get(targetId), null, nounsParams, verbsParams,
+					timestampNormalizer, vizOutput);
 			tasks.add(t);
 		}
 
-		List<ClusteringOutput> clusteringOutputs = null;
+		final List<ClusteringOutput> clusteringOutputs = null;
 		try {
 			final List<Future<ClusteringOutput>> futures = executor
 					.invokeAll(tasks);
-			clusteringOutputs = printClusterStats(futures);
+			// clusteringOutputs = printClusterStats(futures);
 
 		} catch (final InterruptedException e) {
 			System.out.println(String.format(
@@ -52,9 +52,7 @@ public class ClusteringFeatureFactory {
 			executor.shutdown();
 		}
 
-		// final List<ClusterExample> wholeCorpus =
-		// ClusteringUtils.mergeAndSort(
-		// train, test);
+		// final List<ClusterExample> wholeCorpus = ClusteringUtils.sort(train);
 		// System.out.println(wholeCorpus.size());
 		//
 		// final EntityTimeliness et = new
@@ -65,7 +63,7 @@ public class ClusteringFeatureFactory {
 		// pms.computePreMentions(train, test);
 		// pms.computePreMentions(clusteringOutputs);
 
-		// outputResults(train, outputTrainFile);
+		outputResults(train, outputTrainFile);
 		// outputResults(test, outputTestFile);
 
 	}

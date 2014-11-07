@@ -27,12 +27,8 @@ def main():
   #print 'loaded in %s' % elapsed
 
   for line in open(args.train_or_test_tsv_file).read().splitlines():
-    delimiter = line.find('[')
-    fixed = line[:delimiter-1]
-    arrays = line[delimiter:]
-    lemmas = arrays[1:arrays.find(']')].split(',')
-    lemmas = filter(lambda x: x != '', lemmas)
-
+    entity_id, tokens, timestamp = line.split("\t")
+    lemmas = tokens.split("|")
     lemma_embeddings = []
     for lemma in lemmas:
       lemma = lemma.strip()
@@ -45,7 +41,7 @@ def main():
       lemma_embeddings = np.zeros(args.embeddings_dimension).astype(np.float32)
 
     lemma_embeddings_as_str = ' '.join(str(e) for e in lemma_embeddings)
-    print '%s %s' % (fixed, lemma_embeddings_as_str)
+    print '%s|%s|%s' % (entity_id, timestamp, lemma_embeddings_as_str)
 
 if __name__ == '__main__':
   main()
