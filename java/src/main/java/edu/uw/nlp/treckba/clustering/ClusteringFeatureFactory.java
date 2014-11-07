@@ -2,16 +2,24 @@ package edu.uw.nlp.treckba.clustering;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import edu.uw.nlp.treckba.clustering.vis.pojo.Entity;
 import edu.uw.nlp.treckba.clustering.viz.VizDataObject;
 
 public class ClusteringFeatureFactory {
@@ -36,12 +44,16 @@ public class ClusteringFeatureFactory {
 			tasks.add(t);
 		}
 
-		List<ClusteringOutput> clusteringOutputs = null;
+		final Map<String, Entity> entities = new HashMap<String, Entity>();
 		try {
-			final List<Future<ClusteringOutput>> futures = executor
-					.invokeAll(tasks);
-			clusteringOutputs = printClusterStats(futures);
-
+			final List<Future<Entity>> futures = executor.invokeAll(tasks);
+			for (final Future<Entity> future : futures) {
+				final Entity entity = future.get();
+				if (entity.getDocs().size() < 20) {
+					continue;
+				}
+				entities.put(entity.getId(), entity);
+			}
 		} catch (final InterruptedException e) {
 			System.out.println(String.format(
 					"error: interrupted exception: %s", e.getMessage()));
@@ -56,14 +68,15 @@ public class ClusteringFeatureFactory {
 		System.out.println(wholeCorpus.size());
 		//
 		final EntityTimeliness et = new EntityTimeliness(timestampNormalizer);
-		et.computeTimeliness(wholeCorpus, nounsParams);
+		et.computeTimeliness(wholeCorpus, nounsParams, entities);
 
 		// final PreMentions pms = new PreMentions();
 		// pms.computePreMentions(train, test);
 		// pms.computePreMentions(clusteringOutputs);
 
-		outputResults(train, outputTrainFile);
+		// outputResults(train, outputTrainFile);
 		// outputResults(test, outputTestFile);
+		outputVisResults(entities, outputTrainFile);
 
 	}
 
@@ -92,6 +105,33 @@ public class ClusteringFeatureFactory {
 		// System.out.println("verb clusters " + verbClusters);
 		// System.out.println("proper noun clusters " + properNounClusters);
 		return cOutputs;
+	}
+
+	private void outputVisResults(final Map<String, Entity> entities,
+			final File outputFile) {
+		final Set<String> keys = entities.keySet();
+		final List<Entity> ents = new ArrayList<>();
+		for (final String key : keys) {
+			ents.add(entities.get(key));
+		}
+		final ObjectMapper mapper = new ObjectMapper();
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(outputFile);
+			final String output = mapper.writeValueAsString(ents);
+			pw.println(output);
+		} catch (final JsonGenerationException e) {
+			System.out.println("jsonGeneration Exception " + e.getMessage());
+		} catch (final JsonMappingException e) {
+			System.out.println("jsonMapping Exception " + e.getMessage());
+		} catch (final IOException e) {
+			System.out.println("io Exception " + e.getMessage());
+		} finally {
+			if (pw != null) {
+				pw.close();
+			}
+		}
+
 	}
 
 	private void outputResults(final Map<String, List<ClusterExample>> map,

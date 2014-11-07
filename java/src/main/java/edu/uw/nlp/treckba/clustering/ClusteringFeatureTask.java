@@ -1,20 +1,23 @@
 package edu.uw.nlp.treckba.clustering;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.lang3.Validate;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import edu.uw.nlp.treckba.clustering.vis.pojo.ClusterStaleness;
+import edu.uw.nlp.treckba.clustering.vis.pojo.Document;
+import edu.uw.nlp.treckba.clustering.vis.pojo.Entity;
 import edu.uw.nlp.treckba.clustering.viz.VizDataObject;
 import edu.uw.nlp.treckba.utils.Utils;
 
-public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
+public class ClusteringFeatureTask implements Callable<Entity> {
 
 	private final List<ClusterExample> train;
 	private final List<ClusterExample> test;
@@ -29,6 +32,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 	private final String vizOutput;
 	private int clusterName = 1;
 	private int count = 0; // to generate the json, ugly as hell
+	private final Entity entity;
 
 	public ClusteringFeatureTask(final String targetId,
 			final List<ClusterExample> train, final List<ClusterExample> test,
@@ -45,41 +49,28 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 		this.timestampNormalizer = timestampNormalizer;
 		this.vizEnabled = vizOutput != null;
 		this.vizOutput = vizOutput;
+		this.entity = new Entity(targetId);
+
 	}
 
 	@Override
-	public ClusteringOutput call() throws Exception {
+	public Entity call() throws Exception {
 		final long start = System.currentTimeMillis();
-		PrintWriter vizWriter = null;
 		try {
-			if (vizEnabled) {
-				vizWriter = new PrintWriter(new File(vizOutput,
-						getFilename(targetId)));
-				vizWriter.println("[");
-			}
 			System.out.println("processing " + targetId);
-			doProcess(train, "train", vizWriter);
+			doProcess(train, "train");
 			// doProcess(test, "test", vizWriter);
-			if (vizEnabled) {
-				vizWriter.println("]");
-			}
 		} catch (final Exception exc) {
 			System.out.println("error: exception processing " + targetId
 					+ ". msg " + exc.getMessage());
 		} finally {
 			System.out.println(String.format("finished processing %s, took %s",
 					targetId, (System.currentTimeMillis() - start) / 1000));
-
-			if (vizWriter != null) {
-				vizWriter.close();
-			}
-
 		}
-		return new ClusteringOutput(targetId, nouns, verbs, properNouns);
+		return this.entity;
 	}
 
-	private void doProcess(final List<ClusterExample> set, final String str,
-			final PrintWriter vizWriter) {
+	private void doProcess(final List<ClusterExample> set, final String str) {
 		int left = set.size();
 		for (final ClusterExample example : set) {
 			left -= 1;
@@ -88,7 +79,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 			// populateFeatures(verbs, example, example.getVerbs(), verbsParams,
 			// timestampNormalizer);
 			populateFeatures(nouns, example, example.getNouns(), nounsParams,
-					timestampNormalizer, vizWriter);
+					timestampNormalizer);
 			// populateFeatures(properNouns, example, example.getProperNouns(),
 			// nounsParams, timestampNormalizer);
 
@@ -97,8 +88,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 
 	private float[] populateFeatures(final List<Cluster> clusters,
 			final ClusterExample example, final WordType exampleWordType,
-			final HyperParams params, final long timestampNormalizer,
-			final PrintWriter vizWriter) {
+			final HyperParams params, final long timestampNormalizer) {
 		if (exampleWordType.isZero()) {
 			// do not put it in any cluster
 			exampleWordType.setAllZeros(1);
@@ -109,12 +99,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 			exampleWordType.setLambdaIncrease(0);
 		} else {
 			count++;
-			VizDataObject vizObject = null;
-			if (vizEnabled) {
-				vizObject = new VizDataObject(example.getStreamId(),
-						example.getTimestamp(), exampleWordType.getArray(), -1);
-				vizObject.setRelevance(example.getRelevance());
-			}
+			entity.addDocument(new Document(example.getStreamId(), example
+					.getTimestamp()));
 			if (clusters.isEmpty()) {
 				// create a new cluster, and add the example to it
 				final Cluster c = new Cluster(clusterName++,
@@ -127,12 +113,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 				// lambdaInc=0.5
 				exampleWordType.setLambdaDecrease(c.getLambdaDecrease());
 				exampleWordType.setLambdaIncrease(c.getLambdaIncrease());
-				if (vizEnabled) {
-					vizObject.setClusterName(c.getName());
-					// changing this, just put the current cluster values, not
-					// the values of all other clusters
-					vizObject.updateClustersAndStalenesses(c);
-				}
+				entity.addClusterStaleness(new ClusterStaleness(c.getName(),
+						example.getTimestamp(), c.getLambdaDecrease()));
 			} else {
 				float maxSimilarity = Float.MIN_VALUE;
 				float similaritiesSum = 0;
@@ -159,6 +141,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 					// test docs that should have been part of train,
 					// their timestamp is before
 					if (result == -1.0f) {
+						Validate.isTrue(false);
+						System.exit(1);
 						example.setDiscardFlag(true);
 					} else {
 						// put the example in an existent cluster
@@ -171,11 +155,10 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 								.getLambdaDecrease());
 						exampleWordType.setLambdaIncrease(nearestCluster
 								.getLambdaIncrease());
-						if (vizEnabled) {
-							vizObject.setClusterName(nearestCluster.getName());
-							vizObject
-									.updateClustersAndStalenesses(nearestCluster);
-						}
+						entity.addClusterStaleness(new ClusterStaleness(
+								nearestCluster.getName(), example
+										.getTimestamp(), nearestCluster
+										.getLambdaDecrease()));
 					}
 				} else {
 					// create a new cluster, and add the example to it
@@ -189,14 +172,10 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 					// lambdaInc=0.5
 					exampleWordType.setLambdaDecrease(c.getLambdaDecrease());
 					exampleWordType.setLambdaIncrease(c.getLambdaIncrease());
-					if (vizEnabled) {
-						vizObject.setClusterName(c.getName());
-						vizObject.updateClustersAndStalenesses(c);
-					}
+					entity.addClusterStaleness(new ClusterStaleness(
+							c.getName(), example.getTimestamp(), c
+									.getLambdaDecrease()));
 				}
-			}
-			if (vizEnabled && !example.discard()) {
-				writeVizObject(vizWriter, vizObject);
 			}
 		}
 		return null;

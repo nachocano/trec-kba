@@ -6,6 +6,9 @@ import java.util.Map;
 
 import org.apache.commons.lang3.Validate;
 
+import edu.uw.nlp.treckba.clustering.vis.pojo.Entity;
+import edu.uw.nlp.treckba.clustering.vis.pojo.Staleness;
+
 public class EntityTimeliness {
 
 	private static final class TimeEntry {
@@ -65,10 +68,13 @@ public class EntityTimeliness {
 	}
 
 	public void computeTimeliness(final List<ClusterExample> examples,
-			final HyperParams params) {
+			final HyperParams params, final Map<String, Entity> entities) {
 		final Map<String, TimeEntry> timePerEntity = new HashMap<>();
 		for (final ClusterExample ex : examples) {
 			final String targetId = ex.getTargetId();
+			if (entities.get(targetId) == null) {
+				continue;
+			}
 			if (!timePerEntity.containsKey(targetId)) {
 				if (!ex.discard()) {
 					ex.setEntityTimeliness(ClusteringConstants.START_TIMELINESS);
@@ -76,6 +82,9 @@ public class EntityTimeliness {
 							targetId,
 							new TimeEntry(ex.getEntityTimeliness(), ex
 									.getTimestamp()));
+					entities.get(targetId).addStaleness(
+							new Staleness(ex.getTimestamp(), ex
+									.getEntityTimeliness()));
 				}
 			} else {
 				if (!ex.discard()) {
@@ -88,6 +97,8 @@ public class EntityTimeliness {
 					// decay
 					final float result = timePerEntity.get(targetId)
 							.getTimeliness() * exp;
+					entities.get(targetId).addStaleness(
+							new Staleness(currentTimestamp, result));
 					ex.setEntityTimeliness(result);
 					// increase it
 					final float newTimeliness = 1 - (1 - result)
