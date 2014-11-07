@@ -3,14 +3,14 @@ package edu.uw.nlp.treckba.clustering.vis.pojo;
 public class Cluster {
 
 	private int id;
-	private float[] emb;
+	private float[] words;
 
 	public Cluster() {
 	}
 
 	public Cluster(final int id, final float[] emb) {
 		this.id = id;
-		this.emb = emb;
+		this.words = emb;
 	}
 
 	public int getId() {
@@ -21,12 +21,12 @@ public class Cluster {
 		this.id = id;
 	}
 
-	public float[] getEmb() {
-		return emb;
+	public float[] getWords() {
+		return words;
 	}
 
-	public void setEmb(final float[] emb) {
-		this.emb = emb;
+	public void setWords(final float[] emb) {
+		this.words = emb;
 	}
 
 }

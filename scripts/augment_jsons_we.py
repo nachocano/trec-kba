@@ -18,7 +18,7 @@ def similar_words(model, matrix, target_vector, topn=10):
 
 def build_object(e):
   prob = round(e[1]*1000)
-  return {'t': e[0].encode("utf-8"), 'p': prob}
+  return {'w': e[0].encode("utf-8"), 'c': prob}
 
 def get_embedding_matrix(model, lemmas):
   lemmas_embeddings = []
@@ -28,8 +28,8 @@ def get_embedding_matrix(model, lemmas):
 
 def main():
   parser = argparse.ArgumentParser(description='TODO')
-  parser.add_argument('-json', '--json_folder', required=True)
-  parser.add_argument('-a', '--all_file', required=True)
+  parser.add_argument('-json', '--json_file', required=True)
+  parser.add_argument('-i', '--in_file', required=True)
   parser.add_argument('-e', '--embeddings_file', required=True)
   parser.add_argument('-tp', '--topn', required=False, type=int)
   args = parser.parse_args()
@@ -45,56 +45,38 @@ def main():
   model.init_sims()
 
   words = defaultdict(lambda: defaultdict(list))
-  for line in open(args.all_file).read().splitlines():
-    delimiter = line.find('[')
-    fixed = line[:delimiter-1]
-    arrays = line[delimiter:]
-    lemmas = arrays[1:arrays.find(']')].split(',')
-    lemmas = filter(lambda x: x != '', lemmas)
+  for line in open(args.in_file).read().splitlines():
+    doc_id, entity_id, tokens, timestamp = line.split("\t")
+    lemmas = tokens.split("|")
     lemmas_array = []
     for lemma in lemmas:
       lemma = lemma.strip()
       if lemma != '' and model.__contains__(lemma):
         lemmas_array.append(lemma)
     if len(lemmas_array) > 0:
-      fixed_splitted = fixed.split(' ')
-      streamid = fixed_splitted[0]
-      targetid = fixed_splitted[1][fixed_splitted[1].rfind('/')+1:]
-      words[targetid][streamid] = lemmas_array
+      words[entity_id][doc_id] = lemmas_array
 
-  onlyfiles = [ join(args.json_folder,f) for f in listdir(args.json_folder) if isfile(join(args.json_folder,f)) ]
-  count = len(onlyfiles)
-
-  for filename in onlyfiles:
-    count -= 1
-    start = time.time()
-    print 'processing %s, left %d' % (filename, count)
-    with open(filename, 'r') as f:
-      json_file = json.load(f)
-      targetid = filename[filename.rfind('/')+1:].replace('.json', '')
-      for d in json_file:
-        vector = np.array(d['di']).astype(np.float32)
-        lemmas_array = words[targetid][d['streamid']]
-        matrix = get_embedding_matrix(model, lemmas_array)
-        similars = similar_words(model, matrix, vector, args.topn)
-        asJson = map(build_object, similars)
-        d['di'] = asJson
-        full_array = []
-        for sid in d['streamIds']:
-          full_array.extend(words[targetid][sid])
-        full_matrix = get_embedding_matrix(model, full_array)
-        for elem in d['clusters']:
-          vec = np.array(elem['cj_emb']).astype(np.float32)
-          sim = similar_words(model, full_matrix, vec, args.topn)
-          asJs = map(build_object, sim)
-          elem['cj_emb'] = asJs
-    
-    tmp_file = filename + '.partial'
-    with open(tmp_file, 'w') as f:
-      f.write(json.dumps(json_file))
-    rename(tmp_file, filename)
-    elapsed = time.time() - start
-    print 'processed %s in %s' % (filename, elapsed)
+  start = time.time()
+  with open(args.json_file, 'r') as f:
+    json_file = json.load(f)
+    for e in json_file:
+      entityid = e['id']
+      full_array = []
+      for d in e['docs']:
+        full_array.extend(words[entityid][d['id']])
+      full_matrix = get_embedding_matrix(model, full_array)
+      for elem in e['clusters']:
+        vec = np.array(elem['emb']).astype(np.float32)
+        sim = similar_words(model, full_matrix, vec, args.topn)
+        asJs = map(build_object, sim)
+        elem['emb'] = asJs
+  
+  tmp_file = args.json_file + '.partial'
+  with open(tmp_file, 'w') as f:
+    f.write(json.dumps(json_file))
+  rename(tmp_file, args.json_file)
+  elapsed = time.time() - start
+  print 'processed %s in %s' % (args.json_file, elapsed)
   
 if __name__ == '__main__':
   main()
