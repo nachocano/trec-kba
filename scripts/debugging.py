@@ -62,9 +62,9 @@ def main():
     run = read_run(args.run)
     #print_errors_per_entity(run, x_train_a_r, y_train_a_r, cxt_train_a_r, x_test_a_r, y_test_a_r, cxt_test_a_r)
 
-    print_fp_tp_per_entity(args.output, run, x_test_a_r, y_test_a_r, cxt_test_a_r)
+    #print_fp_tp_per_entity(args.output, run, x_test_a_r, y_test_a_r, cxt_test_a_r)
 
-    #timeliness_per_entity(x_test_a_r, y_test_a_r, cxt_test_a_r, run, args.output)
+    timeliness_per_entity(x_test_a_r, y_test_a_r, cxt_test_a_r, run, args.output)
 
 
  

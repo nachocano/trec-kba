@@ -11,7 +11,10 @@ def main():
   targets = json.load(json_data)['targets']
   for target in targets:
     if target['training_time_range_end']:
-      print target['target_id']
+      targetid = target['target_id']
+      targetid = targetid[targetid.rfind("/")+1:]
+      name = target['canonical_name']
+      print "%s\t%s" % (targetid, name)
 
 if __name__ == '__main__':
   main()

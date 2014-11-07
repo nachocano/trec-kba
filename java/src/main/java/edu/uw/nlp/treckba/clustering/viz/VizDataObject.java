@@ -1,5 +1,6 @@
 package edu.uw.nlp.treckba.clustering.viz;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -7,9 +8,10 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import edu.uw.nlp.treckba.clustering.Cluster;
+import edu.uw.nlp.treckba.clustering.ClusterExample;
 
-@JsonIgnoreProperties({ "di", "clusters" })
-// @JsonIgnoreProperties({ "score", "relevance", "lambdas" })
+//@JsonIgnoreProperties({ "di", "clusters", "streamids" })
+@JsonIgnoreProperties({ "score", "relevance", "lambdas" })
 public class VizDataObject {
 
 	private long timestamp;
@@ -24,6 +26,8 @@ public class VizDataObject {
 	private int clusterName;
 
 	private List<ClusterViz> clusters;
+
+	private List<String> streamids;
 
 	@JsonProperty("lambdas")
 	private List<Lambda> staleness;
@@ -80,6 +84,11 @@ public class VizDataObject {
 		this.clusters.add(new ClusterViz(clu.getName(), clu.meanNormalized()));
 		staleness.add(new Lambda(clu.getName(), clu.getLambdaDecrease(), clu
 				.getLambdaIncrease()));
+		final List<String> sids = new ArrayList<>();
+		for (final ClusterExample ce : clu.getExamples()) {
+			sids.add(ce.getStreamId());
+		}
+		this.streamids = sids;
 		// }
 	}
 
@@ -113,6 +122,14 @@ public class VizDataObject {
 
 	public int getClusterName() {
 		return clusterName;
+	}
+
+	public void setStreamIds(final List<String> streamIds) {
+		this.streamids = streamIds;
+	}
+
+	public List<String> getStreamIds() {
+		return this.streamids;
 	}
 
 }
