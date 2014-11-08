@@ -1,0 +1,36 @@
+README
+
+In the treckba repo, inside java folder, assembly the jar with all the dependencies (needs java 7)
+
+  mvn assembly:single
+
+This will generate a jar named treckba-with-dependencies.jar inside target folder.
+
+Download the pre trained Google embeddings file. 
+https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?usp=sharing
+Unzip it.
+
+Install gensim 
+pip install --upgrade gensim
+
+for more details
+http://radimrehurek.com/gensim/install.html
+
+In the scripts folder, there should be a file called visualization_gen.py. You should execute that passing different params in order to generate the json output for the visualization.
+Example:
+
+python visualization_gen.py -ri ../../sameer/nigeria_dataset_v04.staleness.txt -e ../../data/GoogleNews-vectors-negative300.bin -o ../../sameer/nigeria_dataset_v04.staleness.values.txt -j ../java/target/treckba-jar-with-dependencies.jar -a 0.2 -gd 1 -gi 0.1
+
+-ri = raw input file, with the words instead of the embeddings
+-ei = optional, file with the embeddings computed from the raw input file. If provided, it does not compute the embeddings again, it just uses this file.
+-e = GoogleNews bin file with the pre trained embeddings
+-o = json output file
+-j = treckba-with-dependencies.jar file assembled before
+-a = alpha
+-gd = gamma decrease
+-gi = gamma increase
+-c = optional. Time normalizing constant. Default 86400 (seconds in a day)
+
+NOTE: Loading the google bin file takes around ~3 min and makes stuff a little slow.
+
+

@@ -30,7 +30,8 @@ public class ClusteringFeatureFactory {
 			final Map<String, List<ClusterExample>> test,
 			final String outputTrain, final String outputTest,
 			final HyperParams nounsParams, final HyperParams verbsParams,
-			final long timestampNormalizer, final String vizOutput) {
+			final long timestampNormalizer, final String vizOutput,
+			final int intermediatePoints) {
 
 		final File outputTrainFile = new File(outputTrain);
 		// final File outputTestFile = new File(outputTest);
@@ -68,7 +69,8 @@ public class ClusteringFeatureFactory {
 		System.out.println(wholeCorpus.size());
 		//
 		final EntityTimeliness et = new EntityTimeliness(timestampNormalizer);
-		et.computeTimeliness(wholeCorpus, nounsParams, entities);
+		et.computeTimeliness(wholeCorpus, nounsParams, entities,
+				intermediatePoints);
 
 		// final PreMentions pms = new PreMentions();
 		// pms.computePreMentions(train, test);

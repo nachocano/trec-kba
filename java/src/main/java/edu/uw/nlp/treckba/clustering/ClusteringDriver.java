@@ -16,18 +16,20 @@ public class ClusteringDriver {
 	public static void main(final String[] args) throws Exception {
 
 		final Options options = new Options();
-		options.addOption("tr", true, "test relevant");
-		options.addOption("trr", true, "train relevant");
-		options.addOption("ot", true, "output test");
-		options.addOption("otr", true, "output train");
-		options.addOption("av", true, "alpha verb");
-		options.addOption("an", true, "alpha noun");
-		options.addOption("gvi", true, "gamma verb increase");
-		options.addOption("gvd", true, "gamma verb decrease");
-		options.addOption("gni", true, "gamma noun increase");
-		options.addOption("gnd", true, "gamma noun decrease");
+		// options.addOption("tr", true, "test relevant");
+		options.addOption("i", true, "input");
+		// options.addOption("ot", true, "output test");
+		options.addOption("o", true, "output");
+		// options.addOption("av", true, "alpha verb");
+		options.addOption("a", true, "alpha");
+		options.addOption("gi", true, "gamma increase");
+		options.addOption("gd", true, "gamma decrease");
+		// options.addOption("gni", true, "gamma noun increase");
+		// options.addOption("gnd", true, "gamma noun decrease");
 		options.addOption("tn", true, "timestamp normalizer");
-		options.addOption("viz", true, "vizualization json file");
+		options.addOption("ip", true,
+				"number of intermediate points, default 10");
+		// options.addOption("viz", true, "vizualization json file");
 
 		final CommandLineParser parser = new BasicParser();
 
@@ -43,32 +45,35 @@ public class ClusteringDriver {
 		float gammaNounIncrease = 0;
 		float gammaNounDecrease = 0;
 		long timestampNormalizer = 0;
+		int intermediatePoints = 0;
 
 		try {
 			final CommandLine line = parser.parse(options, args);
-			trainRelevant = line.getOptionValue("trr");
+			trainRelevant = line.getOptionValue("i");
 			Validate.notNull(trainRelevant);
 			testRelevant = line.getOptionValue("tr");
 			// Validate.notNull(testRelevant);
 			outputTest = line.getOptionValue("ot");
 			// Validate.notNull(outputTest);
-			outputTrain = line.getOptionValue("otr");
+			outputTrain = line.getOptionValue("o");
 			Validate.notNull(outputTrain);
-			alphaVerb = Float.parseFloat(line.getOptionValue("av"));
+			alphaVerb = Float.parseFloat(line.getOptionValue("a"));
 			Validate.isTrue(alphaVerb != 0);
-			alphaNoun = Float.parseFloat(line.getOptionValue("an"));
+			alphaNoun = Float.parseFloat(line.getOptionValue("a"));
 			Validate.isTrue(alphaNoun != 0);
-			gammaVerbIncrease = Float.parseFloat(line.getOptionValue("gvi"));
+			gammaVerbIncrease = Float.parseFloat(line.getOptionValue("gi"));
 			// Validate.isTrue(gammaVerbIncrease != 0);
-			gammaVerbDecrease = Float.parseFloat(line.getOptionValue("gvd"));
+			gammaVerbDecrease = Float.parseFloat(line.getOptionValue("gd"));
 			// Validate.isTrue(gammaVerbDecrease != 0);
-			gammaNounIncrease = Float.parseFloat(line.getOptionValue("gni"));
+			gammaNounIncrease = Float.parseFloat(line.getOptionValue("gi"));
 			// Validate.isTrue(gammaNounIncrease != 0);
-			gammaNounDecrease = Float.parseFloat(line.getOptionValue("gnd"));
+			gammaNounDecrease = Float.parseFloat(line.getOptionValue("gd"));
 			// Validate.isTrue(gammaNounDecrease != 0);
 			timestampNormalizer = Long.parseLong(line.getOptionValue("tn"));
 			Validate.isTrue(timestampNormalizer != 0);
 			vizOutput = line.getOptionValue("viz");
+			final String ip = line.getOptionValue("ip");
+			intermediatePoints = ip == null ? 10 : Integer.parseInt(ip);
 
 		} catch (final Exception e) {
 			final HelpFormatter formatter = new HelpFormatter();
@@ -91,7 +96,7 @@ public class ClusteringDriver {
 
 		final ClusteringFeatureFactory cff = new ClusteringFeatureFactory();
 		cff.computeFeatures(train, null, outputTrain, null, nounsParams,
-				verbsParams, timestampNormalizer, vizOutput);
+				verbsParams, timestampNormalizer, vizOutput, intermediatePoints);
 		System.out.println(String.format("total time during processing %s",
 				(System.currentTimeMillis() - start) / 1000));
 	}

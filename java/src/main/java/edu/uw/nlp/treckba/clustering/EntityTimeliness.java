@@ -68,7 +68,8 @@ public class EntityTimeliness {
 	}
 
 	public void computeTimeliness(final List<ClusterExample> examples,
-			final HyperParams params, final Map<String, Entity> entities) {
+			final HyperParams params, final Map<String, Entity> entities,
+			final int intermediatePoints) {
 		final Map<String, TimeEntry> timePerEntity = new HashMap<>();
 		for (final ClusterExample ex : examples) {
 			final String targetId = ex.getTargetId();
@@ -89,23 +90,48 @@ public class EntityTimeliness {
 			} else {
 				if (!ex.discard()) {
 					final long currentTimestamp = ex.getTimestamp();
-					final long tDiff = currentTimestamp
-							- timePerEntity.get(targetId).getTimestamp();
+					final long previousTimestamp = timePerEntity.get(targetId)
+							.getTimestamp();
+					final long tDiff = currentTimestamp - previousTimestamp;
 					final float tDiffNorm = (float) tDiff / this.T;
 					final float exp = (float) Math.exp(-params
 							.getGammaDecrease() * tDiffNorm);
 					// decay
 					final float result = timePerEntity.get(targetId)
 							.getTimeliness() * exp;
-					entities.get(targetId).addStaleness(
-							new Staleness(currentTimestamp, result));
-					ex.setEntityTimeliness(result);
 					// increase it
 					final float newTimeliness = 1 - (1 - result)
 							* params.getGammaIncrease();
 					Validate.isTrue(newTimeliness >= 0 && newTimeliness <= 1);
+
+					// also compute staleness for 9 points in between
+					// repeated code, i don't care
+					if (tDiff != 0) {
+						final long period = tDiff / intermediatePoints;
+						// use 9 just in case there's is a rounding problem
+						for (int i = 1; i < intermediatePoints; i++) {
+							final long intermediateTimestamp = previousTimestamp
+									+ i * period;
+							final long intDiff = currentTimestamp
+									- intermediateTimestamp;
+							final float intDiffNorm = (float) intDiff / this.T;
+							final float intExp = (float) Math.exp(-params
+									.getGammaDecrease() * intDiffNorm);
+							// decay
+							final float intermediateStaleness = timePerEntity
+									.get(targetId).getTimeliness() * intExp;
+							entities.get(targetId).addStaleness(
+									new Staleness(intermediateTimestamp,
+											intermediateStaleness));
+						}
+					}
+					// doing this after the intermediate calculations
+					entities.get(targetId).addStaleness(
+							new Staleness(currentTimestamp, result));
+					ex.setEntityTimeliness(result);
 					timePerEntity.put(targetId, new TimeEntry(newTimeliness,
 							currentTimestamp));
+
 				}
 			}
 		}
