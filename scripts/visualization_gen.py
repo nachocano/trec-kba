@@ -91,44 +91,44 @@ def main():
     elapsed = time.time() - start
     print 'staleness features computed in %s' % elapsed
 
-    if not model:
-      model = load_model(args.embeddings_file)
+  if not model:
+    model = load_model(args.embeddings_file)
 
-    start = time.time()
-    print 'computing word clouds...'
-    words = defaultdict(lambda: defaultdict(list))
-    # inefficient, done before, I don't care
-    for line in open(args.raw_input).read().splitlines():
-      doc_id, entity_id, tokens, timestamp = line.split("\t")
-      lemmas = tokens.split("|")
-      lemmas_array = []
-      for lemma in lemmas:
-        lemma = lemma.strip()
-        if lemma != '' and model.__contains__(lemma):
-          lemmas_array.append(lemma)
-      if len(lemmas_array) > 0:
-        words[entity_id][doc_id] = lemmas_array
+  start = time.time()
+  print 'computing word clouds...'
+  words = defaultdict(lambda: defaultdict(list))
+  # inefficient, done before, I don't care
+  for line in open(args.raw_input).read().splitlines():
+    doc_id, entity_id, tokens, timestamp = line.split("\t")
+    lemmas = tokens.split("|")
+    lemmas_array = []
+    for lemma in lemmas:
+      lemma = lemma.strip()
+      if lemma != '' and model.__contains__(lemma):
+        lemmas_array.append(lemma)
+    if len(lemmas_array) > 0:
+      words[entity_id][doc_id] = lemmas_array
 
-    tmp_file = args.output_file + '.partial'
-    with open(args.output_file, 'r') as f:
-      with open(tmp_file, 'w') as tmp:
-        json_file = json.load(f)
-        for e in json_file:
-          entityid = e['id']
-          full_array = []
-          for d in e['docs']:
-            full_array.extend(words[entityid][d['id']])
-          full_matrix = get_embedding_matrix(model, full_array)
-          for elem in e['clusters']:
-            vec = np.array(elem['words']).astype(np.float32)
-            sim = similar_words(model, full_matrix, vec, args.topn)
-            asJs = map(build_object, sim)
-            elem['words'] = asJs
-          tmp.write(json.dumps(e))
-          tmp.write('\n')
-    rename(tmp_file, args.output_file)
-    elapsed = time.time() - start
-    print 'computed word clouds in %s' % elapsed
+  tmp_file = args.output_file + '.partial'
+  with open(args.output_file, 'r') as f:
+    with open(tmp_file, 'w') as tmp:
+      json_file = json.load(f)
+      for e in json_file:
+        entityid = e['id']
+        full_array = []
+        for d in e['docs']:
+          full_array.extend(words[entityid][d['id']])
+        full_matrix = get_embedding_matrix(model, full_array)
+        for elem in e['clusters']:
+          vec = np.array(elem['words']).astype(np.float32)
+          sim = similar_words(model, full_matrix, vec, 10)
+          asJs = map(build_object, sim)
+          elem['words'] = asJs
+        tmp.write(json.dumps(e))
+        tmp.write('\n')
+  rename(tmp_file, args.output_file)
+  elapsed = time.time() - start
+  print 'computed word clouds in %s' % elapsed
 
 if __name__ == '__main__':
   main()
