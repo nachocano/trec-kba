@@ -85,9 +85,11 @@ def main():
     print 'embeddings computed in %s' % elapsed
 
     print 'computing staleness features...'
+    start = time.time()
     java_cmd = 'java -jar %s -i %s -o %s -a %s -gi %s -gd %s -tn %s -ip 10' % (args.jar_path, args.embedding_input, args.output_file, args.alpha, args.gamma_increase, args.gamma_decrease, args.time_constant)
-    os.system(java_cmd)
-    print 'staleness features computed'
+    system(java_cmd)
+    elapsed = time.time() - start
+    print 'staleness features computed in %s' % elapsed
 
     if not model:
       model = load_model(args.embeddings_file)
@@ -108,7 +110,7 @@ def main():
         words[entity_id][doc_id] = lemmas_array
 
     tmp_file = args.output_file + '.partial'
-    with open(args.args.output_file, 'r') as f:
+    with open(args.output_file, 'r') as f:
       with open(tmp_file, 'w') as tmp:
         json_file = json.load(f)
         for e in json_file:
