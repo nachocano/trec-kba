@@ -84,12 +84,12 @@ def main():
     elapsed = time.time() - start
     print 'embeddings computed in %s' % elapsed
 
-    print 'computing staleness features...'
-    start = time.time()
-    java_cmd = 'java -jar %s -i %s -o %s -a %s -gi %s -gd %s -tn %s -ip 10' % (args.jar_path, args.embedding_input, args.output_file, args.alpha, args.gamma_increase, args.gamma_decrease, args.time_constant)
-    system(java_cmd)
-    elapsed = time.time() - start
-    print 'staleness features computed in %s' % elapsed
+  print 'computing staleness features...'
+  start = time.time()
+  java_cmd = 'java -jar %s -i %s -o %s -a %s -gi %s -gd %s -tn %s -ip 10' % (args.jar_path, args.embedding_input, args.output_file, args.alpha, args.gamma_increase, args.gamma_decrease, args.time_constant)
+  system(java_cmd)
+  elapsed = time.time() - start
+  print 'staleness features computed in %s' % elapsed
 
   if not model:
     model = load_model(args.embeddings_file)
