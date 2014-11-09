@@ -120,12 +120,12 @@ def main():
             full_array.extend(words[entityid][d['id']])
           full_matrix = get_embedding_matrix(model, full_array)
           for elem in e['clusters']:
-            vec = np.array(elem['emb']).astype(np.float32)
+            vec = np.array(elem['words']).astype(np.float32)
             sim = similar_words(model, full_matrix, vec, args.topn)
             asJs = map(build_object, sim)
-            elem['emb'] = asJs
-        tmp.write(json.dumps(e))
-        tmp.write('\n')
+            elem['words'] = asJs
+          tmp.write(json.dumps(e))
+          tmp.write('\n')
     rename(tmp_file, args.output_file)
     elapsed = time.time() - start
     print 'computed word clouds in %s' % elapsed
