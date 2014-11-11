@@ -10,15 +10,25 @@ from os import system
 from os import rename
 import json
 
-def similar_words(model, matrix, target_vector, topn=10):
-    dists = np.dot(matrix, target_vector)
-    best = np.argsort(dists)[::-1][:topn]
-    result = [(model.index2word[sim], dists[sim]) for sim in best]
-    return result[:topn]
+def closest_words(array, target_vector, words):
+    max_sim = -10
+    entity = None
+    doc = None
+    for entityid, docid, elem in array:
+      tmp_max = np.dot(elem, target_vector)
+      if tmp_max > max_sim:
+        max_sim = tmp_max
+        entity = entityid
+        doc = docid
+    lemmas = words[entity][doc]
+    closest = []
+    for lemma in lemmas:
+      closest.append((lemma, 0))
+    return closest
 
 def build_object(e):
   prob = round(e[1]*1000)
-  return {'w': e[0].encode("utf-8"), 'c': prob}
+  return {'w': e[0], 'c': prob}
 
 def get_embedding_matrix(model, lemmas):
   lemmas_embeddings = []
@@ -91,8 +101,17 @@ def main():
   elapsed = time.time() - start
   print 'staleness features computed in %s' % elapsed
 
-  if not model:
-    model = load_model(args.embeddings_file)
+  #if not model:
+  #  model = load_model(args.embeddings_file)
+
+  start = time.time()
+  print 'reading doc embeddings...'
+  doc_embeddings = defaultdict(lambda: defaultdict(list))
+  for line in open(args.embedding_input).read().splitlines():
+    doc_id, entity_id, timestamp, emb = line.split('|')
+    doc_embeddings[entity_id][doc_id] = np.array(emb.split(" ")).astype(np.float32)
+  elapsed = time.time() - start
+  print 'read doc embeddings in %s' % elapsed
 
   start = time.time()
   print 'computing word clouds...'
@@ -104,7 +123,7 @@ def main():
     lemmas_array = []
     for lemma in lemmas:
       lemma = lemma.strip()
-      if lemma != '' and model.__contains__(lemma):
+      if lemma != '':
         lemmas_array.append(lemma)
     if len(lemmas_array) > 0:
       words[entity_id][doc_id] = lemmas_array
@@ -117,12 +136,11 @@ def main():
         entityid = e['id']
         full_array = []
         for d in e['docs']:
-          full_array.extend(words[entityid][d['id']])
-        full_matrix = get_embedding_matrix(model, full_array)
+          full_array.append((entityid, d['id'], doc_embeddings[entityid][d['id']]))
         for elem in e['clusters']:
           vec = np.array(elem['words']).astype(np.float32)
-          sim = similar_words(model, full_matrix, vec, 10)
-          asJs = map(build_object, sim)
+          closest = closest_words(full_array, vec, words)
+          asJs = map(build_object, closest)
           elem['words'] = asJs
         tmp.write(json.dumps(e))
         tmp.write('\n')

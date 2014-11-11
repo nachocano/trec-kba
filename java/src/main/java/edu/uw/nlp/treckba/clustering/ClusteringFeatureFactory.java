@@ -50,9 +50,9 @@ public class ClusteringFeatureFactory {
 			final List<Future<Entity>> futures = executor.invokeAll(tasks);
 			for (final Future<Entity> future : futures) {
 				final Entity entity = future.get();
-				if (entity.getDocs().size() < 20) {
-					continue;
-				}
+				// if (entity.getDocs().size() < 20) {
+				// continue;
+				// }
 				entities.put(entity.getId(), entity);
 			}
 		} catch (final InterruptedException e) {
