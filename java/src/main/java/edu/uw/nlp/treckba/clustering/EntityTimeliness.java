@@ -71,7 +71,9 @@ public class EntityTimeliness {
 			final HyperParams params, final Map<String, Entity> entities,
 			final int intermediatePoints) {
 		final Map<String, TimeEntry> timePerEntity = new HashMap<>();
+		int left = examples.size();
 		for (final ClusterExample ex : examples) {
+			System.out.println("Left " + --left);
 			final String targetId = ex.getTargetId();
 			if (entities.get(targetId) == null) {
 				continue;
@@ -107,11 +109,13 @@ public class EntityTimeliness {
 					// also compute staleness for 9 points in between
 					// repeated code, i don't care
 					if (tDiff != 0) {
-						final long period = tDiff / intermediatePoints;
-						// use 9 just in case there's is a rounding problem
-						for (int i = 1; i < intermediatePoints; i++) {
-							final long intermediateTimestamp = previousTimestamp
-									+ i * period;
+						long intermediateTimestamp = previousTimestamp
+								+ intermediatePoints;
+						System.out
+								.println("Computing intermediate staleness...");
+						int numberOfIntermediate = 0;
+						while (intermediateTimestamp < currentTimestamp
+								&& numberOfIntermediate < 100) {
 							final long intDiff = currentTimestamp
 									- intermediateTimestamp;
 							final float intDiffNorm = (float) intDiff / this.T;
@@ -123,7 +127,13 @@ public class EntityTimeliness {
 							entities.get(targetId).addStaleness(
 									new Staleness(intermediateTimestamp,
 											intermediateStaleness));
+							intermediateTimestamp += intermediatePoints;
+							numberOfIntermediate++;
+							System.out.println("intermediate "
+									+ numberOfIntermediate + " staleness "
+									+ intermediateStaleness);
 						}
+						System.out.println("Computed intermediate staleness");
 					}
 					// doing this after the intermediate calculations
 					entities.get(targetId).addStaleness(
@@ -136,5 +146,4 @@ public class EntityTimeliness {
 			}
 		}
 	}
-
 }

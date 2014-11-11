@@ -73,7 +73,7 @@ public class ClusteringDriver {
 			Validate.isTrue(timestampNormalizer != 0);
 			vizOutput = line.getOptionValue("viz");
 			final String ip = line.getOptionValue("ip");
-			intermediatePoints = ip == null ? 10 : Integer.parseInt(ip);
+			intermediatePoints = ip == null ? 1000 : Integer.parseInt(ip);
 
 		} catch (final Exception e) {
 			final HelpFormatter formatter = new HelpFormatter();

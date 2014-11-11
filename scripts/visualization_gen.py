@@ -59,6 +59,7 @@ def main():
   parser.add_argument('-gd', '--gamma_decrease', required=True)
   parser.add_argument('-gi', '--gamma_increase', required=True)
   parser.add_argument('-c', '--time_constant', required=False)
+  parser.add_argument('-of', '--intermediate_offset', required=True)
   args = parser.parse_args()
 
   embeddings_dimension = 300
@@ -90,13 +91,13 @@ def main():
           lemma_embeddings = np.zeros(embeddings_dimension).astype(np.float32)
 
         lemma_embeddings_as_str = ' '.join(str(e) for e in lemma_embeddings)
-        f.write('%s|%s|%s|%s\n' % (doc_id, entity_id, timestamp, lemma_embeddings_as_str))
+        f.write('%s\t%s\t%s\t%s\n' % (doc_id, entity_id, timestamp, lemma_embeddings_as_str))
     elapsed = time.time() - start
     print 'embeddings computed in %s' % elapsed
 
   print 'computing staleness features...'
   start = time.time()
-  java_cmd = 'java -jar %s -i %s -o %s -a %s -gi %s -gd %s -tn %s -ip 10' % (args.jar_path, args.embedding_input, args.output_file, args.alpha, args.gamma_increase, args.gamma_decrease, args.time_constant)
+  java_cmd = 'java -jar %s -i %s -o %s -a %s -gi %s -gd %s -tn %s -ip %s' % (args.jar_path, args.embedding_input, args.output_file, args.alpha, args.gamma_increase, args.gamma_decrease, args.time_constant, args.intermediate_offset)
   system(java_cmd)
   elapsed = time.time() - start
   print 'staleness features computed in %s' % elapsed
@@ -108,7 +109,7 @@ def main():
   print 'reading doc embeddings...'
   doc_embeddings = defaultdict(lambda: defaultdict(list))
   for line in open(args.embedding_input).read().splitlines():
-    doc_id, entity_id, timestamp, emb = line.split('|')
+    doc_id, entity_id, timestamp, emb = line.split('\t')
     doc_embeddings[entity_id][doc_id] = np.array(emb.split(" ")).astype(np.float32)
   elapsed = time.time() - start
   print 'read doc embeddings in %s' % elapsed

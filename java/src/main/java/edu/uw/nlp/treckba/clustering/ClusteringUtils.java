@@ -25,7 +25,7 @@ public class ClusteringUtils {
 			String line = null;
 
 			while ((line = br.readLine()) != null) {
-				final String[] str = line.split("\\|");
+				final String[] str = line.split("\t");
 				Validate.isTrue(str.length == 4);
 				final String streamId = str[0];
 				final String targetId = str[1];
