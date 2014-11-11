@@ -115,9 +115,9 @@ public class EntityTimeliness {
 								.println("Computing intermediate staleness...");
 						int numberOfIntermediate = 0;
 						while (intermediateTimestamp < currentTimestamp
-								&& numberOfIntermediate < 100) {
-							final long intDiff = currentTimestamp
-									- intermediateTimestamp;
+								&& numberOfIntermediate < 1000) {
+							final long intDiff = intermediateTimestamp
+									- previousTimestamp;
 							final float intDiffNorm = (float) intDiff / this.T;
 							final float intExp = (float) Math.exp(-params
 									.getGammaDecrease() * intDiffNorm);
