@@ -133,7 +133,7 @@ def main():
   with open(args.output_file, 'r') as f:
     with open(tmp_file, 'w') as tmp:
       for line in f.read().splitlines():
-        json_file = json.load(line)
+        json_file = json.loads(line)
         for e in json_file:
           entityid = e['id']
           full_array = []
