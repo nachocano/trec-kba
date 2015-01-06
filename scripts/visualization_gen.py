@@ -132,19 +132,20 @@ def main():
   tmp_file = args.output_file + '.partial'
   with open(args.output_file, 'r') as f:
     with open(tmp_file, 'w') as tmp:
-      json_file = json.load(f)
-      for e in json_file:
-        entityid = e['id']
-        full_array = []
-        for d in e['docs']:
-          full_array.append((entityid, d['id'], doc_embeddings[entityid][d['id']]))
-        for elem in e['clusters']:
-          vec = np.array(elem['words']).astype(np.float32)
-          closest = closest_words(full_array, vec, words)
-          asJs = map(build_object, closest)
-          elem['words'] = asJs
-        tmp.write(json.dumps(e))
-        tmp.write('\n')
+      for line in f.read().splitlines():
+        json_file = json.load(line)
+        for e in json_file:
+          entityid = e['id']
+          full_array = []
+          for d in e['docs']:
+            full_array.append((entityid, d['id'], doc_embeddings[entityid][d['id']]))
+          for elem in e['clusters']:
+            vec = np.array(elem['words']).astype(np.float32)
+            closest = closest_words(full_array, vec, words)
+            asJs = map(build_object, closest)
+            elem['words'] = asJs
+          tmp.write(json.dumps(e))
+          tmp.write('\n')
   rename(tmp_file, args.output_file)
   elapsed = time.time() - start
   print 'computed word clouds in %s' % elapsed

@@ -120,8 +120,10 @@ public class ClusteringFeatureFactory {
 		PrintWriter pw = null;
 		try {
 			pw = new PrintWriter(outputFile);
-			final String output = mapper.writeValueAsString(ents);
-			pw.println(output);
+			for (final Entity entity : ents) {
+				final String output = mapper.writeValueAsString(entity);
+				pw.println(output);
+			}
 		} catch (final JsonGenerationException e) {
 			System.out.println("jsonGeneration Exception " + e.getMessage());
 		} catch (final JsonMappingException e) {
