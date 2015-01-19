@@ -20,3 +20,32 @@ dist
 test-output
 build.log
 
+#OSX junk
+*.DS_Store
+
+#lyx junk
+*.lyx~
+
+#latex junk
+*.aux
+*.log
+*.out
+*.toc
+*.blg
+*.bbl
+*.bcf
+*.bst
+*.dvi
+*.pdf
+*.fdb_latexmk
+*.fls
+*.nav
+*.synctex.gz
+
+#emacs junk
+*.el
+*.snm
+_region_.tex
+
+#UNIX junk:
+~
