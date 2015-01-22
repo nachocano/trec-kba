@@ -1,6 +1,6 @@
 \documentclass{sig-alternate}
 
-\usepackage{times}
+%\usepackage{times}
 \usepackage{graphicx}
 %\usepackage{mdwlist}
 \usepackage{bbm}
@@ -32,7 +32,7 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{Distributed Non-Parametric Representations\\ for Vital Filtering}
+\title{Embedded Entity Representations for Vital Filtering\\on Large Corpora}
 %\subtitle{[Extended Abstract]
 %\titlenote{A full version of this paper is available as
 %\textit{Author's Guide to Preparing ACM SIG Proceedings Using
@@ -116,25 +116,42 @@
 
 \begin{abstract} 
 
-To efficiently explore large corpora of text documents, we need to identify references to entities of interest as well as studying their topics evolution over time. Existing approaches are limited; they are unable to handle streaming data, do not partition entities' references according to topics, and do not accurately estimate temporal vitalness.
-In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. To efficiently handle lexical sparsity, we propose using word embedding representation of the contexts. Each entity context is described by topic clusters that are estimated in a non-parametric manner. Further, we associate a staleness measure to each entity and topic cluster, dynamically estimating their temporal relevance. % based on document frequencies.
-This approach of using distributed word embeddings, non-parametric clustering, and staleness, provides an efficient yet appropriate representation of entities' contexts for streaming settings, facilitating accurate vital filtering.
 
+% vital filtering motivation
+% in other words..
+% existing approaches to modeling entity contexts suck
+% what we do in this paper
+% how each part addresses the problem
+% scalable?
+% experiment results
+
+
+The task of identifying documents that contain vital information for an entity of interest, known as \emph{vital filtering}, has become increasingly relevant as the corpora available for extraction grow in size. 
+To efficiently explore large corpora of text documents, we need to identify references to entities of interest as well as studying their topics evolution over time. 
+Existing approaches are limited; they are unable to handle streaming data, do not partition entities' references according to topics, and do not accurately estimate temporal vitalness.
+In this paper we introduce a embedding-based non-parametric representation of entities that addresses the above limitations. 
+To efficiently handle lexical sparsity, we propose using word embedding representation of the contexts. 
+The entity contexts are described by topic clusters that are estimated in a non-parametric manner. 
+Further, we associate a staleness measure to each entity and topic cluster, dynamically estimating their temporal relevance. % based on document frequencies.
+This approach of using distributed word embeddings, non-parametric clustering, and staleness provides an efficient yet appropriate representation of entity contexts for streaming settings, facilitating accurate vital filtering.
+Experiments on the TAC KBA vital filtering task evaluate the utility of our contributions, demonstrating significant gains over existing approaches.
 
 \end{abstract} 
 
 % A category with the (minimum) three required fields
-\category{H.4}{Information Systems Applications}{Miscellaneous}
+%\category{H.4}{Information Systems Applications}{Miscellaneous}
 %A category including the fourth, optional field follows...
-\category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
+%\category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
 
-\terms{Theory}
+%\terms{Theory}
 
-\keywords{ACM proceedings, \LaTeX, text tagging}
+%\keywords{ACM proceedings, \LaTeX, text tagging}
 
 \section{Introduction}
 \label{intro}
 
+% vital filtering motivation
+% in other words..
 % general problem,  \cite{RaoMD10,singh11:acl},  \cite{blei12}
 To extract relevant information from streaming text corpora, we often need to find references to entities of interest, and study their topic trends over time. 
 This is, unfortunately, an incredibly difficult task, and thus a large number of pertinent articles are seldom retrieved by automated approaches.
@@ -143,6 +160,7 @@ The median time is over a year, and the distribution has a long and heavy tail.
 This gap can be drastically reduced if automated systems can accurately and efficiently suggest relevant documents to editors as soon as they are published.
 
 % existing solutions
+% existing approaches to modeling entity contexts suck
 Recent submissions to TREC KBA~\cite{xitong13, bouvier13, efron13, zhang13, bellogin13} center their attention on solving the above problems with supervised methods, using mainly document, document-entity and temporal level features.
 % what is wrong with them
 They are, however, somewhat limited; they depend heavily on labeled data, do not handle context sparsity appropriately, and do not identify the topics in the references. %, and do not estimate temporal relevance.
@@ -156,6 +174,7 @@ To utilize labeled data, we add features based on our representation of unlabele
 
 % how it solves it
 This combination of distributed word embeddings, non-parametric clustering, and staleness measure provides an efficient yet accurate representation of entities' contexts that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
+
 % experiments
 We present experimental results that demonstrate the benefits of our method and present our performance on the UW TREC KBA 2014 Vital Filtering task.
 As part of the Accelerate and Create task, we also describe an exploratory tool for efficient and intuitive visualization of large streams.
@@ -297,29 +316,29 @@ dist(x,y) = 1 - \cos(x,y) = 1 - \frac{x \cdot y}{||x||||y||}
 The $j$-th topic cluster at time $i$ is updated, and therefore composed by the subset of documents $D^j_i \subseteq D$, where $D^j_i = D^j_{i-1} \cup \left\{ {d_i}\right\}$.
 Note that the cluster center is updated in constant time by incrementally maintaining the sum of the member embeddings.
 
-%\begin{algorithm}[tb]
-%   \caption{Non-parametric Clustering}
-%   \label{nonparamclustering}
-%\begin{algorithmic}
-%   \STATE {\bfseries Input:} $doc=doc\_word\_embedding(d, e, c)$, and topic clusters list $tcs$ for entity $e$
-%   \STATE {\bfseries Output:} new or updated topic cluster $tc$
-%   \STATE {\bfseries Body:}
-%   \STATE Initialize $tc = nil$
-%   \IF{$tcs$ {\bfseries is empty}}
-%    \STATE $tc = create\_topic\_cluster(center\mathord{=}doc)$
-%    \STATE $tcs.append(tc)$
-%   \ELSE
-%     \STATE $dist, i \mathord{=} \min_{\forall{i \in tcs}}{cosine\_dist(tcs[i].center, doc)}$
-%     \IF{$dist >= \alpha$ }
-%        \STATE $tc = create\_topic\_cluster(center\mathord{=}doc)$
-%        \STATE $tcs.append(tc)$
-%     \ELSE
-%        \STATE $tc = update\_topic\_cluster(tcs[i], doc)$
-%     \ENDIF
-%   \ENDIF
-%   \STATE return $tc$
-%\end{algorithmic}
-%\end{algorithm}
+\begin{algorithm}[tb]
+  \caption{Non-parametric Clustering}
+  \label{nonparamclustering}
+\begin{algorithmic}
+  \STATE {\bfseries Input:} $doc=doc\_word\_embedding(d, e, c)$, and topic clusters list $tcs$ for entity $e$
+  \STATE {\bfseries Output:} new or updated topic cluster $tc$
+  \STATE {\bfseries Body:}
+  \STATE Initialize $tc = nil$
+  \IF{$tcs$ {\bfseries is empty}}
+   \STATE $tc = create\_topic\_cluster(center\mathord{=}doc)$
+   \STATE $tcs.append(tc)$
+  \ELSE
+    \STATE $dist, i \mathord{=} \min_{\forall{i \in tcs}}{cosine\_dist(tcs[i].center, doc)}$
+    \IF{$dist >= \alpha$ }
+       \STATE $tc = create\_topic\_cluster(center\mathord{=}doc)$
+       \STATE $tcs.append(tc)$
+    \ELSE
+       \STATE $tc = update\_topic\_cluster(tcs[i], doc)$
+    \ENDIF
+  \ENDIF
+  \STATE return $tc$
+\end{algorithmic}
+\end{algorithm}
 
 \begin{figure}[tb]
 \centering
@@ -404,6 +423,12 @@ Near $t\mathord{=}40$, the event can be considered over, a steep decrease in pop
 \includegraphics[width=0.7\columnwidth]{fig/staleness2.png}
 \caption{Staleness of Entity with Fluctuating Popularity}
 \label{stalenessmedium}
+\end{figure}
+
+\subsection{Algorithm}
+
+\begin{algorith}
+
 \end{figure}
 
 \section{Related Work}
@@ -552,8 +577,8 @@ The different methods differ on the features used to train and test the $uv$ cla
   \multirow{2}{*}{\textbf{Model}} & 
   \multirow{2}{*}{\textbf{Features}} & 
   %\multicolumn{3}{c}{\textbf{Relevance}, \emph{macro}} & 
-  \multicolumn{3}{c}{\textbf{Vital only}, \emph{micro}} &
-  \multicolumn{3}{c}{\textbf{Vital only}, \emph{macro}}
+  \multicolumn{3}{c}{\textbf{Micro-averaged}} &
+  \multicolumn{3}{c}{\textbf{Macro-averaged}}
 \\ 
   \cmidrule(lr){3-5}
   \cmidrule(lr){6-8}
@@ -771,7 +796,7 @@ By doing some manual search on \emph{Shawn Atleo}, we can easily confirm that C2
 
 We believe further experimental investigations are needed to account for the correct tuning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. 
 
-\section{Conclusion \& Future Work}
+\section{Conclusion and Future Work}
 \label{conclusion}
 
 Filtering streaming documents to accelerate users filling knowledge gaps plays a crucial role in the maintenance and update of knowledge bases.
@@ -790,6 +815,7 @@ It would be worthwhile to assess the effects of using different pre-trained word
 %\newpage
 \bibliographystyle{abbrvnat}
 \bibliography{../kba}
+\balancecolumns
 
 \end{document} 
 
