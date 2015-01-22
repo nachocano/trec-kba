@@ -27,7 +27,7 @@ public class ClusteringUtils {
 
 			while ((line = br.readLine()) != null) {
 				final String[] str = line.split(" ");
-				Validate.isTrue(str.length == ClusteringConstants.D);
+				// Validate.isTrue(str.length == ClusteringConstants.D);
 				count += 1;
 				final String streamId = str[0];
 				final String targetId = str[1];
@@ -44,7 +44,7 @@ public class ClusteringUtils {
 				// }
 				final Map<Integer, Float> nouns = new HashMap<>();
 				// maybe there's no stuff
-				if (str.length >= 29) {
+				if (str.length > 29) {
 					for (int i = 29; i < str.length; i++) {
 						final String[] tuple = str[i].split(",");
 						nouns.put(Integer.valueOf(tuple[0]),
