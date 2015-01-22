@@ -23,18 +23,21 @@ def main():
 
   tfidf = tfidfmodel.TfidfModel(corpus)
 
-  to_tfidf(corpus, args.train_tfidf, train_docs)
-  to_tfidf(corpus, args.test_tfidf, test_docs)
+  to_tfidf(corpus, args.train_tfidf, train_docs, tfidf)
+  to_tfidf(corpus, args.test_tfidf, test_docs, tfidf)
 
-def to_tfidf(corpus, output_file, docs):
+def to_tfidf(corpus, output_file, docs, tfidf):
+  i = 0
   of = open(output_file, 'w')
-  for doc in docs:
+  for fixed, doc in docs:
     doc_tfidf = tfidf[doc]
     doc_tfidf_as_arr = []
     for w, v in doc_tfidf:
       doc_tfidf_as_arr.append('%s,%s' % (w,v))
     doc_tfidf_as_str = ' '.join(doc_tfidf_as_arr)
     of.write('%s %s\n' % (fixed, doc_tfidf_as_str))
+  print i
+  i+=1
   of.close()
 
 def read_corpus(corpus, input_file, docs):
@@ -47,7 +50,7 @@ def read_corpus(corpus, input_file, docs):
       w, wc = bow.split(',')
       tup = (int(w), float(wc))
       doc.append(tup)
-    docs.append(doc)
+    docs.append((fixed, doc))
     corpus.append(doc)
 
 if __name__ == '__main__':
