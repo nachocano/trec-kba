@@ -268,6 +268,29 @@ def create_global_data(filename):
     y = np.array(y_list).astype(int)
     return x, y, context
 
+def create_global_data_bow(filename):
+    x_list = []
+    y_list = []
+    context = []
+    with open(filename) as f:
+        for line in f.read().splitlines():
+            instance = line.split()
+            streamid = instance[0]
+            targetid = instance[1]
+            date_hour = instance[2]
+            label = instance[3]
+            # do not consider BOW features
+            features = instance[4:35]
+            x_list.append(features)
+            y_list.append(label)
+            context.append('%s %s %s' % (streamid, targetid, date_hour))
+
+    x = np.array(x_list).astype(np.float32)
+    y = np.array(y_list).astype(int)
+    return x, y, context
+
+
+
 def get_prob_and_pred(prob_global, prob_entity):
     prob_tmp_array = []
     pred_tmp_array = []
