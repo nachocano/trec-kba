@@ -25,7 +25,7 @@ def main():
 
   print 'corpus size %d' % len(corpus)
   print 'loading lsi'
-  lsi = lsimodel.LsiModel(corpus)
+  lsi = lsimodel.LsiModel(corpus, num_topics=300)
   print 'loaded lsi'
   print 'converting train to lsi'
   to_lsi(corpus, args.train_lsi, train_docs, lsi)
