@@ -6,6 +6,11 @@ import numpy as np
 from collections import defaultdict
 from operator import itemgetter
 from gensim.models import rpmodel
+import sys
+
+def log(msg):
+  sys.stdout.write('%s\n' % msg)
+  sys.stdout.flush()
 
 def main():
   parser = argparse.ArgumentParser(description='TODO')
@@ -19,15 +24,21 @@ def main():
   train_docs = []
   test_docs = []
 
+  log('reading train')
   read_corpus(corpus, args.train_tfidf_file, train_docs)
+  log('reading test')
   read_corpus(corpus, args.test_tfidf_file, test_docs)
 
+  log('loading random projections')
   rp = rpmodel.RpModel(corpus, num_topics=300)
+  log('loaded random projections')
 
+  log('saving train')
   to_rp(corpus, args.train_random_proj, train_docs, rp)
+  log('saving test')
   to_rp(corpus, args.test_random_proj, test_docs, rp)
 
-def to_lsi(corpus, output_file, docs, rp):
+def to_rp(corpus, output_file, docs, rp):
   i = 0
   of = open(output_file, 'w')
   for fixed, doc in docs:

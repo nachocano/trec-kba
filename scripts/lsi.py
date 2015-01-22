@@ -6,6 +6,11 @@ import numpy as np
 from collections import defaultdict
 from operator import itemgetter
 from gensim.models import lsimodel
+import sys
+
+def log(msg):
+  sys.stdout.write('%s\n' % msg)
+  sys.stdout.flush()
 
 def main():
   parser = argparse.ArgumentParser(description='TODO')
@@ -18,18 +23,18 @@ def main():
   corpus = []
   train_docs = []
   test_docs = []
-  print 'reading train'
+  log('reading train')
   read_corpus(corpus, args.train_tfidf_file, train_docs)
-  print 'reading test'
+  log('reading test')
   read_corpus(corpus, args.test_tfidf_file, test_docs)
 
-  print 'corpus size %d' % len(corpus)
-  print 'loading lsi'
+  log('corpus size %d' % len(corpus))
+  log('loading lsi')
   lsi = lsimodel.LsiModel(corpus, num_topics=300)
-  print 'loaded lsi'
-  print 'converting train to lsi'
+  log('loaded lsi')
+  log('converting train to lsi')
   to_lsi(corpus, args.train_lsi, train_docs, lsi)
-  print 'converting test to lsi'
+  log('converting test to lsi')
   to_lsi(corpus, args.test_lsi, test_docs, lsi)
 
 def to_lsi(corpus, output_file, docs, lsi):
