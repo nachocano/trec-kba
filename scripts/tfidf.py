@@ -9,12 +9,12 @@ from gensim.models import tfidfmodel
 
 def main():
   parser = argparse.ArgumentParser(description='TODO')
-  parser.add_argument('-b', '--bow_file', required=True)
-
+  parser.add_argument('-tr', '--train_bow_file', required=True)
+  parser.add_argument('-te', '--test_bow_file', required=True)
   args = parser.parse_args()
 
   corpus = []
-  for line in open(args.bow_file).read().splitlines():
+  for line in open(args.train_bow_file).read().splitlines():
     tokens = line.split()
     fixed = ' '.join(tokens[:29])
     bows = tokens[29:]
@@ -26,9 +26,12 @@ def main():
     corpus.append(doc)
 
     tfidf = tfidfmodel.TfidfModel(corpus)
-    print tfidf[doc]
-  
-  #print '%s %s' % (fixed, tfidf_as_str)
+    doc_tfidf = tfidf[doc]
+    doc_tfidf_as_arr = []
+    for w, v in doc_tfidf:
+      doc_tfidf_as_arr.append('%s,%s' % (w,v))
+    doc_tfidf_as_str = ' '.join(doc_tfidf_as_arr)
+    print '%s %s' % (fixed, doc_tfidf_as_str)
       
 if __name__ == '__main__':
   main()
