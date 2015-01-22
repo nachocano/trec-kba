@@ -18,13 +18,18 @@ def main():
   corpus = []
   train_docs = []
   test_docs = []
-
+  print 'reading train'
   read_corpus(corpus, args.train_tfidf_file, train_docs)
+  print 'reading test'
   read_corpus(corpus, args.test_tfidf_file, test_docs)
 
+  print 'corpus size %d' % len(corpus)
+  print 'loading lsi'
   lsi = lsimodel.LsiModel(corpus)
-
+  print 'loaded lsi'
+  print 'converting train to lsi'
   to_lsi(corpus, args.train_lsi, train_docs, lsi)
+  print 'converting test to lsi'
   to_lsi(corpus, args.test_lsi, test_docs, lsi)
 
 def to_lsi(corpus, output_file, docs, lsi):
@@ -33,7 +38,7 @@ def to_lsi(corpus, output_file, docs, lsi):
   for fixed, doc in docs:
     doc_lsi = lsi[doc]
     doc_lsi_as_arr = []
-    for w, v in doc_tfidf:
+    for w, v in doc_lsi:
       doc_lsi_as_arr.append('%s,%s' % (w,v))
     doc_lsi_as_str = ' '.join(doc_lsi_as_arr)
     of.write('%s %s\n' % (fixed, doc_lsi_as_str))
