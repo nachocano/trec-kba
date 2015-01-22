@@ -21,7 +21,7 @@ def main():
     doc = []
     for bow in bows:
       w, wc = bow.split(',')
-      tup = (w, float(wc))
+      tup = (int(w), float(wc))
       doc.append(tup)
     corpus.append(doc)
 
