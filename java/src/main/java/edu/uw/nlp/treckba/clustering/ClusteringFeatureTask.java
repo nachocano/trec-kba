@@ -119,7 +119,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 				// create a new cluster, and add the example to it
 				final Cluster c = new Cluster(clusterName++,
 						example.getTimestamp(), timestampNormalizer);
-				c.updateSum(exampleWordType.getArray());
+				// c.updateSum(exampleWordType.getArray());
+				c.updateSum(exampleWordType.getSparse());
 				c.incrementCount();
 				c.addExample(example);
 				clusters.add(c);
@@ -140,7 +141,8 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 				for (final Cluster c : clusters) {
 					// this may take time, try to profile it
 					final float sim = ClusteringUtils.dotProduct(
-							c.meanNormalized(), exampleWordType.getArray());
+							c.meanNormalizedSparse(),
+							exampleWordType.getSparse());
 					similaritiesSum += sim;
 					if (sim > maxSimilarity) {
 						maxSimilarity = sim;
@@ -163,7 +165,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 					} else {
 						// put the example in an existent cluster
 						nearestCluster.addExample(example);
-						nearestCluster.updateSum(exampleWordType.getArray());
+						nearestCluster.updateSum(exampleWordType.getSparse());
 						nearestCluster.incrementCount();
 						nearestCluster.incrementLambda(params);
 						nearestCluster.setTimestamp(example.getTimestamp());
@@ -181,7 +183,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 					// create a new cluster, and add the example to it
 					final Cluster c = new Cluster(clusterName++,
 							example.getTimestamp(), timestampNormalizer);
-					c.updateSum(exampleWordType.getArray());
+					c.updateSum(exampleWordType.getSparse());
 					c.incrementCount();
 					c.addExample(example);
 					clusters.add(c);

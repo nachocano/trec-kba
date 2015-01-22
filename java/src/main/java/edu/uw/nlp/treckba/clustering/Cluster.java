@@ -1,7 +1,10 @@
 package edu.uw.nlp.treckba.clustering;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class Cluster {
 
@@ -11,6 +14,7 @@ public class Cluster {
 	private float lambdaIncrease = ClusteringConstants.START_TIMELINESS;
 	private final List<ClusterExample> examples = new LinkedList<>();
 	private final float[] sum = new float[ClusteringConstants.EMBEDDING_DIM];
+	private final Map<Integer, Float> sparseSum = new HashMap<Integer, Float>();
 	private long timestamp;
 	private final long T;
 
@@ -32,6 +36,14 @@ public class Cluster {
 		return ClusteringUtils.normalize(mean);
 	}
 
+	public Map<Integer, Float> meanNormalizedSparse() {
+		final Map<Integer, Float> mean = new HashMap<Integer, Float>();
+		for (final Integer k : sparseSum.keySet()) {
+			mean.put(k, sparseSum.get(k) / count);
+		}
+		return ClusteringUtils.normalize(mean);
+	}
+
 	public void incrementCount() {
 		count++;
 	}
@@ -39,6 +51,17 @@ public class Cluster {
 	public void updateSum(final float[] values) {
 		for (int i = 0; i < sum.length; i++) {
 			sum[i] += values[i];
+		}
+	}
+
+	public void updateSum(final Map<Integer, Float> values) {
+		final Set<Integer> vKeys = values.keySet();
+		for (final Integer k : vKeys) {
+			if (!sparseSum.containsKey(k)) {
+				sparseSum.put(k, values.get(k));
+			} else {
+				sparseSum.put(k, values.get(k) + sparseSum.get(k));
+			}
 		}
 	}
 

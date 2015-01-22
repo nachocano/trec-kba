@@ -5,12 +5,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.Validate;
 
@@ -37,9 +37,19 @@ public class ClusteringUtils {
 				for (int j = 0, i = 4; j < 25 && i < 29; j++, i++) {
 					features[j] = Float.valueOf(str[i]);
 				}
-				final float[] nouns = new float[ClusteringConstants.EMBEDDING_DIM];
-				for (int j = 0, i = 29; j < 300 && i < 329; j++, i++) {
-					nouns[j] = Float.valueOf(str[i]);
+				// final float[] nouns = new
+				// float[ClusteringConstants.EMBEDDING_DIM];
+				// for (int j = 0, i = 29; j < 300 && i < 329; j++, i++) {
+				// nouns[j] = Float.valueOf(str[i]);
+				// }
+				final Map<Integer, Float> nouns = new HashMap<>();
+				// maybe there's no stuff
+				if (str.length >= 29) {
+					for (int i = 29; i < str.length; i++) {
+						final String[] tuple = str[i].split(",");
+						nouns.put(Integer.valueOf(tuple[0]),
+								Float.valueOf(tuple[1]));
+					}
 				}
 				// final float[] verbs = new
 				// float[ClusteringConstants.EMBEDDING_DIM];
@@ -91,10 +101,39 @@ public class ClusteringUtils {
 		return dotProd;
 	}
 
+	public static float dotProduct(final Map<Integer, Float> a,
+			final Map<Integer, Float> b) {
+		float sum = 0f;
+		final Set<Integer> aKeys = a.keySet();
+		final Set<Integer> bKeys = b.keySet();
+		if (aKeys.size() <= bKeys.size()) {
+			for (final int i : aKeys) {
+				if (bKeys.contains(i)) {
+					sum += a.get(i) * b.get(i);
+				}
+			}
+		} else {
+			for (final int i : bKeys) {
+				if (aKeys.contains(i)) {
+					sum += a.get(i) * b.get(i);
+				}
+			}
+		}
+		return sum;
+	}
+
 	public static float[] normalize(final float[] a) {
 		final float length = norm2(a);
 		for (int i = 0; i < a.length; i++) {
 			a[i] /= length;
+		}
+		return a;
+	}
+
+	public static Map<Integer, Float> normalize(final Map<Integer, Float> a) {
+		final float length = norm2(a);
+		for (final int k : a.keySet()) {
+			a.put(k, a.get(k) / length);
 		}
 		return a;
 	}
@@ -105,6 +144,10 @@ public class ClusteringUtils {
 			norm += Math.pow(element, 2);
 		}
 		return (float) Math.sqrt(norm);
+	}
+
+	public static float norm2(final Map<Integer, Float> a) {
+		return (float) Math.sqrt(dotProduct(a, a));
 	}
 
 	public static List<ClusterExample> mergeAndSort(
