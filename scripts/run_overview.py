@@ -17,8 +17,10 @@ def main():
       if line.startswith("#"):
         continue
       line = line.split(",")
-      print '%s\t %.3f & %.3f & %.3f & %.3f & %.3f & %.3f &' % (line[1], float(line[2]), float(line[3]), float(line[4]), float(line[6]), float(line[7]), float(line[8]))
+      #print '%s\t %.3f & %.3f & %.3f & %.3f & %.3f & %.3f &' % (line[1], float(line[2]), float(line[3]), float(line[4]), float(line[6]), float(line[7]), float(line[8]))
       runs[line[1]] = (float(line[6]), float(line[7]), float(line[8]))
+      print line[1], runs[line[1]]
+  exit()
 
   keys = []
   for key in runs:
