@@ -27,7 +27,8 @@ def main():
             instance = line.split()
             streamid = instance[0]
             targetid = instance[1]
-            if not non_relevant.has_key((streamid, targetid)):
+            label = int(instance[3])
+            if not non_relevant.has_key((streamid, targetid)) and label != 0 and label != -1:
                 out.write('%s\n' % line)
             else:
                 filtered +=1
