@@ -52,7 +52,6 @@ def main():
     parser.add_argument('-tr', '--train_relevant', required=True)
     parser.add_argument('-t', '--test_relevant', required=True)
     parser.add_argument('-i', '--system_id', required=True)
-    parser.add_argument('-rnrl', '--rnr_load_model_file', required=False)
     parser.add_argument('-nr', '--no_relevant_file', required=True)
 
     args = parser.parse_args()
@@ -80,17 +79,13 @@ def main():
     # read whole dataset
     print 'reading dataset'
     start = time.time()
-    x_train_a_r, y_train_a_r, cxt_train_a_r, x_train_u_r, y_train_u_r, cxt_train_u_r = create_separate_global_data(args.train_relevant)
-    x_test_r, y_test_r, cxt_test_r = create_global_data(args.test_relevant)
+    x_train_a_r, y_train_a_r, cxt_train_a_r = create_relevant_global_data(args.train_relevant)
+    x_test_r, y_test_r, cxt_test_r = create_relevant_global_data(args.test_relevant)
     elapsed = time.time() - start
     print 'dataset read, took %s' % elapsed
 
     print 'train assessed relevant %s' % str(x_train_a_r.shape)
-    print 'train unassessed relevant %s' % str(x_train_u_r.shape)
-    print 'test relevant %s' % str(x_test_r.shape)
-
-    # RNR classifier
-    clf_rnr = load_model(args.rnr_load_model_file)
+    print 'test assessed relevant %s' % str(x_test_r.shape)
 
     start = time.time()
     print 'to multitask x_train_a_r...'
@@ -113,9 +108,7 @@ def main():
 
     start = time.time()
     print 'testing uv classifier'
-    #do_predict(clf_uv, x_train_a_r, cxt_train_a_r, idxs_entities, recs)
     do_predict(clf_uv, x_test_r, cxt_test_r, idxs_entities, recs)
-    do_predict(clf_uv, x_train_u_r, cxt_train_u_r, idxs_entities, recs)
     elapsed = time.time() - start
     print 'finished testing uv classifier, took %s' % elapsed
 
