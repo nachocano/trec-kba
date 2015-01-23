@@ -149,7 +149,7 @@ public class ClusterExample {
 		final String entityTimelinessAsStr = String.format("%.5f",
 				entityTimeliness);
 		// Sparse at the END
-		final String nounsArrayAsStr = nouns.sparseToString();
+		final String nounsArrayAsStr = nouns.arrayToString();
 		// final String dayOfWeekAsString = dayOfWeekToString();
 		// final String preMentionsGeneralAsStr =
 		// preMentionsArrayToString(preMentions);
@@ -168,8 +168,8 @@ public class ClusterExample {
 		// preMentionsNounsAsStr, preMentionsVerbsAsStr,
 		// preMentionsProperNounsAsStr);
 
-		return String.format("%s %s %s %s", sb.toString(), nounsFeaturesAsStr,
-				entityTimelinessAsStr, nounsArrayAsStr);
+		return String.format("%s %s %s %s", sb.toString(), nounsArrayAsStr,
+				nounsFeaturesAsStr, entityTimelinessAsStr);
 
 	}
 

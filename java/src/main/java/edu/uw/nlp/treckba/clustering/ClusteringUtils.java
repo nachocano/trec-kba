@@ -27,7 +27,7 @@ public class ClusteringUtils {
 
 			while ((line = br.readLine()) != null) {
 				final String[] str = line.split(" ");
-				// Validate.isTrue(str.length == ClusteringConstants.D);
+				Validate.isTrue(str.length == ClusteringConstants.D);
 				count += 1;
 				final String streamId = str[0];
 				final String targetId = str[1];
@@ -37,20 +37,19 @@ public class ClusteringUtils {
 				for (int j = 0, i = 4; j < 25 && i < 29; j++, i++) {
 					features[j] = Float.valueOf(str[i]);
 				}
-				// final float[] nouns = new
-				// float[ClusteringConstants.EMBEDDING_DIM];
-				// for (int j = 0, i = 29; j < 300 && i < 329; j++, i++) {
-				// nouns[j] = Float.valueOf(str[i]);
-				// }
-				final Map<Integer, Float> nouns = new HashMap<>();
-				// maybe there's no stuff
-				if (str.length > 29) {
-					for (int i = 29; i < str.length; i++) {
-						final String[] tuple = str[i].split(",");
-						nouns.put(Integer.valueOf(tuple[0]),
-								Float.valueOf(tuple[1]));
-					}
+				final float[] nouns = new float[ClusteringConstants.EMBEDDING_DIM];
+				for (int j = 0, i = 29; j < 300 && i < 329; j++, i++) {
+					nouns[j] = Float.valueOf(str[i]);
 				}
+				// final Map<Integer, Float> nouns = new HashMap<>();
+				// // maybe there's no stuff
+				// if (str.length > 29) {
+				// for (int i = 29; i < str.length; i++) {
+				// final String[] tuple = str[i].split(",");
+				// nouns.put(Integer.valueOf(tuple[0]),
+				// Float.valueOf(tuple[1]));
+				// }
+				// }
 				// final float[] verbs = new
 				// float[ClusteringConstants.EMBEDDING_DIM];
 				// for (int j = 0, i = 329; j < 300 && i < 629; j++, i++) {
