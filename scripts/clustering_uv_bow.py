@@ -24,9 +24,12 @@ def do_predict(clf_uv, x, cxt, idxs_entities, recs):
         added_columns[start:end] = x[i]
         new_x = np.hstack((x[i], added_columns))
         pred_uv_prob = clf_uv.predict_proba(new_x)[0]
-        prob = max(pred_uv_prob)
-        relevance = np.argmax(pred_uv_prob)
-        relevance += 1
+        #prob = max(pred_uv_prob)
+        #relevance = np.argmax(pred_uv_prob)
+        #relevance += 1
+        # ALWAYS predict 2
+        prob = pred_uv_prob[1]
+        relevance = 2
         recs.append(build_record(i, cxt, relevance, prob))
 
 def add_nr_results(filename, recs, filter_run):
