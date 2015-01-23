@@ -32,7 +32,7 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{Embedded Entity Representations for Vital Filtering\\on Large Corpora}
+\title{Embedded Nonparametric Entity Representations\\ for Vital Document Filtering}
 %\subtitle{[Extended Abstract]
 %\titlenote{A full version of this paper is available as
 %\textit{Author's Guide to Preparing ACM SIG Proceedings Using
@@ -115,27 +115,7 @@
 \maketitle
 
 \begin{abstract} 
-
-
-% vital filtering motivation
-% in other words..
-% existing approaches to modeling entity contexts suck
-% what we do in this paper
-% how each part addresses the problem
-% scalable?
-% experiment results
-
-
-The task of identifying documents that contain vital information for an entity of interest, known as \emph{vital filtering}, has become increasingly relevant as the corpora available for extraction grow in size. 
-To efficiently explore large corpora of text documents, we need to identify references to entities of interest as well as studying their topics evolution over time. 
-Existing approaches are limited; they are unable to handle streaming data, do not partition entities' references according to topics, and do not accurately estimate temporal vitalness.
-In this paper we introduce a embedding-based non-parametric representation of entities that addresses the above limitations. 
-To efficiently handle lexical sparsity, we propose using word embedding representation of the contexts. 
-The entity contexts are described by topic clusters that are estimated in a non-parametric manner. 
-Further, we associate a staleness measure to each entity and topic cluster, dynamically estimating their temporal relevance. % based on document frequencies.
-This approach of using distributed word embeddings, non-parametric clustering, and staleness provides an efficient yet appropriate representation of entity contexts for streaming settings, facilitating accurate vital filtering.
-Experiments on the TAC KBA vital filtering task evaluate the utility of our contributions, demonstrating significant gains over existing approaches.
-
+Identifying documents that contain timely and vital information for an entity of interest, a task known as \emph{vital filtering}, has become increasingly important with the availability of large document collections. To efficiently filter such large text corpora in a streaming manner, we need to compactly represent previously observed entity contexts, and quickly estimate whether a new document contains novel information about the entity. Existing approaches to modeling contexts, such as bag of words, latent semantic indexing, and topic models, are limited in several respects: they are unable to handle streaming data, do not model the underlying topic of each document, suffer from lexical sparsity, and/or do not accurately estimate temporal vitalness. In this paper, we introduce a word embedding-based nonparametric representation of entities that addresses the above limitations. The word embeddings provide accurate and compact low-dimensional vector summaries of observed entity contexts, further described by topic clusters that are estimated in a nonparametric manner. Additionally, we associate a staleness measure with each entity and topic cluster, dynamically estimating their temporal relevance. This approach of using word embeddings, nonparametric clustering, and staleness provides an efficient yet appropriate representation of entity contexts for the streaming setting, enabling accurate vital filtering. Experiments on the TREC KBA vital filtering task over a large streaming corpus demonstrate that our contributions provide significant gains over existing approaches.
 \end{abstract} 
 
 % A category with the (minimum) three required fields
@@ -427,9 +407,6 @@ Near $t\mathord{=}40$, the event can be considered over, a steep decrease in pop
 
 \subsection{Algorithm}
 
-\begin{algorith}
-
-\end{figure}
 
 \section{Related Work}
 \label{related}
