@@ -48,7 +48,7 @@ def to_rp(corpus, output_file, docs, rp):
       doc_rp_as_arr.append('%s,%s' % (w,v))
     doc_rp_as_str = ' '.join(doc_rp_as_arr)
     of.write('%s %s\n' % (fixed, doc_rp_as_str))
-    print i
+    log(i)
     i+=1
   of.close()
 

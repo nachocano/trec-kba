@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from __future__ import division
-from utils import to_multitask, create_separate_global_data, filter_run, build_record, create_global_data, load_model
+from utils import to_multitask, create_relevant_global_data, filter_run, build_record, create_global_data, load_model
 import re
 import os
 import sys

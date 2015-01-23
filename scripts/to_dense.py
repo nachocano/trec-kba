@@ -1,6 +1,8 @@
 #!/usr/bin/python
 from __future__ import division
 import argparse
+import numpy as np
+from gensim import matutils
 
 def main():
   parser = argparse.ArgumentParser(description='TODO')
@@ -9,15 +11,15 @@ def main():
 
   for line in open(args.input_file).read().splitlines():
     tokens = line.split()
-    assert len(tokens) == 329
     fixed = ' '.join(tokens[:29])
-    rest = tokens[29:]
-    assert len(rest) == 300
-    new = []
+    dense = np.zeros(300)
+    rest = tokens[29:] 
     for value in rest:
-      new.append(value.split(',')[1])
-    transformed = ' '.join(new)
-    print '%s %s' % (fixed, transformed)
+      index, v = value.split(',')
+      dense[int(index)] = float(v)
+    dense = matutils.unitvec(dense).astype(np.float32)
+    dense = ' '.join(str(v) for v in list(dense))  
+    print '%s %s' % (fixed, dense)
 
 if __name__ == '__main__':
   main()
