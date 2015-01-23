@@ -80,6 +80,7 @@ public class VizDataObject {
 	}
 
 	public void updateClustersAndStalenesses(final Cluster clu) {
+		// TODO do not work in sparse case
 		// for (final Cluster clu : cs) {
 		this.clusters.add(new ClusterViz(clu.getName(), clu.meanNormalized()));
 		staleness.add(new Lambda(clu.getName(), clu.getLambdaDecrease(), clu

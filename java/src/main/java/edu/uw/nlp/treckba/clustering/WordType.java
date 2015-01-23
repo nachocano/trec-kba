@@ -1,11 +1,15 @@
 package edu.uw.nlp.treckba.clustering;
 
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class WordType {
 
 	private final float[] array;
+	private final Map<Integer, Float> sparse;
 	private int allZeros;
 	private float minDistance;
 	private float avgDistance;
@@ -14,12 +18,28 @@ public class WordType {
 
 	public WordType(final float[] array) {
 		this.array = array;
+		this.sparse = null;
+	}
+
+	public WordType(final Map<Integer, Float> sparse) {
+		this.sparse = sparse;
+		this.array = null;
 	}
 
 	public boolean isZero() {
-		for (final float element : array) {
-			if (element != 0) {
-				return false;
+		if (array == null) {
+			// is sparse
+			final Set<Integer> keys = sparse.keySet();
+			for (final int key : keys) {
+				if (sparse.get(key) != 0) {
+					return false;
+				}
+			}
+		} else {
+			for (final float element : array) {
+				if (element != 0) {
+					return false;
+				}
 			}
 		}
 		return true;
@@ -27,6 +47,10 @@ public class WordType {
 
 	public float[] getArray() {
 		return array;
+	}
+
+	public Map<Integer, Float> getSparse() {
+		return sparse;
 	}
 
 	public int getAllZeros() {
@@ -79,6 +103,7 @@ public class WordType {
 		}
 		final WordType that = (WordType) obj;
 		return new EqualsBuilder().append(this.array, that.array)
+				.append(this.sparse, that.sparse)
 				.append(this.minDistance, that.minDistance)
 				.append(this.avgDistance, that.avgDistance)
 				.append(this.lambdaDecrease, that.lambdaDecrease)
@@ -88,8 +113,8 @@ public class WordType {
 
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder(17, 37).append(array).append(minDistance)
-				.append(avgDistance).append(lambdaDecrease)
+		return new HashCodeBuilder(17, 37).append(array).append(sparse)
+				.append(minDistance).append(avgDistance).append(lambdaDecrease)
 				.append(lambdaIncrease).append(allZeros).toHashCode();
 	}
 
@@ -106,6 +131,20 @@ public class WordType {
 		final StringBuilder sb = new StringBuilder().append(array[0]);
 		for (int i = 1; i < array.length; i++) {
 			sb.append(ClusteringConstants.WHITE_SPACE).append(array[i]);
+		}
+		return sb.toString();
+	}
+
+	public String sparseToString() {
+		final StringBuilder sb = new StringBuilder();
+		final Set<Integer> keys = sparse.keySet();
+		int i = 0;
+		for (final int key : keys) {
+			if (i != 0) {
+				sb.append(ClusteringConstants.WHITE_SPACE);
+			}
+			sb.append(key + "," + sparse.get(key));
+			i++;
 		}
 		return sb.toString();
 	}

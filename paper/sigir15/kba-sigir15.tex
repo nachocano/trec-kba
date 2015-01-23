@@ -565,46 +565,30 @@ The different methods differ on the features used to train and test the $uv$ cla
   \textbf{P} & \textbf{R} & \textbf{F1} & 
   \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 \midrule
-{\textit{Baseline Single}} & $F_b$ &
-	%0.630 & 0.626 & 0.628 & 
-	0.468 & 0.246 & 0.323 &
-  0.409 & 0.235 & 0.298 \\
 {\textit{Baseline Multi-task}} & $F_b$ &
-	%0.632 & 0.632 & 0.632 & 
-	0.465 & 0.403 & 0.432 &
-	0.319 & \textbf{0.377} & 0.346 \\
+	0.607 & 0.414 & 0.492 &
+	0.366 & 0.940 & 0.527 \\
 {\textit{Embedding Combined}} & $F_b+F_e$ & 
-	%0.632 & 0.626 & 0.629 & 
-	0.467 & \textbf{0.465} & \textbf{0.466} &
-	0.413 & 0.331 & \textbf{0.367} \\
-{\textit{Embedding POS}} & $F_b+F_e$ & 
-	%- & - & - & 
-	0.480 & 0.419 & 0.447 &
-	0.412 & 0.299 & 0.346 \\
+	0.547 & 0.518 & 0.532 &
+	0.383 & 0.855 & 0.529 \\
 {\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
 	%- & - & - & 
-	\textbf{0.483} & 0.436 & 0.459 &
-	\textbf{0.440} & 0.308 & 0.362 \\
+	0.528 & 0.510 & 0.519 &
+	0.366 & 0.940 & 0.527 \\
 {\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
 	%- & - & - & 
-	0.483 & 0.440 & 0.460 &
-	0.420 & 0.306 & 0.354 \\
+	0.523 & 0.522 & 0.523 &
+	0.388 & 0.867 & 0.536 \\
 {\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
 	%- & - & - & 
-  0.481 & 0.435 & 0.457 &
-	0.423 & 0.293 & 0.346 \\
-%{\textit{Mean Dynamic*}} & $F_b+F_e+F_t$ & 
+  0.549 & 0.521 & 0.534 &
+	0.388 & 0.863 & 0.535 \\
+{\textit{BoW with tfidf}} & $F_b+F_c+F_t$ & 
   %- & - & - & 
-%  0.456 & 0.459 & 0.457 &
-%  0.388 & 0.323 & 0.352 \\
-%{\textit{Clustering Static*}} & $F_b+F_e+F_c$ & 
-  %- & - & - & 
-%  0.466 & 0.454 & 0.460 &
-%  0.384 & 0.329 & 0.354 \\
-%{\textit{Clustering Dynamic*}} & $F_b+F_e+F_c+F_t$ & 
-  %- & - & - & 
-%  0.467 & 0.468 & 0.467 &
-%  0.415 & 0.340 & 0.374 \\ 
+  0.528 & 0.434 & 0.476 &
+  0.380 & 0.940 & 0.542 \\
+
+
 \bottomrule
 \end{tabular}
 \end{center}

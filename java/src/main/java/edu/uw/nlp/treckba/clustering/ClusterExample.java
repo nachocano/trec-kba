@@ -139,7 +139,7 @@ public class ClusterExample {
 		for (int i = 1; i < features.length; i++) {
 			sb.append(ClusteringConstants.WHITE_SPACE).append(features[i]);
 		}
-		final String nounsArrayAsStr = nouns.arrayToString();
+		// final String nounsArrayAsStr = nouns.arrayToString();
 		// final String verbsArrayAsStr = verbs.arrayToString();
 		// final String properNounsArrayAsStr = properNouns.arrayToString();
 		final String nounsFeaturesAsStr = nouns.featuresToString();
@@ -148,6 +148,8 @@ public class ClusterExample {
 		// properNouns.featuresToString();
 		final String entityTimelinessAsStr = String.format("%.5f",
 				entityTimeliness);
+		// Sparse at the END
+		final String nounsArrayAsStr = nouns.arrayToString();
 		// final String dayOfWeekAsString = dayOfWeekToString();
 		// final String preMentionsGeneralAsStr =
 		// preMentionsArrayToString(preMentions);

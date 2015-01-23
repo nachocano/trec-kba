@@ -120,6 +120,7 @@ public class ClusteringFeatureTask implements Callable<ClusteringOutput> {
 				final Cluster c = new Cluster(clusterName++,
 						example.getTimestamp(), timestampNormalizer);
 				c.updateSum(exampleWordType.getArray());
+				// c.updateSum(exampleWordType.getSparse());
 				c.incrementCount();
 				c.addExample(example);
 				clusters.add(c);

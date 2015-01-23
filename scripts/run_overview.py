@@ -20,6 +20,7 @@ def main():
       print '%s\t %.3f & %.3f & %.3f & %.3f & %.3f & %.3f &' % (line[1], float(line[2]), float(line[3]), float(line[4]), float(line[6]), float(line[7]), float(line[8]))
       runs[line[1]] = (float(line[6]), float(line[7]), float(line[8]))
 
+  exit()
   keys = []
   for key in runs:
     if "gd1_gi01" in key:

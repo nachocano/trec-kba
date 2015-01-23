@@ -6,7 +6,8 @@ public class TimestampComparator implements Comparator<ClusterExample> {
 
 	@Override
 	public int compare(final ClusterExample o1, final ClusterExample o2) {
-		return (int) (o1.getTimestamp() - o2.getTimestamp());
+		return Long.valueOf(o1.getTimestamp()).compareTo(
+				Long.valueOf(o2.getTimestamp()));
 	}
 
 }

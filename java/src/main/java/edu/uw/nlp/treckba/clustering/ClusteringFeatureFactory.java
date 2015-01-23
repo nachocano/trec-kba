@@ -52,21 +52,19 @@ public class ClusteringFeatureFactory {
 			executor.shutdown();
 		}
 
-		// final List<ClusterExample> wholeCorpus =
-		// ClusteringUtils.mergeAndSort(
-		// train, test);
-		// System.out.println(wholeCorpus.size());
-		//
-		// final EntityTimeliness et = new
-		// EntityTimeliness(timestampNormalizer);
-		// et.computeTimeliness(wholeCorpus, nounsParams);
+		final List<ClusterExample> wholeCorpus = ClusteringUtils.mergeAndSort(
+				train, test);
+		System.out.println(wholeCorpus.size());
+
+		final EntityTimeliness et = new EntityTimeliness(timestampNormalizer);
+		et.computeTimeliness(wholeCorpus, nounsParams);
 
 		// final PreMentions pms = new PreMentions();
 		// pms.computePreMentions(train, test);
 		// pms.computePreMentions(clusteringOutputs);
 
-		// outputResults(train, outputTrainFile);
-		// outputResults(test, outputTestFile);
+		outputResults(train, outputTrainFile);
+		outputResults(test, outputTestFile);
 
 	}
 
