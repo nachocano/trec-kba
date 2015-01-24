@@ -1,4 +1,4 @@
-!/usr/bin/env python
+#!/usr/bin/env python
 import os
 
 def main():
@@ -10,6 +10,7 @@ def main():
   for alpha, alpha_name in alphas:
     for gammai, gammai_name in gammas_increase:
       for gammad, gammad_name in gammas_decrease:
+        print 'here'
         cmd = 'nohup java -jar treckba-jar-with-dependencies.jar -tr test_r_lsi_dense.txt \
               -trr train_r_lsi_dense.txt -ot lsigamma/test_r_lsi_a%s_gd%s_gi%s.txt \
               -otr lsigamma/train_r_lsi_a%s_gd%s_gi%s.txt \
@@ -17,3 +18,6 @@ def main():
               > logs/uw-lsi_clu_dyn_a%s_gd%s_gi%s_feature.log' % (alpha_name, gammad_name, gammai_name, alpha_name, gammad_name, gammai_name, alpha, alpha, gammad, gammad, gammai, gammai,alpha_name, gammad_name, gammai)
         print cmd
         os.system(cmd)
+
+if __name__ == '__main__':
+  main()
