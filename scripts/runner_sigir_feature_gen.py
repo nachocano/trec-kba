@@ -3,14 +3,14 @@ import os
 
 def main():
 
-  gammas_increase = (0.1, '01')
-  gammas_decrease = (0.1, '01')
+  gamma_increase = (0.1, '01')
+  gamma_decrease = (0.1, '01')
   alphas = [(0.6, '06'), (0.8, '08')]
 
   for alpha, alpha_name in alphas:
     cmd = 'nohup java -jar treckba-jar-with-dependencies.jar -tr test_r_lsi_dense.txt \
-              -trr train_r_lsi_dense.txt -ot lsi/test_r_lsi_a%d_gd%s_gi%s.txt \
-              -otr train_r_lsi_a%d_gd%s_gi%s.txt \
+              -trr train_r_lsi_dense.txt -ot lsi/test_r_lsi_a%s_gd%s_gi%s.txt \
+              -otr train_r_lsi_a%s_gd%s_gi%s.txt \
               -an %s -av %s -gnd %s -gvd %s -gni %s -gvi %s -tn 86400 \
               > logs/uw-lsi_clu_dyn_a%s_gd%s_gi%s_feature.log' % (alpha_name, gamma_decrease[1], gamma_increase[1], alpha_name, gamma_decrease[1], gamma_increase[1], alpha, alpha, gamma_decrease[0], gamma_decrease[0], gamma_increase[0], gamma_increase[0],alpha_name, gamma_decrease[1], gamma_increase[1])
     print cmd

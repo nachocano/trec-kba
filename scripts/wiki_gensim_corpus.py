@@ -1,6 +1,7 @@
-import logging, gensim, bz2
+import gensim, bz2
 import argparse
 import time
+import sys
 
 def log(msg):
   sys.stdout.write('%s\n' % msg)
@@ -12,7 +13,7 @@ def main():
   parser.add_argument('-c', '--corpus_file', required=True)
   parser.add_argument('-o', '--output_file', required=True)
   parser.add_argument('-m', '--model', required=True)
-
+  args = parser.parse_args()
   model = args.model
   assert model == 'lsi' or model == 'lda' or model == 'tfidf'
 
@@ -25,7 +26,8 @@ def main():
   
   start = time.time()
   log('computing mm corpus')
-  mm = gensim.corpora.MmCorpus(bz2.BZ2File(args.corpus_file))
+  mm = gensim.corpora.MmCorpus(args.corpus_file)
+  #mm = gensim.corpora.MmCorpus(bz2.BZ2File(args.corpus_file))
   elapsed = time.time() - start
   log('mm corpus computed in %s' % elapsed)
 
