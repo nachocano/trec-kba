@@ -9,7 +9,7 @@ def main():
   alpha = 0.8
   alpha_name = '08'
 
-  clu_dyn = 'nohup ~/py_virtual/bin/python -u repo/trec-kba/scripts/clustering_uv.py -e trec-kba-2014-07-11-ccr-and-ssf-query-topics.json \
+  clu_dyn = 'nohup ~/py_virtual/bin/python -u repo/trec-kba/scripts/clustering_uv_bow.py -e trec-kba-2014-07-11-ccr-and-ssf-query-topics.json \
             -tr bow/train_r_bow_a%s_gd%s_gi%s.txt \
             -t bow/test_r_bow_a%s_gd%s_gi%s.txt \
             -i clu_dyn_a%s_gd%s_gi%s \
@@ -20,7 +20,7 @@ def main():
   os.system(clu_dyn)
 
   # mean dynamic    
-  mean_dyn = 'nohup ~/py_virtual/bin/python -u repo/trec-kba/scripts/clustering_uv.py -e trec-kba-2014-07-11-ccr-and-ssf-query-topics.json \
+  mean_dyn = 'nohup ~/py_virtual/bin/python -u repo/trec-kba/scripts/clustering_uv_bow.py -e trec-kba-2014-07-11-ccr-and-ssf-query-topics.json \
             -tr bow/train_r_bow_a1_gd10_gi05.txt \
             -t bow/test_r_bow_a1_gd10_gi05.txt \
             -i mean_dyn_a1_gd10_gi05 \
@@ -30,7 +30,7 @@ def main():
   print mean_dyn
   os.system(mean_dyn)
 
-  clu_stat = 'nohup ~/py_virtual/bin/python -u repo/trec-kba/scripts/clustering_uv.py -e trec-kba-2014-07-11-ccr-and-ssf-query-topics.json \
+  clu_stat = 'nohup ~/py_virtual/bin/python -u repo/trec-kba/scripts/clustering_uv_bow.py -e trec-kba-2014-07-11-ccr-and-ssf-query-topics.json \
             -tr bow/train_r_bow_a%s_gd0_gi1.txt \
             -t bow/test_r_bow_a%s_gd0_gi1.txt \
             -i clu_stat_a%s_gd0_gi1 \
