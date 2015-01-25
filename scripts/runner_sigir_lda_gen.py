@@ -4,8 +4,8 @@ import os
 def main():
 
   # change this
-  gamma_increase = (0.1, '01')
-  gamma_decrease = (0.1, '01')
+  gamma_increase = (0.5, '05')
+  gamma_decrease = (10, '10')
   alpha = 0.8
   alpha_name = '08'
 
@@ -19,9 +19,9 @@ def main():
 
   # mean dyn
   cmd = 'nohup java -jar treckba-jar-with-dependencies.jar -tr test_r_lda.txt \
-            -trr train_r_lda.txt -ot lda/test_r_lda_a1_gd1_gi01.txt \
-            -otr lda/train_r_lda_a1_gd1_gi01.txt \
-            -an 1 -av 1 -gnd 1 -gvd 1 -gni 0.1 -gvi 0.1 -tn 86400 \
+            -trr train_r_lda.txt -ot lda/test_r_lda_a1_gd10_gi05.txt \
+            -otr lda/train_r_lda_a1_gd10_gi05.txt \
+            -an 1 -av 1 -gnd 10 -gvd 10 -gni 0.5 -gvi 0.5 -tn 86400 \
             > logs/uw-lda_mean_dyn_feature.log'
   print cmd
   os.system(cmd)

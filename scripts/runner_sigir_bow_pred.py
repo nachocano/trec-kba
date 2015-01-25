@@ -4,8 +4,8 @@ import os
 def main():
 
   # change this
-  gamma_increase = (0.1, '01')
-  gamma_decrease = (0.1, '01')
+  gamma_increase = (0.5, '05')
+  gamma_decrease = (10, '10')
   alpha = 0.8
   alpha_name = '08'
 
@@ -21,12 +21,12 @@ def main():
 
   # mean dynamic    
   mean_dyn = 'nohup ~/py_virtual/bin/python -u repo/trec-kba/scripts/clustering_uv.py -e trec-kba-2014-07-11-ccr-and-ssf-query-topics.json \
-            -tr bow/train_r_bow_a1_gd1_gi01.txt \
-            -t bow/test_r_bow_a1_gd1_gi01.txt \
-            -i mean_dyn_a1_gd1_gi01 \
+            -tr bow/train_r_bow_a1_gd10_gi05.txt \
+            -t bow/test_r_bow_a1_gd10_gi05.txt \
+            -i mean_dyn_a1_gd10_gi05 \
             -nr nr.txt \
-            -o outputsbow/uw-bow_mean_dyn_a1_gd1_gi01 \
-            > logs/uw-bow_mean_dyn_a1_gd1_gi01.log'
+            -o outputsbow/uw-bow_mean_dyn_a1_gd10_gi05 \
+            > logs/uw-bow_mean_dyn_a1_gd10_gi05.log'
   print mean_dyn
   os.system(mean_dyn)
 
