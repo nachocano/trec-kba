@@ -26,8 +26,8 @@ def main():
   
   start = time.time()
   log('computing mm corpus')
-  mm = gensim.corpora.MmCorpus(args.corpus_file)
-  #mm = gensim.corpora.MmCorpus(bz2.BZ2File(args.corpus_file))
+  #mm = gensim.corpora.MmCorpus(args.corpus_file)
+  mm = gensim.corpora.MmCorpus(bz2.BZ2File(args.corpus_file))
   elapsed = time.time() - start
   log('mm corpus computed in %s' % elapsed)
 
