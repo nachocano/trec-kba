@@ -29,7 +29,7 @@ def main():
   # clust static
   cmd = 'nohup java -jar treckba-jar-with-dependencies.jar -tr test_r_lda.txt \
               -trr train_r_lda.txt -ot lda/test_r_lda_a%s_gd0_gi1.txt \
-              -otr lsi/train_r_lda_a%s_gd0_gi1.txt \
+              -otr lda/train_r_lda_a%s_gd0_gi1.txt \
               -an %s -av %s -gnd 0 -gvd 0 -gni 1 -gvi 1 -tn 86400 \
               > logs/uw-lda_clust_stat_a%s_feature.log' % (alpha_name, alpha_name, alpha, alpha, alpha_name)
   print cmd

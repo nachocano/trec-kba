@@ -4,7 +4,7 @@ import os
 def main():
 
   # change this
-  gamma_increase = (0.5, '0.5')
+  gamma_increase = (0.5, '05')
   gamma_decrease = (10, '10')
   alpha = 0.8
   alpha_name = '08'
@@ -33,7 +33,7 @@ def main():
   mean_dyn = 'nohup ~/py_virtual/bin/python -u repo/trec-kba/scripts/clustering_uv.py -e trec-kba-2014-07-11-ccr-and-ssf-query-topics.json \
             -tr lda/train_r_lda_a1_gd10_gi05.txt \
             -t lda/test_r_lda_a1_gd10_gi05.txt \
-            -i mean_dyn_a1_gd10_gi05 \
+            -i mean_dyn_lda_a1_gd10_gi05 \
             -nr nr.txt \
             -o outputslda/uw-lda_mean_dyn_a1_gd10_gi05 \
             > logs/uw-lda_mean_dyn_a1_gd10_gi05.log'

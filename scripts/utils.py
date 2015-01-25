@@ -279,7 +279,7 @@ def create_global_data_bow(filename):
             targetid = instance[1]
             date_hour = instance[2]
             label = int(instance[3])
-	        if label == 1 or label == 2:
+	    if label == 1 or label == 2:
                 features = instance[4:34]
     	        x_list.append(features)
                 y_list.append(label)
