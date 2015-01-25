@@ -146,7 +146,12 @@ public class ClusteringUtils {
 	}
 
 	public static float norm2(final Map<Integer, Float> a) {
-		return (float) Math.sqrt(dotProduct(a, a));
+		final Set<Integer> aKeys = a.keySet();
+		float norm = 0;
+		for (final int key : aKeys) {
+			norm += Math.pow(a.get(key), 2);
+		}
+		return (float) Math.sqrt(norm);
 	}
 
 	public static List<ClusterExample> mergeAndSort(
