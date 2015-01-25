@@ -11,13 +11,13 @@ def main():
     for gammai, gammai_name in gammas_increase:
       for gammad, gammad_name in gammas_decrease:
         clu_dyn = 'nohup ~/py_virtual/bin/python -u repo/trec-kba/scripts/clustering_uv.py -e trec-kba-2014-07-11-ccr-and-ssf-query-topics.json \
-              -tr lsigamma/train_r_lsi_a%s_gd%s_gi%s.txt \
-              -t lsigamma/test_r_lsi_a%s_gd%s_gi%s.txt \
-              -i clu_dyn_a%s_gd%s_gi%s \
+              -tr ~/treckba/sigir/lsigamma/train_r_lsi_a%s_gd%s_gi%s.txt \
+              -t ~/treckba/sigir/lsigamma/test_r_lsi_a%s_gd%s_gi%s.txt \
+              -i lsi_clu_dyn_a%s_gd%s_gi%s \
               -nr nr.txt \
-              -o outputsgamma/uw-lsi_clu_dyn_a%s_gd%s_gi%s \
-              > logs/uw-lsi_clu_dyn_a%s_gd%s_gi%s.log' % (alpha_name, gammad_name, gammai_name, alpha_name, 
-                gammad_name, gammad_name, alpha_name, gammad_name, gammai_name, alpha_name, gammad_name, gammai_name,
+              -o ~/treckba/sigir/outputsgamma/uw-lsi_clu_dyn_a%s_gd%s_gi%s \
+              > ~/treckba/sigir/logs/uw-lsi_clu_dyn_a%s_gd%s_gi%s.log' % (alpha_name, gammad_name, gammai_name, alpha_name, 
+                gammad_name, gammai_name, alpha_name, gammad_name, gammai_name, alpha_name, gammad_name, gammai_name,
                 alpha_name, gammad_name, gammai_name)
         print clu_dyn
         os.system(clu_dyn)
