@@ -26,8 +26,8 @@ def main():
   
   start = time.time()
   log('computing mm corpus')
-  #mm = gensim.corpora.MmCorpus(args.corpus_file)
-  mm = gensim.corpora.MmCorpus(bz2.BZ2File(args.corpus_file))
+  mm = gensim.corpora.MmCorpus(args.corpus_file)
+  #mm = gensim.corpora.MmCorpus(bz2.BZ2File(args.corpus_file))
   elapsed = time.time() - start
   log('mm corpus computed in %s' % elapsed)
 
@@ -37,7 +37,7 @@ def main():
   if model == 'lsi':
     m = gensim.models.lsimodel.LsiModel(corpus=mm, id2word=id2word, num_topics=300)
   elif model == 'lda':
-    m = gensim.models.ldamulticore.LdaMulticore(corpus=mm, id2word=id2word, num_topics=300, workers=3, update_every=0, passes=10)
+    m = gensim.models.ldamodel.LdaModel(corpus=mm, id2word=id2word, num_topics=300)
   elif model == 'tfidf':
     # maybe not needed
     m = gensim.models.tfidfmodel.TfidfModel(corpus=mm)
