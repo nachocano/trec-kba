@@ -1,0 +1,56 @@
+ uw-f_clust_dyn
+    micro_average: max(F_1(avg(P), avg(R))): 0.518
+    micro_average: max(avg(SU)):  0.529
+    macro_average: max(F_1(avg(P), avg(R))): 0.382
+    macro_average: max(avg(SU)):  0.458
+    weighted_average: max(F_1(avg(P), avg(R))): 0.004
+    weighted_average: max(avg(SU)):  0.004
+  uw-f_basic_single
+    micro_average: max(F_1(avg(P), avg(R))): 0.355
+    micro_average: max(avg(SU)):  0.437
+    macro_average: max(F_1(avg(P), avg(R))): 0.317
+    macro_average: max(avg(SU)):  0.382
+    weighted_average: max(F_1(avg(P), avg(R))): 0.003
+    weighted_average: max(avg(SU)):  0.003
+  uw-f_mean_dyn
+    micro_average: max(F_1(avg(P), avg(R))): 0.524
+    micro_average: max(avg(SU)):  0.535
+    macro_average: max(F_1(avg(P), avg(R))): 0.395
+    macro_average: max(avg(SU)):  0.469
+    weighted_average: max(F_1(avg(P), avg(R))): 0.004
+    weighted_average: max(avg(SU)):  0.004
+  uw-f_emb_pos
+    micro_average: max(F_1(avg(P), avg(R))): 0.498
+    micro_average: max(avg(SU)):  0.518
+    macro_average: max(F_1(avg(P), avg(R))): 0.376
+    macro_average: max(avg(SU)):  0.455
+    weighted_average: max(F_1(avg(P), avg(R))): 0.004
+    weighted_average: max(avg(SU)):  0.004
+  uw-f_emb_comb
+    micro_average: max(F_1(avg(P), avg(R))): 0.534
+    micro_average: max(avg(SU)):  0.537
+    macro_average: max(F_1(avg(P), avg(R))): 0.409
+    macro_average: max(avg(SU)):  0.479
+    weighted_average: max(F_1(avg(P), avg(R))): 0.004
+    weighted_average: max(avg(SU)):  0.004
+  uw-f_clust_stat
+    micro_average: max(F_1(avg(P), avg(R))): 0.527
+    micro_average: max(avg(SU)):  0.537
+    macro_average: max(F_1(avg(P), avg(R))): 0.394
+    macro_average: max(avg(SU)):  0.470
+    weighted_average: max(F_1(avg(P), avg(R))): 0.004
+    weighted_average: max(avg(SU)):  0.004
+  uw-f_basic_multi
+    micro_average: max(F_1(avg(P), avg(R))): 0.492
+    micro_average: max(avg(SU)):  0.520
+    macro_average: max(F_1(avg(P), avg(R))): 0.385
+    macro_average: max(avg(SU)):  0.456
+    weighted_average: max(F_1(avg(P), avg(R))): 0.004
+    weighted_average: max(avg(SU)):  0.004
+  uw-f_mean_stat
+    micro_average: max(F_1(avg(P), avg(R))): 0.520
+    micro_average: max(avg(SU)):  0.532
+    macro_average: max(F_1(avg(P), avg(R))): 0.388
+    macro_average: max(avg(SU)):  0.466
+    weighted_average: max(F_1(avg(P), avg(R))): 0.004
+    weighted_average: max(avg(SU)):  0.004
