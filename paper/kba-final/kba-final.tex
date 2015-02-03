@@ -374,11 +374,11 @@ We propose a browser-based visualization prototype that enables users to switch 
 The visualization tool initiates with the user selecting an entity of interest using an autocomplete-enabled text-box.
 For the selected entity, our visualization consists of two views: \emph{Document} and \emph{Topic}.
 
-The \emph{Document} view shows the distribution of relevant and vital documents over the whole timeline, summarizing and differentiating the time frames when the documents simply refer to the entity, and when they contain vital information.
+The \emph{Document} view shows the distribution of vital and non-vital documents over the whole timeline, summarizing and differentiating the time frames when the documents simply refer to the entity, and when they contain vital information.
 Figure \ref{vitalEvol} illustrates the distribution of predictions of entity \emph{Kshama Sawant} in a specific period of time. %The entity search box has been omitted for space reasons.
 Once the interesting time frames have been identified, this view also allows the user to navigate to and read individual documents. 
 
-The \emph{Topic} view shows the evolution of the topic clusters for the entity, showing the predicted proportion of topic clusters over time.
+The \emph{Topic} view shows the evolution of the topic clusters for the entity, illustrating the predicted proportion of topic clusters over time.
 This view primarily plots the staleness of a cluster over time, indicating when a cluster was started, mentioned in the documents, and fall into obsolescence. 
 The user can also study the topics in finer detail, clicking on any point in the timeline brings up a word cloud representation of the topic at that time.
 Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity \emph{Mike Kluse}. 
@@ -404,11 +404,11 @@ Representing words as continuous vectors has been around for a while~\cite{Hinto
 The progress of machine learning techniques in recent years enabled training more complex models on much larger data sets \cite{mikolovChen}. 
 One popular approach to increase accuracy in existing system is to use unsupervised methods to create word features, or to download word features that have already been produced \cite{Turian10wordrepresentations}. In our method, we do the latter, we use already induced word embedding features in order to improve its accuracy. To our best knowledge, no techniques propose using distributed word embeddings representations for solving the vital filtering problem.
 
-One pioneering work on detecting novel documents was introduced by \citet{Zhang2002}. In their work, they explicitly model relevance and redundancy as separate concepts. They propose different redundancy measures and empirically show that the cosine similarity metric is effective in identifying redundant documents, but they just keep the 10 most recent documents for a profile. In our method, we can keep the whole history of documents for a given entity, which allows a more accurate estimate of the query document's redundancy.
+One pioneering work on detecting novel documents was introduced by \citet{Zhang2002}. In their work, they explicitly model relevance and redundancy as separate concepts. They propose different redundancy measures and empirically show that the cosine similarity metric is effective in identifying redundant documents; one limitation is that they just keep the 10 most recent documents for a profile. In our method, we can keep the whole history of documents for a given entity, which allows a more accurate estimate of the query document's redundancy.
 
 Since then, many work has been made on scaling novel detection algorithms, also known as First Story Detection, in streaming settings, by either using LSH \cite{Petrovic2010} or just using simple heuristics \cite{Luo2007}. While their work mainly focuses on making the computation tractable, our work focuses more on achieving high accuracy. 
 
-Another example that addresses the problem of staleness detection was done \citet{gamon}, where the author builds an association graph connecting sentences and sentence fragments, and uses graph-based features as good indicators of lack of novelty. Though the task is somewhat similar, is more limited in the sense that they do not need to model the transition from new to background information where, in principle, all documents are citation worthy.
+Another example that addresses the problem of staleness detection was done by \citet{gamon}, where he builds an association graph connecting sentences and sentence fragments, and uses graph-based features as good indicators of lack of novelty. Though the task is somewhat similar, is more limited in the sense that they do not need to model the transition from new to background information where, in principle, all documents are citation worthy.
 
 Streaming document filtering is also related to several other fields, including but not limited to, entity linking \cite{KBP11}, text categorization \cite{HLTCOE12}, news surveillance \cite{Steinberger14}, and cross-document coreference~\cite{RaoMD10,singh11:acl}.
 
@@ -489,18 +489,18 @@ $\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length 
 %\label{subcat}
 TREC KBA 2014 corpus contain documents that do not refer to the target entities, even though they may contain mentions to them. We therefore need to use a \emph{non-referent} category of documents. 
 %
-A \emph{non-referent} document denotes that it does not refer to a target entity or the context is so ambiguous that it is impossible to decide whether the mention refers to an entity or not. An example of the former case is ``Barack Ferrazzano provides a wide range of business-oriented legal''. For the latter, an example is ``Barack is a great father and a better husband''. The mention ``Barack'' may refer to any married parent named Barack, therefore, we consider it \emph{non-referent}.
+A \emph{non-referent} document denotes that it does not refer to a target entity or the context is so ambiguous that it is impossible to decide whether the mention refers to an entity or not. An example of the former case is ``Barack Ferrazzano provides a wide range of business-oriented legal''. It clearly does not refer to Barack Obama. For the latter, an example is ``Barack is a great father and a better husband''. The mention ``Barack'' may refer to any married parent named Barack, therefore, we consider it \emph{non-referent}.
 %
 The \emph{vital} and \emph{non-vital} classes described in section \ref{background} fall into a \emph{referent} (or \emph{relevant}) category, which contains documents that refer to the target entities.
 
 Due to the fact that not all documents in the corpus refer to the target entities, we include an extra step in our classification process, as shown in Figure \ref{classifier}. We introduce an additional classifier, called $rnr$, which is trained offline and classifies documents as \emph{referent} or \emph{non-referent}.
-Consequently, in every experiment, each document goes first through the \emph{rnr} classifier. Only the \emph{relevant} documents outputted by \emph{rnr} are used as inputs to the $vnv$ classifier, which discriminates between \emph{vital} and \emph{non-vital} documents, the overall focus of this work.
+Consequently, in every experiment, each document goes first through the \emph{rnr} classifier. Only the \emph{referent} documents outputted by \emph{rnr} are used as inputs to the \emph{vnv} classifier, which discriminates between \emph{vital} and \emph{non-vital} documents, the overall focus of this work.
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=0.9\columnwidth]{fig/classifier.pdf}
+\includegraphics[width=1\columnwidth]{fig/classifier.pdf}
 \caption{Classification process}
-\label{stalenessmedium}
+\label{classifier}
 \end{figure}
 
 
@@ -510,12 +510,12 @@ Consequently, in every experiment, each document goes first through the \emph{rn
 We use randomized tree ensembles classifiers \cite{GEW06a} for both \emph{rnr} and \emph{vnv}, each composed of $100$ weak learners. Each tree in the ensembles has a maximum depth of $150$.
 %
 All the experiments use the same \emph{rnr} model trained with the basic features listed in section \ref{feat}.
-The different methods differ on the features used to train and test the $vnv$ classifier.
+The different methods differ on the features used to train and test the \emph{vnv} classifier.
 
 \begin{itemize}
   \item {\textit{Baseline Single}}: baseline method that uses $F_b$ features. \citet{jingang13, bellogin13} have a similar method, though they train their models with more features.
-  \item {\textit{Baseline Multi-task}}: method similar to {\textit{Basic Single}} but includes multi-task learning \cite{Caruana93multitasklearning}.
-  \item {\textit{Embedding Combined}}: similar to {\textit{Basic Multi-task}} but includes $F_e$ features. The word embeddings are computed using the Google News dataset. Each document has a single combined embedding, which is calculated from the nouns, proper nouns and verbs found around the mentions, as described in section \ref{docwordemb}.
+  \item {\textit{Baseline Multi-task}}: baseline method similar to {\textit{Baseline Single}} but includes multi-task learning \cite{Caruana93multitasklearning}.
+  \item {\textit{Embedding Combined}}: similar to {\textit{Baseline Multi-task}} but includes $F_e$ features. The word embeddings are computed using the Google News dataset. Each document has a single combined embedding, which is calculated from the nouns, proper nouns and verbs found in the linguistic context of the entities' mentions, as described in section \ref{docwordemb}.
   \item {\textit{Embedding POS}}: similar to {\textit{Embedding Combined}} but instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns, proper nouns and verbs. %It uses the part of speech annotations in the documents to easily extract the different word types.
   \item {\textit{Mean Dynamic}}: similar to the {\textit{Embedding POS}} method but it includes the $F_t$ features.
   \item {\textit{Clustering Static}}: similar to the {\textit{Embedding POS}} method but it includes the $F_c$ features.
@@ -653,16 +653,14 @@ The different methods differ on the features used to train and test the $vnv$ cl
 
 \section{Results and Discussion}
 
-Table \ref{officialRes} shows the official precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA  scorer tool. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
+Table \ref{officialRes} shows the official and revised precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA  scorer tool, using the 2014-07-11 truth data. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
+
+According to the official results, our system achieved the $2^{nd}$ best precision in the competition, but performed poorly in the overall macro F1 ($8^{th}$ position). Revisiting our submission files, we found that we misinterpreted the concept of confidence. Figure \ref{official:submission} shows that we only make vital predictions with confidence greater than or equal to 500, i.e. the right part of the curve is just constant. We should have also predicted vital with low confidence, i.e. flip our high confidence non-vital predictions to be vital with low confidence. That minor change boosts our recall (in most cases), while the precision slightly suffers, as shown in Figure \ref{official:revised}, leaving our system in the $2^{nd}$ overall position.
+
 {\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models.
-On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work.
-Most of the more advanced models perform better than {\textit{Baseline Multi-task}}. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
-The staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method.
-Nevertheless, they illustrate the importance of these new features as they use separate embeddings for the different word types, and they all improve the performance of the simple {\textit{Embedding POS}} model.
-
-According to these official results, our system achieved the $2^{nd}$ best precision in the competition, but performed poorly in the overall macro F1 ($8^{th}$ position). Revisiting our submission files, we found out that we misinterpreted the concept of confidence. Figure \ref{official:submission} shows that we only make vital predictions with confidence greater than or equals to 500, i.e. the right part of the curve is just a straight line. What we should have done instead, is also predict vital with low confidence, i.e. flip our high confidence non-vital predictions to be low confidence vital ones. That way, our recall increases, while the precision suffers just a slight decrease, as shown in Figure \ref{official:revised}, leaving our system in the $2^{nd}$ macro F1 position.
-
-We therefore include all the revised runs in Table \ref{officialRevised} for reference.
+On the other hand, {\textit{Baseline Multi-task}} performs far better that {\textit{Baseline Single} in the official results, which evidences that multi-task learning does work.
+Most of the more advanced models perform better than {\textit{Baseline Multi-task}}, both on the official and revised results. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
+The staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method on the official results. Nevertheless, they illustrate the importance of these new features as they use separate embeddings for the different word types, and they all improve the performance of the simple {\textit{Embedding POS}} model. In the revised versions, {\textit{Mean Dynamic}} scores the best F1, followed closely by {\textit{Clustering Static}}, which further evidences the importance of $F_t$ and $F_c$ features.
 
 \def \officialRunWidth {0.23\textwidth}
 \begin{figure}[tb]
@@ -689,25 +687,25 @@ We therefore include all the revised runs in Table \ref{officialRevised} for ref
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/macroPrecision}
 			\caption{Precision}
-			\label{official:prec}
+			\label{official:macroprec}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/macroRecall}
 			\caption{Recall}
-			\label{official:recall}
+			\label{official:macrorecall}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/macroF1}
 			\caption{F1}
-			\label{official:f1}
+			\label{official:macrof1}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/macroSU}
 			\caption{Scaled Utility}
-			\label{official:su}
+			\label{official:macrosu}
     \end{subfigure}
 \caption{Macro P-R-F1-SU over confidence cutoffs}
 \label{macroRuns}
@@ -719,36 +717,28 @@ We therefore include all the revised runs in Table \ref{officialRevised} for ref
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/microPrecision}
       \caption{Precision}
-      \label{official:prec}
+      \label{official:microprec}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/microRecall}
       \caption{Recall}
-      \label{official:recall}
+      \label{official:microrecall}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/microF1}
       \caption{F1}
-      \label{official:f1}
+      \label{official:microf1}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/microSU}
       \caption{Scaled Utility}
-      \label{official:su}
+      \label{official:microsu}
     \end{subfigure}
 \caption{Micro P-R-F1-SU over confidence cutoffs}
 \label{microRuns}
-\end{figure}
-
-
-\begin{figure}[tb]
-\centering
-\includegraphics[width=.5\textwidth]{fig/microPrecisionRecall.png}
-\caption{Micro Precision-Recall}
-\label{microPrecRecall}
 \end{figure}
 
 \begin{figure}[tb]
@@ -758,9 +748,17 @@ We therefore include all the revised runs in Table \ref{officialRevised} for ref
 \label{macroPrecRecall}
 \end{figure}
 
+\begin{figure}[tb]
+\centering
+\includegraphics[width=.5\textwidth]{fig/microPrecisionRecall.png}
+\caption{Micro Precision-Recall}
+\label{microPrecRecall}
+\end{figure}
 
-Figures \ref{macroRuns} and \ref{microRuns} complement the revised results in Table \ref{officialRes} for different confidence cutoffs.
-Figures \ref{microPrecRecall} and \ref{macroPrecRecall} further illustrate the precision-recall for the different methods. On low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, in general outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
+Figures \ref{macroRuns} and \ref{microRuns} complement the revised results in Table \ref{officialRes} for different confidence cutoffs. Figures \ref{official:macroprec} and \ref{official:macrorecall} show that the macro recalls have a huge increase on the low confidence half of the plot, while most precisions stay nearly the same; this is a strong indicator of why the F1 boosts in the revised macro scenario.
+In the micro case, the precisions and recalls (shown in Figures \ref{official:microprec} and \ref{official:microrecall}) increase and decrease in similar proportions, which explain why the micro revised F1s are almost the same as the micro official ones. 
+
+Figures \ref{macroPrecRecall} and \ref{microPrecRecall} further illustrate the precision-recall for the different methods. In the macro case, all methods are pretty much the same. The micro metrics, in Figure \ref{microPrecRecall}, are much more interesting. On low recall, the micro precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, in general outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
 %Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
 
@@ -792,7 +790,7 @@ million & guidance \\
 \label{clusterresult}
 \end{table}
 
-Further, we present some qualitative results on the topic clusters of this variant of {\textit{Clustering Dynamic}} using $\alpha\mathord{=}0.8$. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of the entity \emph{Shawn Atleo} on 11/15/2012.
+Further, we present some qualitative results on the topic clusters of {\textit{Clustering Dynamic}} with a single embedding. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of the entity \emph{Shawn Atleo} on 11/15/2012.
 By doing some manual search on \emph{Shawn Atleo}, we can easily confirm that C2 elements make sense. \emph{Mr. Atleo} is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and finances. It may be explained by all the articles that talk about \emph{Shawn} announcing huge investments in different areas.
 
 We believe further experimental investigations are needed to account for the correct tuning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. 
@@ -807,7 +805,7 @@ In this paper we introduced a semi-supervised learning model for document filter
 Combining these three core ideas, distributed word embeddings, non-parametric clustering, and staleness, results in a more accurate representation of entities' contexts, and simultaneously addresses the filtering requirements of large corpora of streaming text documents.
 
 Further work needs to be done. A possible line of future research would be exploring hierarchical clustering algorithms to better represent topic clusters. It would also be interesting to assess the effect of learning the hyperparameters of the model instead of just manual tuning them for the specific datasets.
-It would be worthwhile to assess the effects of using different pre-trained word embeddings.
+It would also be worthwhile to assess the effects of using different pre-trained word embeddings.
 
 \section*{Acknowledgments} 
  
