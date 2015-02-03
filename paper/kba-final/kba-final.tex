@@ -682,77 +682,60 @@ We therefore include all the revised runs in Table \ref{officialRevised} for ref
 \begin{figure}[tb]
   \centering
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/official/official-prec}
+            \includegraphics[width=\textwidth]{fig/macroPrecision}
 			\caption{Precision}
 			\label{official:prec}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/official/official-recall}
+            \includegraphics[width=\textwidth]{fig/macroRecall}
 			\caption{Recall}
 			\label{official:recall}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/official/official-f1}
+            \includegraphics[width=\textwidth]{fig/macroF1}
 			\caption{F1}
 			\label{official:f1}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/official/official-su}
-			\caption{Scale Utility}
+            \includegraphics[width=\textwidth]{fig/macroSU}
+			\caption{Scaled Utility}
 			\label{official:su}
     \end{subfigure}
-   %  \begin{subfigure}[b]{\officialRunWidth}
-   %          \includegraphics[width=\textwidth]{fig/official/f_basic_single.png}
-			% \caption{Basic Single}
-			% \label{official:basic-single}
-   %  \end{subfigure}
-   %  ~
-   %  \begin{subfigure}[b]{\officialRunWidth}
-   %          \includegraphics[width=\textwidth]{fig/official/f_basic_multi.png}
-			% \caption{Basic Multi}
-			% \label{official:basic-single}
-   %  \end{subfigure}
-   %  ~
-   %  \begin{subfigure}[b]{\officialRunWidth}
-   %          \includegraphics[width=\textwidth]{fig/official/f_emb_comb.png}
-			% \caption{Emb Comb}
-			% \label{official:basic-single}
-   %  \end{subfigure}
-   %  ~
-   %  \begin{subfigure}[b]{\officialRunWidth}
-   %          \includegraphics[width=\textwidth]{fig/official/f_emb_pos.png}
-			% \caption{Emb POS}
-			% \label{official:basic-single}
-   %  \end{subfigure}
-   %  ~
-   %  \begin{subfigure}[b]{\officialRunWidth}
-   %          \includegraphics[width=\textwidth]{fig/official/f_mean_stat.png}
-			% \caption{Mean Stat}
-			% \label{official:basic-single}
-   %  \end{subfigure}
-   %  ~
-   %  \begin{subfigure}[b]{\officialRunWidth}
-   %          \includegraphics[width=\textwidth]{fig/official/f_mean_dyn.png}
-			% \caption{Mean Dyn}
-			% \label{official:basic-single}
-   %  \end{subfigure}
-   %  ~
-   %  \begin{subfigure}[b]{\officialRunWidth}
-   %          \includegraphics[width=\textwidth]{fig/official/f_clust_stat.png}
-			% \caption{Clust Stat}
-			% \label{official:basic-single}
-   %  \end{subfigure}
-   %  ~
-   %  \begin{subfigure}[b]{\officialRunWidth}
-   %          \includegraphics[width=\textwidth]{fig/official/f_clust_dyn.png}
-			% \caption{Clust Dyn}
-			% \label{official:basic-single}
-   %  \end{subfigure}
-\caption{P-R-F1-SU over confidence cutoffs}
-\label{officialruns}
+\caption{Macro P-R-F1-SU over confidence cutoffs}
+\label{macroRuns}
+\end{figure}
+
+\def \officialRunWidth {0.23\textwidth}
+\begin{figure}[tb]
+  \centering
+    \begin{subfigure}[b]{\officialRunWidth}
+            \includegraphics[width=\textwidth]{fig/microPrecision}
+      \caption{Precision}
+      \label{official:prec}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\officialRunWidth}
+            \includegraphics[width=\textwidth]{fig/microRecall}
+      \caption{Recall}
+      \label{official:recall}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\officialRunWidth}
+            \includegraphics[width=\textwidth]{fig/microF1}
+      \caption{F1}
+      \label{official:f1}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\officialRunWidth}
+            \includegraphics[width=\textwidth]{fig/microSU}
+      \caption{Scaled Utility}
+      \label{official:su}
+    \end{subfigure}
+\caption{Micro P-R-F1-SU over confidence cutoffs}
+\label{microRuns}
 \end{figure}
 
 
@@ -763,21 +746,21 @@ We therefore include all the revised runs in Table \ref{officialRevised} for ref
 \label{precrecall}
 \end{figure}
 
-Figure \ref{officialruns} complements the results in Table \ref{resMacro} for different confidence cutoffs.
+Figures \ref{macroRuns} and \ref{microRuns} complement the revised results in Table \ref{officialRes} for different confidence cutoffs.
 Figure \ref{precrecall} further illustrates the precision-recall for the different methods. On low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, in general outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
 %Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
 
 %We achieve the best result when $\gamma_i=0.5$ and $\gamma_d=0.2$, still lower than \textit{Embedding Combined} but better than previous {\textit{Clustering Dynamic}}. In general, lower $\gamma_d$ seems to be doing a better job. These results further reflect the importance of hyperparameter tuning.
 
-Figure \ref{varyingalpha} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{resMacro}, this new version uses a single embedding representation instead of embeddings per word type. We show the change in macro P-R-F1 for different values of $\alpha$, using $\gamma_{inc}=0.1$ and $\gamma_{dec}=1$. We see that the performance degrades as $\alpha$ increases, which further reflects the importance of hyperparameter tuning. Even more, this variant with $\alpha=0.2$ performed the best, achieving a macro F1 of 0.374.
+%Figure \ref{varyingalpha} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{resMacro}, this new version uses a single embedding representation instead of embeddings per word type. We show the change in macro P-R-F1 for different values of $\alpha$, using $\gamma_{inc}=0.1$ and $\gamma_{dec}=1$. We see that the performance degrades as $\alpha$ increases, which further reflects the importance of hyperparameter tuning. Even more, this variant with $\alpha=0.2$ performed the best, achieving a macro F1 of 0.374.
 
-\begin{figure}[tb]
-\centering
-\includegraphics[width=0.8\columnwidth]{fig/alphaPlotMacro.pdf}
-\caption{P-R-F1 vs. $\alpha$}
-\label{varyingalpha}
-\end{figure}
+%\begin{figure}[tb]
+%\centering
+%\includegraphics[width=0.8\columnwidth]{fig/alphaPlotMacro.pdf}
+%\caption{P-R-F1 vs. $\alpha$}
+%\label{varyingalpha}
+%\end{figure}
 
 \begin{table}[tb]
 \center
