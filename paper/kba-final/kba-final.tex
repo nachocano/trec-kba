@@ -710,7 +710,9 @@ The different methods differ on the features used to train and test the \emph{vn
 
 \section{Results and Discussion}
 
-Table \ref{officialRes} shows the official and revised precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA  scorer tool, using the 2014-07-11 truth data. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
+Table \ref{officialRes} shows the official and revised precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA scorer tool, using the 2014-07-11 truth data. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
+
+The official baseline provided by TREC KBA organizers assigns a `vital' rating to every document that matches a surface form name of an entity, assigning a confidence score based on the number of matches of tokens in the name. The values reported by the organizers are: macro-P=0.316, macro-R=0.520, macro-F1=0.393, SU=0.3334 \cite{frank14:overview}.
 
 According to the official results, our system achieved the $2^{nd}$ best precision in the competition, but performed poorly in the overall macro F1 ($8^{th}$ position). Revisiting our submission files, we found that we misinterpreted the concept of confidence. Figure \ref{official:submission} shows that we only make vital predictions with confidence greater than or equal to 500, i.e. the right part of the curve is just constant. We should have also predicted vital with low confidence, i.e. flip our high confidence non-vital predictions to be vital with low confidence. That minor change boosts our recall (in most cases), while the precision slightly suffers, as shown in Figure \ref{official:revised}, leaving our system in the $2^{nd}$ overall position.
 
