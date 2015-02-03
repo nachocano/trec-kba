@@ -16,7 +16,7 @@ def main():
     for f in os.listdir(args.directory):
         filename = os.path.join(args.directory,f)
         outputfilename = os.path.join(args.output_directory,f)
-        if os.path.isfile(filename):
+        if os.path.isfile(filename) and '.gz' not in filename:
             cmd = 'python %s -r %s > %s' % (args.change_output_script, filename, outputfilename)
             print cmd
             os.system(cmd)

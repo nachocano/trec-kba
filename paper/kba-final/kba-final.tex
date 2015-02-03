@@ -489,8 +489,16 @@ A \emph{non-referent} document denotes that it does not refer to a target entity
 %
 The \emph{vital} and \emph{non-vital} classes described in section \ref{background} fall into a \emph{referent} (or \emph{relevant}) category, which contains documents that refer to the target entities.
 
-Due to the fact that not all documents in the corpus refer to the target entities, we include an extra step in our classification process. We introduce an additional classifier, called $rnr$, which is trained offline and classifies documents as \emph{referent} or \emph{non-referent}.
-Consequently, in every experiment, each document goes first through the \emph{rnr} classifier. Only the \emph{relevant} documents outputted by \emph{rnr} are used as inputs to the $uv$ model, which discriminates between \emph{vital} and \emph{non-vital} documents, the overall focus of this work.
+Due to the fact that not all documents in the corpus refer to the target entities, we include an extra step in our classification process, as shown in Figure \ref{classifier}. We introduce an additional classifier, called $rnr$, which is trained offline and classifies documents as \emph{referent} or \emph{non-referent}.
+Consequently, in every experiment, each document goes first through the \emph{rnr} classifier. Only the \emph{relevant} documents outputted by \emph{rnr} are used as inputs to the $vnv$ classifier, which discriminates between \emph{vital} and \emph{non-vital} documents, the overall focus of this work.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.9\columnwidth]{fig/classifier.pdf}
+\caption{Classification process}
+\label{stalenessmedium}
+\end{figure}
+
 
 \subsection{Methods}
 \label{expe}
@@ -510,25 +518,8 @@ The different methods differ on the features used to train and test the $uv$ cla
   \item {\textit{Clustering Dynamic}}: similar to the {\textit{Embedding POS}} method but it includes $F_t$ and $F_c$ features.
 \end{itemize}
 
-% MICRO
-%\begin{table}[H]
-%\center
-%\begin{tabular}{|c|c|c|c|c|} \hline
-%\textbf{Model} & \textbf{P} & \textbf{R} & \textbf{F1} \\ \hline\hline
-%{\textit{Baseline Single}} & 0.538 & 0.265 & 0.355 \\ \hline
-%{\textit{Baseline Multi-task}} & \textbf{0.607} & 0.414 & 0.492 \\ \hline
-%{\textit{Embedding Combined}} & 0.547 & \textbf{0.521} & \textbf{0.534} \\ \hline
-%{\textit{Embedding POS}} & 0.538 & 0.464 & 0.498 \\ \hline
-%{\textit{Mean Static}} & 0.573 & 0.476 & 0.520 \\ \hline
-%{\textit{Mean Dynamic}} & 0.572 & 0.482 & 0.524 \\ \hline
-%{\textit{Clustering Static}} & 0.569 & 0.490 & 0.527 \\ \hline
-%{\textit{Clustering Dynamic}} & 0.562 & 0.481 & 0.518 \\ \hline
-%\end{tabular}
-%\caption{TRECKBA14 Vital Filtering scores}
-%\label{resMicro}
-%\end{table}
 
-%MACRO
+%Official
 \begin{table*}[tb]
 {\small
 \begin{center}
@@ -536,77 +527,155 @@ The different methods differ on the features used to train and test the $uv$ cla
 \toprule
   \multirow{2}{*}{\textbf{Model}} & 
   \multirow{2}{*}{\textbf{Features}} & 
-  %\multicolumn{3}{c}{\textbf{Relevance}, \emph{macro}} & 
   \multicolumn{3}{c}{\textbf{Vital only}, \emph{micro}} &
   \multicolumn{3}{c}{\textbf{Vital only}, \emph{macro}}
 \\ 
   \cmidrule(lr){3-5}
   \cmidrule(lr){6-8}
-  %\cmidrule(lr){9-11}
 &   & 
-  %\textbf{P} & \textbf{R} & \textbf{F1} & 
   \textbf{P} & \textbf{R} & \textbf{F1} & 
   \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 \midrule
 {\textit{Baseline Single}} & $F_b$ &
-	%0.630 & 0.626 & 0.628 & 
-	0.468 & 0.246 & 0.323 &
-  0.409 & 0.235 & 0.298 \\
+	0.539 & 0.265 & 0.355 &
+  0.475 & 0.238 & 0.317 \\
 {\textit{Baseline Multi-task}} & $F_b$ &
-	%0.632 & 0.632 & 0.632 & 
-	0.465 & 0.403 & 0.432 &
-	0.319 & \textbf{0.377} & 0.346 \\
+ 0.607 & 0.414 & 0.492 &
+ 0.367 & 0.405 & 0.385 \\
 {\textit{Embedding Combined}} & $F_b+F_e$ & 
-	%0.632 & 0.626 & 0.629 & 
-	0.467 & \textbf{0.465} & \textbf{0.466} &
-	0.413 & 0.331 & \textbf{0.367} \\
+  0.547 & 0.521 & 0.534 &
+  0.449 & 0.376 & 0.409 \\
 {\textit{Embedding POS}} & $F_b+F_e$ & 
-	%- & - & - & 
-	0.480 & 0.419 & 0.447 &
-	0.412 & 0.299 & 0.346 \\
+  0.539 & 0.464 & 0.498 &
+  0.440 & 0.329 & 0.376 \\
 {\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
-	%- & - & - & 
-	\textbf{0.483} & 0.436 & 0.459 &
-	\textbf{0.440} & 0.308 & 0.362 \\
+  0.573 & 0.483 & 0.524 &
+  0.475 & 0.338 & 0.395 \\
 {\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
-	%- & - & - & 
-	0.483 & 0.440 & 0.460 &
-	0.420 & 0.306 & 0.354 \\
+	0.570 & 0.490 & 0.527 &
+	0.464 & 0.342 & 0.394 \\
 {\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
-	%- & - & - & 
-  0.481 & 0.435 & 0.457 &
-	0.423 & 0.293 & 0.346 \\
-%{\textit{Mean Dynamic*}} & $F_b+F_e+F_t$ & 
-  %- & - & - & 
-%  0.456 & 0.459 & 0.457 &
-%  0.388 & 0.323 & 0.352 \\
-%{\textit{Clustering Static*}} & $F_b+F_e+F_c$ & 
-  %- & - & - & 
-%  0.466 & 0.454 & 0.460 &
-%  0.384 & 0.329 & 0.354 \\
-%{\textit{Clustering Dynamic*}} & $F_b+F_e+F_c+F_t$ & 
-  %- & - & - & 
-%  0.467 & 0.468 & 0.467 &
-%  0.415 & 0.340 & 0.374 \\ 
+  0.562 & 0.481 & 0.518 &
+	0.461 & 0.326 & 0.382 \\
 \bottomrule
 \end{tabular}
 \end{center}
 }
-\caption{UW Vital Filtering results for TREC KBA 2014}
-\label{resMacro}
+\caption{UW Vital Filtering official results for TREC KBA 2014}
+\label{officialRes}
 \end{table*}
+
+%Official Revised
+\begin{table*}[tb]
+{\small
+\begin{center}
+\begin{tabular}{llccccccccc} 
+\toprule
+  \multirow{3}{*}{\textbf{Model}} & 
+  \multirow{3}{*}{\textbf{Features}} & 
+  \multicolumn{3}{c}{\textbf{Vital only}, \emph{micro}} &
+  \multicolumn{3}{c}{\textbf{Vital only}, \emph{macro}}
+\\ 
+  \cmidrule(lr){3-5}
+  \cmidrule(lr){6-8}
+&   & 
+  \textbf{P} & \textbf{R} & \textbf{F1} & 
+  \textbf{P} & \textbf{R} & \textbf{F1} \\ 
+\midrule
+{\textit{Baseline Single}} & $F_b$ &
+  0.266 & 0.634 & 0.375 &
+  0.366 & 0.940 & 0.527 \\
+{\textit{Baseline Multi-task}} & $F_b$ &
+ 0.607 & 0.414 & 0.492 &
+ 0.366 & 0.940 & 0.527 \\
+{\textit{Embedding Combined}} & $F_b+F_e$ & 
+  0.547 & 0.518 & 0.532 &
+  0.383 & 0.855 & 0.529 \\
+{\textit{Embedding POS}} & $F_b+F_e$ & 
+  0.499 & 0.531 & 0.514 &
+  0.366 & 0.940 & 0.527 \\
+{\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
+  0.573 & 0.483 & 0.524 &
+  0.391 & 0.858 & 0.537 \\
+{\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
+  0.570 & 0.489 & 0.526 &
+  0.387 & 0.850 & 0.532 \\
+{\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
+  0.562 & 0.481 & 0.518 &
+  0.366 & 0.940 & 0.527 \\
+\bottomrule
+\end{tabular}
+\end{center}
+}
+\caption{UW Vital Filtering revised official results for TREC KBA 2014}
+\label{officialRevised}
+\end{table*}
+
+
+% Unofficial
+%\begin{table*}[tb]
+%{\small
+%\begin{center}
+%\begin{tabular}{llccccccccc} 
+%\toprule
+%  \multirow{3}{*}{\textbf{Model}} & 
+%  \multirow{3}{*}{\textbf{Features}} & 
+%  \multicolumn{3}{c}{\textbf{Vital only}, \emph{micro}} &
+%  \multicolumn{3}{c}{\textbf{Vital only}, \emph{macro}}
+%\\ 
+%  \cmidrule(lr){3-5}
+%  \cmidrule(lr){6-8}
+%&   & 
+%  \textbf{P} & \textbf{R} & \textbf{F1} & 
+%  \textbf{P} & \textbf{R} & \textbf{F1} \\ 
+%\midrule
+%{\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
+%  0.528 & 0.510 & 0.519 &
+%  0.366 & 0.940 & 0.527 \\
+%{\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
+%  0.523 & 0.522 & 0.523 &
+%  0.388 & 0.867 & 0.536 \\
+%{\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
+%  0.549 & 0.521 & 0.534 &
+%  0.388 & 0.863 & 0.535 \\
+%\bottomrule
+%\end{tabular}
+%\end{center}
+%}
+%\caption{UW Vital Filtering unofficial results for TREC KBA 2014}
+%\label{unofficial}
+%\end{table*}
 
 \section{Results and Discussion}
 
-%\todo{Results of the RNR classification, of all the different approaches, see Table \ref{resMacro}}
-
-Table \ref{resMacro} shows the precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA official scorer tool with cutoff=50. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
+Table \ref{officialRes} shows the official precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA  scorer tool. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
 {\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models.
 On the other hand, {\textit{Baseline Multi-task}} perform far better that {\textit{Baseline Single}, which evidences that multi-task learning does work.
 Most of the more advanced models perform better than {\textit{Baseline Multi-task}}. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
-%We are surprised to see that {\textit{Embedding Combined}} outperformed all methods, achieving an F1 of 0.409. 
 The staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method.
 Nevertheless, they illustrate the importance of these new features as they use separate embeddings for the different word types, and they all improve the performance of the simple {\textit{Embedding POS}} model.
+
+According to these official results, our system achieved the $2^{nd}$ best precision in the competition, but performed poorly in the overall macro F1 ($8^{th}$ position). Revisiting our submission files, we found out that we misinterpreted the concept of confidence. Figure \ref{official:submission} shows that we only make vital predictions with confidence greater than or equals to 500, i.e. the right part of the curve is just a straight line. What we should have done instead, is also predict vital with low confidence, i.e. flip our high confidence non-vital predictions to be low confidence vital ones. That way, our recall increases, while the precision suffers just a slight decrease, as shown in Figure \ref{official:revised}, leaving our system in the $2^{nd}$ macro F1 position.
+
+We therefore include all the revised runs in Table \ref{officialRevised} for reference.
+
+\def \officialRunWidth {0.23\textwidth}
+\begin{figure}[tb]
+  \centering
+    \begin{subfigure}[b]{\officialRunWidth}
+            \includegraphics[width=\textwidth]{fig/clust_dyn_wrong.png}
+      \caption{Official submission example}
+      \label{official:submission}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\officialRunWidth}
+            \includegraphics[width=\textwidth]{fig/clust_dyn_right.png}
+      \caption{Official submission revised}
+      \label{official:revised}
+    \end{subfigure}
+\caption{P-R-F1 over confidence cutoffs}
+\label{submissionAndRevised}
+\end{figure}
 
 
 \def \officialRunWidth {0.23\textwidth}
