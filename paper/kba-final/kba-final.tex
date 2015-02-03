@@ -763,35 +763,10 @@ We therefore include all the revised runs in Table \ref{officialRevised} for ref
 \label{precrecall}
 \end{figure}
 
-Figure \ref{officialruns} complements the results in Table \ref{resMacro} for different confidence cutoffs. %The metrics in each plot are nearly constant up to cutoff=500, and then decrease for higher cutoffs, which matches our expectations.
+Figure \ref{officialruns} complements the results in Table \ref{resMacro} for different confidence cutoffs.
 Figure \ref{precrecall} further illustrates the precision-recall for the different methods. On low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, in general outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
 %Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
-
-%\begin{table}[H]
-%\center
-%\begin{tabular}{|c|c|c|c|c|} \hline
-%$\gamma_i$ & $\gamma_d$ & \textbf{P} & \textbf{R} & \textbf{F1} \\ \hline\hline
-%0.1 & 0.2 & 0.525 & \textbf{0.518} & 0.521 \\ \hline
-%0.1 & 0.5 & 0.537 & 0.514 & \textbf{0.525} \\ \hline
-%0.1 & 1   & 0.516 & 0.514 & 0.515 \\ \hline
-%0.1 & 20  & 0.512 & 0.506 & 0.509 \\ \hline
-%0.1 & 100 & \textbf{0.583} & 0.463 & 0.516 \\ \hline\hline
-%0.5 & 0.2 & \textbf{0.592*} & 0.479 & \textbf{0.530*} \\ \hline
-%0.5 & 0.5 & 0.537 & 0.523 & 0.529 \\ \hline
-%0.5 & 1   & 0.527 & 0.520 & 0.524 \\ \hline
-%0.5 & 20  & 0.516 & 0.504 & 0.510 \\ \hline
-%0.5 & 100 & 0.528 & \textbf{0.528} & 0.528 \\ \hline\hline
-%0.9 & 0.2 & 0.529 & 0.509 & 0.519 \\ \hline
-%0.9 & 0.5 & 0.533 & 0.520 & 0.526 \\ \hline
-%0.9 & 1   & 0.540 & 0.518 & \textbf{0.529} \\ \hline
-%0.9 & 20  & 0.521 & \textbf{0.529*} & 0.525 \\ \hline
-%0.9 & 100 & \textbf{0.586} & 0.460 & 0.516 \\ \hline
-%\end{tabular}
-%\footnotetext{Footnote}
-%\caption{Scores for variant of clustering dynamic with a single embedding and $\alpha=0.6$}
-%\label{varyinggamma}
-%\end{table}
 
 %We achieve the best result when $\gamma_i=0.5$ and $\gamma_d=0.2$, still lower than \textit{Embedding Combined} but better than previous {\textit{Clustering Dynamic}}. In general, lower $\gamma_d$ seems to be doing a better job. These results further reflect the importance of hyperparameter tuning.
 

@@ -36,7 +36,7 @@ build.log
 *.bcf
 *.bst
 *.dvi
-*.pdf
+#*.pdf
 *.fdb_latexmk
 *.fls
 *.nav
