@@ -462,8 +462,16 @@ $\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length 
 \midrule
 \multicolumn{2}{c}{\textbf{Embedding Features, $F_e$}} \\ %\hline
 \midrule
+\multicolumn{2}{l}{\emph{Based on combined embedding, $F_e^c$}} \\ %\hline
   $v_d$ & mean word embedding representation of $d$ \\
   $\text{zero}(v_d)$& $\mathbbm{1}_{v_d=0}$, set to 1 if $v_d$ is $0$ \\
+\multicolumn{2}{l}{\emph{Based on POS embeddings, $F_e^p$}} \\ %\hline 
+  $v_{d_n}$ & mean word embedding representation of nouns in $d$ \\
+  $\text{zero}(v_{d_n})$& $\mathbbm{1}_{v_{d_n}=0}$, set to 1 if $v_{d_n}$ is $0$ \\
+  $v_{d_v}$ & mean word embedding representation of verbs in $d$ \\
+  $\text{zero}(v_{d_v})$& $\mathbbm{1}_{v_{d_v}=0}$, set to 1 if $v_{d_v}$ is $0$ \\
+  %$v_{d_{pn}}$ & mean word embedding representation of proper nouns in $d$ \\
+  %$\text{zero}(v_{d_{pn}})$& $\mathbbm{1}_{v_{d_{pn}}=0}$, set to 1 if $v_{d_{pn}}$ is $0$ \\
 \midrule
 \multicolumn{2}{c}{\textbf{Clustering Features, $F_c$}} \\ %\hline
 \midrule
@@ -515,8 +523,8 @@ The different methods differ on the features used to train and test the \emph{vn
 \begin{itemize}
   \item {\textit{Baseline Single}}: baseline method that uses $F_b$ features. \citet{jingang13, bellogin13} have a similar method, though they train their models with more features.
   \item {\textit{Baseline Multi-task}}: baseline method similar to {\textit{Baseline Single}} but includes multi-task learning \cite{Caruana93multitasklearning}.
-  \item {\textit{Embedding Combined}}: similar to {\textit{Baseline Multi-task}} but includes $F_e$ features. The word embeddings are computed using the Google News dataset. Each document has a single combined embedding, which is calculated from the nouns, proper nouns and verbs found in the linguistic context of the entities' mentions, as described in section \ref{docwordemb}.
-  \item {\textit{Embedding POS}}: similar to {\textit{Embedding Combined}} but instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns, proper nouns and verbs. %It uses the part of speech annotations in the documents to easily extract the different word types.
+  \item {\textit{Embedding Combined}}: similar to {\textit{Baseline Multi-task}} but includes $F_e^c$ features. The word embeddings are computed using the Google News dataset. Each document has a single combined embedding, which is calculated from the nouns and verbs found in the linguistic context of the entities' mentions, as described in section \ref{docwordemb}.
+  \item {\textit{Embedding POS}}: similar to {\textit{Embedding Combined}} but uses $F_e^p$ features. Instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns and verbs. %It uses the part of speech annotations in the documents to easily extract the different word types.
   \item {\textit{Mean Dynamic}}: similar to the {\textit{Embedding POS}} method but it includes the $F_t$ features.
   \item {\textit{Clustering Static}}: similar to the {\textit{Embedding POS}} method but it includes the $F_c$ features.
   \item {\textit{Clustering Dynamic}}: similar to the {\textit{Embedding POS}} method but it includes $F_t$ and $F_c$ features.
@@ -541,36 +549,85 @@ The different methods differ on the features used to train and test the \emph{vn
   \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 \midrule
 {\textit{Baseline Single}} & $F_b$ &
-	0.539 $|$ 0.266 & 0.265 $|$ 0.634 & 0.355 $|$ 0.375 &
-  0.475 $|$ 0.366 & 0.238 $|$ 0.940 & 0.317 $|$ 0.527 \\
+	53.9  \hspace{1mm} 26.6 & 26.5 \hspace{1mm} 63.4 & 35.5 \hspace{1mm} 37.5 &
+  47.5  \hspace{1mm} 36.6 & 23.8 \hspace{1mm} 94.0 & 31.7 \hspace{1mm} 52.7 \\
 {\textit{Baseline Multi-task}} & $F_b$ &
- 0.607 $|$ 0.607 & 0.414 $|$ 0.414 & 0.492 $|$ 0.492 &
- 0.367 $|$ 0.366 & 0.405 $|$ 0.940 & 0.385 $|$ 0.527 \\
-{\textit{Embedding Combined}} & $F_b+F_e$ & 
-  0.547 $|$ 0.547 & 0.521 $|$ 0.518 & 0.534 $|$ 0.532 &
-  0.449 $|$ 0.383 & 0.376 $|$ 0.855 & 0.409 $|$ 0.529 \\
-{\textit{Embedding POS}} & $F_b+F_e$ & 
-  0.539 $|$ 0.499 & 0.464 $|$ 0.531 & 0.498 $|$ 0.514 &
-  0.440 $|$ 0.366 & 0.329 $|$ 0.940 & 0.376 $|$ 0.527 \\
-{\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
-  0.573 $|$ 0.573 & 0.483 $|$ 0.483 & 0.524 $|$ 0.524 &
-  0.475 $|$ 0.391 & 0.338 $|$ 0.858 & 0.395 $|$ 0.537 \\
-{\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
-	0.570 $|$ 0.570 & 0.490 $|$ 0.489 & 0.527 $|$ 0.526 &
-	0.464 $|$ 0.387 & 0.342 $|$ 0.850 & 0.394 $|$ 0.532 \\
-{\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ &
-  0.562 $|$ 0.562 & 0.481 $|$ 0.481 & 0.518 $|$ 0.518 &
-	0.461 $|$ 0.366 & 0.326 $|$ 0.940 & 0.382 $|$ 0.527 \\
+  60.7 \hspace{1mm} 60.7 & 41.4 \hspace{1mm} 41.4 & 49.2 \hspace{1mm} 49.2 &
+  36.7 \hspace{1mm} 36.6 & 40.5 \hspace{1mm} 94.0 & 38.5 \hspace{1mm} 52.7 \\
+{\textit{Embedding Combined}} & $F_b+F_e^c$ & 
+  54.7 \hspace{1mm} 54.7 & 52.1 \hspace{1mm} 51.8 & 53.4 \hspace{1mm} 53.2 &
+  44.9 \hspace{1mm} 38.3 & 37.6 \hspace{1mm} 85.5 & 40.9 \hspace{1mm} 52.9 \\
+{\textit{Embedding POS}} & $F_b+F_e^p$ & 
+  53.9 \hspace{1mm} 49.9 & 46.4 \hspace{1mm} 53.1 & 49.8 \hspace{1mm} 51.4 &
+  44.0 \hspace{1mm} 36.6 & 32.9 \hspace{1mm} 94.0 & 37.6 \hspace{1mm} 52.7 \\
+{\textit{Mean Dynamic}} & $F_b+F_e^p+F_t$ & 
+  57.3 \hspace{1mm} 57.3 & 48.3 \hspace{1mm} 48.3 & 52.4 \hspace{1mm} 52.4 &
+  47.5 \hspace{1mm} 39.1 & 33.8 \hspace{1mm} 85.8 & 39.5 \hspace{1mm} 53.7 \\
+{\textit{Clustering Static}} & $F_b+F_e^p+F_c$ & 
+	57.0 \hspace{1mm} 57.0 & 49.0 \hspace{1mm} 48.9 & 52.7 \hspace{1mm} 52.6 &
+	46.4 \hspace{1mm} 38.7 & 34.2 \hspace{1mm} 85.0 & 39.4 \hspace{1mm} 53.2 \\
+{\textit{Clustering Dynamic}} & $F_b+F_e^p+F_c+F_t$ &
+  56.2 \hspace{1mm} 56.2 & 48.1 \hspace{1mm} 48.1 & 51.8 \hspace{1mm} 51.8 &
+	46.1 \hspace{1mm} 36.6 & 32.6 \hspace{1mm} 94.0 & 38.2 \hspace{1mm} 52.7 \\
  
 \bottomrule
 \end{tabular}
 \end{center}
 }
-\caption{UW Vital Filtering official $|$ revised results for TREC KBA 2014}
+\caption{UW Vital Filtering official and revised percentage results for TREC KBA 2014}
 \label{officialRes}
 \end{table*}
 
-%Official Revised
+
+%Official
+%\begin{table*}[tb]
+%{\small
+%\begin{center}
+%\begin{tabular}{llccccccccc} 
+%\toprule
+%  \multirow{2}{*}{\textbf{Model}} & 
+%  \multirow{2}{*}{\textbf{Features}} & 
+%  \multicolumn{3}{c}{\textbf{Vital only}, \emph{micro}} &
+%  \multicolumn{3}{c}{\textbf{Vital only}, \emph{macro}}
+%\\ 
+%  \cmidrule(lr){3-5}
+%  \cmidrule(lr){6-8}
+%&   & 
+%  \textbf{P} & \textbf{R} & \textbf{F1} & 
+%  \textbf{P} & \textbf{R} & \textbf{F1} \\ 
+%\midrule
+%{\textit{Baseline Single}} & $F_b$ &
+%  53.9  & 26.5 & 35.5 &
+%  47.5  & 23.8 & 31.7 \\
+%{\textit{Baseline Multi-task}} & $F_b$ &
+%  60.7 & 41.4 & 49.2 &
+%  36.7 & 40.5 & 38.5 \\
+%{\textit{Embedding Combined}} & $F_b+F_e^c$ & 
+%  54.7 & 52.1 & 53.4 &
+%  44.9 & 37.6 & 40.9 \\
+%{\textit{Embedding POS}} & $F_b+F_e^p$ & 
+%  53.9 & 46.4 & 49.8 &
+%  44.0 & 32.9 & 37.6 \\
+%{\textit{Mean Dynamic}} & $F_b+F_e^p+F_t$ & 
+%  57.3 & 48.3 & 52.4 &
+%  47.5 & 33.8 & 39.5 \\
+%{\textit{Clustering Static}} & $F_b+F_e^p+F_c$ & 
+%  57.0 & 49.0 & 52.7 &
+%  46.4 & 34.2 & 39.4 \\
+%{\textit{Clustering Dynamic}} & $F_b+F_e^p+F_c+F_t$ &
+%  56.2 & 48.1 & 51.8 &
+%  46.1 & 32.6 & 38.2 \\
+%\bottomrule
+%\end{tabular}
+%\end{center}
+%}
+%\caption{UW Vital Filtering official percentage results for TREC KBA 2014}
+%\label{officialRes}
+%\end{table*}
+
+
+
+% Revised
 %\begin{table*}[tb]
 %{\small
 %\begin{center}
@@ -588,31 +645,31 @@ The different methods differ on the features used to train and test the \emph{vn
 %  \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 %\midrule
 %{\textit{Baseline Single}} & $F_b$ &
-%  0.266 & 0.634 & 0.375 &
-%  0.366 & 0.940 & 0.527 \\
+%  26.6 & 63.4 & 37.5 &
+%  36.6 & 94.0 & 52.7 \\
 %{\textit{Baseline Multi-task}} & $F_b$ &
-% 0.607 & 0.414 & 0.492 &
-% 0.366 & 0.940 & 0.527 \\
-%{\textit{Embedding Combined}} & $F_b+F_e$ & 
-%  0.547 & 0.518 & 0.532 &
-%  0.383 & 0.855 & 0.529 \\
-%{\textit{Embedding POS}} & $F_b+F_e$ & 
-%  0.499 & 0.531 & 0.514 &
-%  0.366 & 0.940 & 0.527 \\
-%{\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
-%  0.573 & 0.483 & 0.524 &
-%  0.391 & 0.858 & 0.537 \\
-%{\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
-%  0.570 & 0.489 & 0.526 &
-%  0.387 & 0.850 & 0.532 \\
-%{\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
-%  0.562 & 0.481 & 0.518 &
-%  0.366 & 0.940 & 0.527 \\
+%  60.7 & 41.4 & 49.2 &
+%  36.6 & 94.0 & 52.7 \\
+%{\textit{Embedding Combined}} & $F_b+F_e^c$ & 
+%  54.7 & 51.8 & 53.2 &
+%  38.3 & 85.5 & 52.9 \\
+%{\textit{Embedding POS}} & $F_b+F_e^p$ & 
+%  49.9 & 53.1 & 51.4 &
+%  36.6 & 94.0 & 52.7 \\
+%{\textit{Mean Dynamic}} & $F_b+F_e^p+F_t$ & 
+%  57.3 & 48.3 & 52.4 &
+%  39.1 & 85.8 & 53.7 \\
+%{\textit{Clustering Static}} & $F_b+F_e^p+F_c$ & 
+%  57.0 & 48.9 & 52.6 &
+%  38.7 & 85.0 & 53.2 \\
+%{\textit{Clustering Dynamic}} & $F_b+F_e^p+F_c+F_t$ & 
+%  56.2 & 48.1 & 51.8 &
+%  36.6 & 94.0 & 52.7 \\
 %\bottomrule
 %\end{tabular}
 %\end{center}
 %}
-%\caption{UW Vital Filtering revised official results for TREC KBA 2014}
+%\caption{UW Vital Filtering revised percentage results for TREC KBA 2014}
 %\label{officialRevised}
 %\end{table*}
 
@@ -634,20 +691,20 @@ The different methods differ on the features used to train and test the \emph{vn
 %  \textbf{P} & \textbf{R} & \textbf{F1} & 
 %  \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 %\midrule
-%{\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
-%  0.528 & 0.510 & 0.519 &
-%  0.366 & 0.940 & 0.527 \\
-%{\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
-%  0.523 & 0.522 & 0.523 &
-%  0.388 & 0.867 & 0.536 \\
-%{\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
-%  0.549 & 0.521 & 0.534 &
-%  0.388 & 0.863 & 0.535 \\
+%{\textit{Mean Dynamic}} & $F_b+F_e^c+F_t$ & 
+%  52.8 & 51.0 & 51.9 &
+%  36.6 & 94.0 & 52.7 \\
+%{\textit{Clustering Static}} & $F_b+F_e^c+F_c$ & 
+%  52.3 & 52.2 & 52.3 &
+%  38.8 & 86.7 & 53.6 \\
+%{\textit{Clustering Dynamic}} & $F_b+F_e^c+F_c+F_t$ & 
+%  54.9 & 52.1 & 53.4 &
+%  38.8 & 86.3 & 53.5 \\
 %\bottomrule
 %\end{tabular}
 %\end{center}
 %}
-%\caption{UW Vital Filtering unofficial results for TREC KBA 2014}
+%\caption{UW Vital Filtering unofficial percentage results for TREC KBA 2014}
 %\label{unofficial}
 %\end{table*}
 
@@ -773,25 +830,25 @@ Figures \ref{macroPrecRecall} and \ref{microPrecRecall} further illustrate the p
 %\label{varyingalpha}
 %\end{figure}
 
-\begin{table}[tb]
-\center
-\begin{tabular}{cc}
-\toprule
-\textbf{C1} & \textbf{C2} \\
-\midrule
-Monday & conduct \\ %\hline
-Tuesday & complication \\ %\hline
-month & judicial \\ %\hline
-billion & government \\ %\hline
-million & guidance \\
-\bottomrule
-\end{tabular}
-\caption{Topic clusters closest words for \emph{Shawn Atleo}}
-\label{clusterresult}
-\end{table}
+%\begin{table}[tb]
+%\center
+%\begin{tabular}{cc}
+%\toprule
+%\textbf{C1} & \textbf{C2} \\
+%\midrule
+%Monday & conduct \\ %\hline
+%Tuesday & complication \\ %\hline
+%month & judicial \\ %\hline
+%billion & government \\ %\hline
+%million & guidance \\
+%\bottomrule
+%\end{tabular}
+%\caption{Topic clusters closest words for \emph{Shawn Atleo}}
+%\label{clusterresult}
+%\end{table}
 
-Further, we present some qualitative results on the topic clusters of {\textit{Clustering Dynamic}} with a single embedding. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of the entity \emph{Shawn Atleo} on 11/15/2012.
-By doing some manual search on \emph{Shawn Atleo}, we can easily confirm that C2 elements make sense. \emph{Mr. Atleo} is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and finances. It may be explained by all the articles that talk about \emph{Shawn} announcing huge investments in different areas.
+%Further, we present some qualitative results on the topic clusters of {\textit{Clustering Dynamic}} with a single embedding. Table \ref{clusterresult} illustrates the 5 closest words to the word that is most similar (in cosine similarity) to the cluster centroids of the entity \emph{Shawn Atleo} on 11/15/2012.
+%By doing some manual search on \emph{Shawn Atleo}, we can easily confirm that C2 elements make sense. \emph{Mr. Atleo} is an activist for the rights of First Nations in Canada, and received several Honorary Doctorate of Laws degrees from different universities, which explains a cluster with the words in Table \ref{clusterresult}. C1 is somewhat harder, it is a cluster close to dates and finances. It may be explained by all the articles that talk about \emph{Shawn} announcing huge investments in different areas.
 
 We believe further experimental investigations are needed to account for the correct tuning of the hyperparameters of the model. Exploiting external resources such as Wikipedia entity pages to construct more features \cite{xitong12} should probably increase the overall accuracy of our method. 
 
@@ -811,7 +868,7 @@ It would also be worthwhile to assess the effects of using different pre-trained
  
 This work was supported in part by the Argentine Ministry of Science, Technology and Productive Innovation with the program BEC.AR, and the TerraSwarm Research Center, supported by the STARnet phase of the Focus Center Research Program (FCRP). Any opinions, findings and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect those of the sponsors.
 
-\newpage
+%\newpage
 \small
 \bibliography{../kba}
 \bibliographystyle{icml2014}
