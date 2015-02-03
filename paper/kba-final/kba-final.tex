@@ -402,12 +402,16 @@ One key difference is that we do not exploit any external resources to construct
 
 Representing words as continuous vectors has been around for a while~\cite{Hinton87, Elman90findingstructure}. 
 The progress of machine learning techniques in recent years enabled training more complex models on much larger data sets \cite{mikolovChen}. 
-One popular approach to increase accuracy in existing system is to use unsupervised methods to create word features, or to download word features that have already been produced \cite{Turian10wordrepresentations}. In our method, we do the latter, we use already induced word embedding features in order to improve its accuracy.
+One popular approach to increase accuracy in existing system is to use unsupervised methods to create word features, or to download word features that have already been produced \cite{Turian10wordrepresentations}. In our method, we do the latter, we use already induced word embedding features in order to improve its accuracy. To our best knowledge, no techniques propose using distributed word embeddings representations for solving the vital filtering problem.
 
-To our best knowledge, no techniques propose a combination of distributed word embeddings, non-parametric clustering, and a notion of staleness to solve this problem. 
-The closest example we found that addresses the problem of staleness detection is \citet{gamon}, where the author builds an association graph connecting sentences and sentence fragments, and uses graph-based features as good indicators of lack of novelty.
+One pioneering work on detecting novel documents was introduced by \citet{Zhang2002}. In their work, they explicitly model relevance and redundancy as separate concepts. They propose different redundancy measures and empirically show that the cosine similarity metric is effective in identifying redundant documents, but they just keep the 10 most recent documents for a profile. In our method, we can keep the whole history of documents for a given entity, which allows a more accurate estimate of the query document's redundancy.
+
+Since then, many work has been made on scaling novel detection algorithms, also known as First Story Detection, in streaming settings, by either using LSH \cite{Petrovic2010} or just using simple heuristics \cite{Luo2007}. While their work mainly focuses on making the computation tractable, our work focuses more on achieving high accuracy. 
+
+Another example that addresses the problem of staleness detection was done \citet{gamon}, where the author builds an association graph connecting sentences and sentence fragments, and uses graph-based features as good indicators of lack of novelty. Though the task is somewhat similar, is more limited in the sense that they do not need to model the transition from new to background information where, in principle, all documents are citation worthy.
 
 Streaming document filtering is also related to several other fields, including but not limited to, entity linking \cite{KBP11}, text categorization \cite{HLTCOE12}, news surveillance \cite{Steinberger14}, and cross-document coreference~\cite{RaoMD10,singh11:acl}.
+
 
 \section{KBA Vital Filtering Evaluation}
 \label{evaluation}
@@ -613,7 +617,7 @@ The different methods differ on the features used to train and test the $vnv$ cl
 %\end{table*}
 
 
-% Unofficial
+% Unofficial doesn't make sense to include
 %\begin{table*}[tb]
 %{\small
 %\begin{center}
@@ -742,13 +746,21 @@ We therefore include all the revised runs in Table \ref{officialRevised} for ref
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=.5\textwidth]{fig/pr/overlapped.pdf}
-\caption{Precision-Recall}
-\label{precrecall}
+\includegraphics[width=.5\textwidth]{fig/microPrecisionRecall.png}
+\caption{Micro Precision-Recall}
+\label{microPrecRecall}
 \end{figure}
 
+\begin{figure}[tb]
+\centering
+\includegraphics[width=.5\textwidth]{fig/macroPrecisionRecall.png}
+\caption{Macro Precision-Recall}
+\label{macroPrecRecall}
+\end{figure}
+
+
 Figures \ref{macroRuns} and \ref{microRuns} complement the revised results in Table \ref{officialRes} for different confidence cutoffs.
-Figure \ref{precrecall} further illustrates the precision-recall for the different methods. On low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, in general outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
+Figures \ref{microPrecRecall} and \ref{macroPrecRecall} further illustrate the precision-recall for the different methods. On low recall, the precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, in general outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
 
 %Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
 

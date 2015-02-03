@@ -54,7 +54,7 @@ def precision_recall(data, directory, mode):
     for key in data:
         plt.plot(to_list(data[key], 2), to_list(data[key], 1), label=key)
     plt.xlabel('Recall')
-    plt.ylabel('Recall')
+    plt.ylabel('Precision')
     plt.ylim(0, 1)
     plt.xlim(0,1)
     plt.legend(loc='upper right')
