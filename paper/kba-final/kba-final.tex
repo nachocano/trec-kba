@@ -537,79 +537,80 @@ The different methods differ on the features used to train and test the $vnv$ cl
   \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 \midrule
 {\textit{Baseline Single}} & $F_b$ &
-	0.539 & 0.265 & 0.355 &
-  0.475 & 0.238 & 0.317 \\
+	0.539 $|$ 0.266 & 0.265 $|$ 0.634 & 0.355 $|$ 0.375 &
+  0.475 $|$ 0.366 & 0.238 $|$ 0.940 & 0.317 $|$ 0.527 \\
 {\textit{Baseline Multi-task}} & $F_b$ &
- 0.607 & 0.414 & 0.492 &
- 0.367 & 0.405 & 0.385 \\
+ 0.607 $|$ 0.607 & 0.414 $|$ 0.414 & 0.492 $|$ 0.492 &
+ 0.367 $|$ 0.366 & 0.405 $|$ 0.940 & 0.385 $|$ 0.527 \\
 {\textit{Embedding Combined}} & $F_b+F_e$ & 
-  0.547 & 0.521 & 0.534 &
-  0.449 & 0.376 & 0.409 \\
+  0.547 $|$ 0.547 & 0.521 $|$ 0.518 & 0.534 $|$ 0.532 &
+  0.449 $|$ 0.383 & 0.376 $|$ 0.855 & 0.409 $|$ 0.529 \\
 {\textit{Embedding POS}} & $F_b+F_e$ & 
-  0.539 & 0.464 & 0.498 &
-  0.440 & 0.329 & 0.376 \\
+  0.539 $|$ 0.499 & 0.464 $|$ 0.531 & 0.498 $|$ 0.514 &
+  0.440 $|$ 0.366 & 0.329 $|$ 0.940 & 0.376 $|$ 0.527 \\
 {\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
-  0.573 & 0.483 & 0.524 &
-  0.475 & 0.338 & 0.395 \\
+  0.573 $|$ 0.573 & 0.483 $|$ 0.483 & 0.524 $|$ 0.524 &
+  0.475 $|$ 0.391 & 0.338 $|$ 0.858 & 0.395 $|$ 0.537 \\
 {\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
-	0.570 & 0.490 & 0.527 &
-	0.464 & 0.342 & 0.394 \\
-{\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
-  0.562 & 0.481 & 0.518 &
-	0.461 & 0.326 & 0.382 \\
+	0.570 $|$ 0.570 & 0.490 $|$ 0.489 & 0.527 $|$ 0.526 &
+	0.464 $|$ 0.387 & 0.342 $|$ 0.850 & 0.394 $|$ 0.532 \\
+{\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ &
+  0.562 $|$ 0.562 & 0.481 $|$ 0.481 & 0.518 $|$ 0.518 &
+	0.461 $|$ 0.366 & 0.326 $|$ 0.940 & 0.382 $|$ 0.527 \\
+ 
 \bottomrule
 \end{tabular}
 \end{center}
 }
-\caption{UW Vital Filtering official results for TREC KBA 2014}
+\caption{UW Vital Filtering official $|$ revised results for TREC KBA 2014}
 \label{officialRes}
 \end{table*}
 
 %Official Revised
-\begin{table*}[tb]
-{\small
-\begin{center}
-\begin{tabular}{llccccccccc} 
-\toprule
-  \multirow{3}{*}{\textbf{Model}} & 
-  \multirow{3}{*}{\textbf{Features}} & 
-  \multicolumn{3}{c}{\textbf{Vital only}, \emph{micro}} &
-  \multicolumn{3}{c}{\textbf{Vital only}, \emph{macro}}
-\\ 
-  \cmidrule(lr){3-5}
-  \cmidrule(lr){6-8}
-&   & 
-  \textbf{P} & \textbf{R} & \textbf{F1} & 
-  \textbf{P} & \textbf{R} & \textbf{F1} \\ 
-\midrule
-{\textit{Baseline Single}} & $F_b$ &
-  0.266 & 0.634 & 0.375 &
-  0.366 & 0.940 & 0.527 \\
-{\textit{Baseline Multi-task}} & $F_b$ &
- 0.607 & 0.414 & 0.492 &
- 0.366 & 0.940 & 0.527 \\
-{\textit{Embedding Combined}} & $F_b+F_e$ & 
-  0.547 & 0.518 & 0.532 &
-  0.383 & 0.855 & 0.529 \\
-{\textit{Embedding POS}} & $F_b+F_e$ & 
-  0.499 & 0.531 & 0.514 &
-  0.366 & 0.940 & 0.527 \\
-{\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
-  0.573 & 0.483 & 0.524 &
-  0.391 & 0.858 & 0.537 \\
-{\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
-  0.570 & 0.489 & 0.526 &
-  0.387 & 0.850 & 0.532 \\
-{\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
-  0.562 & 0.481 & 0.518 &
-  0.366 & 0.940 & 0.527 \\
-\bottomrule
-\end{tabular}
-\end{center}
-}
-\caption{UW Vital Filtering revised official results for TREC KBA 2014}
-\label{officialRevised}
-\end{table*}
+%\begin{table*}[tb]
+%{\small
+%\begin{center}
+%\begin{tabular}{llccccccccc} 
+%\toprule
+%  \multirow{3}{*}{\textbf{Model}} & 
+%  \multirow{3}{*}{\textbf{Features}} & 
+%  \multicolumn{3}{c}{\textbf{Vital only}, \emph{micro}} &
+%  \multicolumn{3}{c}{\textbf{Vital only}, \emph{macro}}
+%\\ 
+%  \cmidrule(lr){3-5}
+%  \cmidrule(lr){6-8}
+%&   & 
+%  \textbf{P} & \textbf{R} & \textbf{F1} & 
+%  \textbf{P} & \textbf{R} & \textbf{F1} \\ 
+%\midrule
+%{\textit{Baseline Single}} & $F_b$ &
+%  0.266 & 0.634 & 0.375 &
+%  0.366 & 0.940 & 0.527 \\
+%{\textit{Baseline Multi-task}} & $F_b$ &
+% 0.607 & 0.414 & 0.492 &
+% 0.366 & 0.940 & 0.527 \\
+%{\textit{Embedding Combined}} & $F_b+F_e$ & 
+%  0.547 & 0.518 & 0.532 &
+%  0.383 & 0.855 & 0.529 \\
+%{\textit{Embedding POS}} & $F_b+F_e$ & 
+%  0.499 & 0.531 & 0.514 &
+%  0.366 & 0.940 & 0.527 \\
+%{\textit{Mean Dynamic}} & $F_b+F_e+F_t$ & 
+%  0.573 & 0.483 & 0.524 &
+%  0.391 & 0.858 & 0.537 \\
+%{\textit{Clustering Static}} & $F_b+F_e+F_c$ & 
+%  0.570 & 0.489 & 0.526 &
+%  0.387 & 0.850 & 0.532 \\
+%{\textit{Clustering Dynamic}} & $F_b+F_e+F_c+F_t$ & 
+%  0.562 & 0.481 & 0.518 &
+%  0.366 & 0.940 & 0.527 \\
+%\bottomrule
+%\end{tabular}
+%\end{center}
+%}
+%\caption{UW Vital Filtering revised official results for TREC KBA 2014}
+%\label{officialRevised}
+%\end{table*}
 
 
 % Unofficial
