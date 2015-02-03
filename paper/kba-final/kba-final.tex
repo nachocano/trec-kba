@@ -125,7 +125,7 @@ To identify whether an entity's context in a document contains novel information
 A common solution to this problem is to use vector space models, often the Bag of Words (BOW) models, where a document is represented as the bag of its words, disregarding grammar and even word order. 
 % why aren't they enough
 Unfortunately, vector space models are often too sparse to represent fine-grained information in contexts, for example, straightforward BOW representations will have minimal overlap between ``Barack was elected president today'' and ``Obama has won the election'', treating the other as novel information even after having seen one of them.
-Further, BOW representations ignore the syntactic structure as it will further increase sparsity, for example, BOW will have a high overlap for ``Obama defeated Bush'' and ``Bush defeated Obama''.
+Further, the size of BOW representations grows over time when the vocabulary is not predefined beforehand, which is a problem in streaming settings.
 %\subsection{Word Embeddings}
 %\label{emb}
 
@@ -503,10 +503,10 @@ Consequently, in every experiment, each document goes first through the \emph{rn
 \subsection{Methods}
 \label{expe}
 
-We use randomized tree ensembles classifiers \cite{GEW06a} for both \emph{rnr} and \emph{uv}, each composed of $100$ weak learners. Each tree in the ensembles has a maximum depth of $150$.
+We use randomized tree ensembles classifiers \cite{GEW06a} for both \emph{rnr} and \emph{vnv}, each composed of $100$ weak learners. Each tree in the ensembles has a maximum depth of $150$.
 %
 All the experiments use the same \emph{rnr} model trained with the basic features listed in section \ref{feat}.
-The different methods differ on the features used to train and test the $uv$ classifier.
+The different methods differ on the features used to train and test the $vnv$ classifier.
 
 \begin{itemize}
   \item {\textit{Baseline Single}}: baseline method that uses $F_b$ features. \citet{jingang13, bellogin13} have a similar method, though they train their models with more features.
