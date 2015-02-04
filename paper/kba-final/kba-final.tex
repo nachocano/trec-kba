@@ -537,9 +537,9 @@ We evaluate the following approaches.
   %\item 
   %{\textbf{Embedding POS}}: similar to {\textit{Embedding Combined}} but uses $F_e^p$ features. Instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns and verbs. %It uses the part of speech annotations in the documents to easily extract the different word types.
   %\item 
-  We separately evaluate the utility of modeling temporal via staleness by introducing the {\textbf{Staleness only}} method that includes the $F_t$ features.
+  We separately evaluate the utility of temporal modeling via staleness by introducing the {\textbf{Staleness only}} method that includes the $F_t$ features.
   %\item 
-  Similarly, we propose the method that uses only the embedding clustering ($F_c$ features), but not the temporal dynamics, called {\textit{Clustering only}}.
+  Similarly, we propose the method that uses only clustering ($F_c$ features), but not the temporal dynamics, called {\textit{Clustering only}}.
   %\item 
   Finally, the approach that combines all contributions, {\textbf{Combined}}, includes all the $F_e^p$, $F_t$, and $F_c$ features.
 %\end{itemize}
@@ -588,7 +588,7 @@ We evaluate the following approaches.
 \end{tabular}
 \end{center}
 }
-\caption{Vital Filtering performance using the \sub{submitted} and revised measure for TREC KBA 2014}
+\caption{Vital Filtering performance using the \sub{submitted} and revised runs for TREC KBA 2014}
 \label{officialRes}
 \end{table*}
 
@@ -727,13 +727,13 @@ We evaluate the following approaches.
   \centering
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/clust_dyn_wrong.png}
-      \caption{Official submission example}
+      \caption{Submission example}
       \label{official:submission}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth]{fig/clust_dyn_right.png}
-      \caption{Official submission revised}
+      \caption{Revised example}
       \label{official:revised}
     \end{subfigure}
 \caption{P-R-F1 over confidence cutoffs}
@@ -817,21 +817,21 @@ We evaluate the following approaches.
 
 \section{Results and Discussion}
 
-Table \ref{officialRes} shows the official and revised precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA scorer tool, using the 2014-07-11 truth data. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
+Table \ref{officialRes} shows the official and revised precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA scorer tool, using the 2014-07-11 truth data. The models that include the $F_c$ features use $\alpha=0.8$, whereas the models that include the $F_t$ features use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
 
-The official baseline provided by TREC KBA organizers assigns a `vital' rating to every document that matches a surface form name of an entity, assigning a confidence score based on the number of matches of tokens in the name. The values reported by the organizers are: macro-P=0.316, macro-R=0.520, macro-F1=0.393, SU=0.3334 \cite{frank14:overview}.
+The {\textbf{Official Baseline}} provided by TREC KBA organizers assigns a `vital' rating to every document that matches a surface form name of an entity, assigning a confidence score based on the number of matches of tokens in the name. The values reported by the organizers are: macro-P=0.316, macro-R=0.520, macro-F1=0.393, SU=0.3334 \cite{frank14:overview}.
 
 According to the official results, our system achieved the $2^{nd}$ best precision in the competition, but performed poorly in the overall macro F1 ($8^{th}$ position). Revisiting our submission files, we found that we misinterpreted the concept of confidence. Figure \ref{official:submission} shows that we only make vital predictions with confidence greater than or equal to 500, i.e. the right part of the curve is just constant. We should have also predicted vital with low confidence, i.e. flip our high confidence non-vital predictions to be vital with low confidence. That minor change boosts our recall (in most cases), while the precision slightly suffers, as shown in Figure \ref{official:revised}, leaving our system in the $2^{nd}$ overall position.
 
-{\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models.
-On the other hand, {\textit{Baseline Multi-task}} performs far better that {\textit{Baseline Single} in the official results, which evidences that multi-task learning does work.
-Most of the more advanced models perform better than {\textit{Baseline Multi-task}}, both on the official and revised results. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
-The staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method on the official results. Nevertheless, they illustrate the importance of these new features as they use separate embeddings for the different word types, and they all improve the performance of the simple {\textit{Embedding POS}} model. In the revised versions, {\textit{Mean Dynamic}} scores the best F1, followed closely by {\textit{Clustering Static}}, which further evidences the importance of $F_t$ and $F_c$ features.
+{\textit{Baseline} performs as expected, i.e. has lower F1 than the other models.
+On the other hand, {\textit{Baseline, Multi-task}} performs far better that {\textit{Baseline} in the official results, which evidences that multi-task learning does work.
+Most of the more advanced models perform better than {\textit{Baseline, Multi-task}}, both on the official and revised results. Using a single embedding ({\textit{Embedding, Single}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding, POS}}).
+The staleness and non-parametric clustering runs ({\textit{Staleness only}}, {\textit{Clustering only}}, {\textit{Combined}}) perform slightly worse than the simple {\textit{Embedding, Single}} method on the official results. Nevertheless, they illustrate the importance of these new features as they use separate embeddings for the different word types, and they all improve the performance of the simple {\textit{Embedding, POS}} model. In the revised versions, {\textit{Staleness only}} scores the best F1, followed closely by {\textit{Clustering only}}, which further evidences the importance of $F_t$ and $F_c$ features.
 
 Figures \ref{macroRuns} and \ref{microRuns} complement the revised results in Table \ref{officialRes} for different confidence cutoffs. Figures \ref{official:macroprec} and \ref{official:macrorecall} show that the macro recalls have a huge increase on the low confidence half of the plot, while most precisions stay nearly the same; this is a strong indicator of why the F1 boosts in the revised macro scenario.
 In the micro case, the precisions and recalls (shown in Figures \ref{official:microprec} and \ref{official:microrecall}) increase and decrease in similar proportions, which explain why the micro revised F1s are almost the same as the micro official ones. 
 
-Figures \ref{macroPrecRecall} and \ref{microPrecRecall} further illustrate the precision-recall for the different methods. In the macro case, all methods are pretty much the same. The micro metrics, in Figure \ref{microPrecRecall}, are much more interesting. On low recall, the micro precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, in general outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding Combined}} takes the lead.
+Figures \ref{macroPrecRecall} and \ref{microPrecRecall} further illustrate the precision-recall for the different methods. In the macro case, all methods perform almost the same. The micro metrics, in Figure \ref{microPrecRecall}, are much more interesting. On low recall, the micro precision of the different models meets our expectations, the more complex methods, which include non-parametric clustering and staleness, in general outperform the simpler ones. Nevertheless, on high recall, {\textit{Embedding, Single}} takes the lead.
 
 %Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
 
