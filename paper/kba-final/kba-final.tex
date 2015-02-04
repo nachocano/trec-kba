@@ -18,6 +18,8 @@
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
 \newcommand{\todo}[1]{\noindent{\textcolor{red}{\{{\bf TODO:}  #1\}}}}
 
+\newcommand{\sub}[1]{\textcolor{red}{#1}}
+
 \usepackage{subcaption}
 
 \usepackage{amsmath}
@@ -561,32 +563,32 @@ We evaluate the following approaches.
   \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 \midrule
 {\textit{Baseline}} & $F_b$ &
-	53.9  \hspace{1mm} 26.6 & 26.5 \hspace{1mm} 63.4 & 35.5 \hspace{1mm} 37.5 &
-  47.5  \hspace{1mm} 36.6 & 23.8 \hspace{1mm} 94.0 & 31.7 \hspace{1mm} 52.7 \\
+  \sub{53.9}  \hspace{1mm} 26.6 & \sub{26.5} \hspace{1mm} 63.4 & \sub{35.5} \hspace{1mm} 37.5 &
+  \sub{47.5}  \hspace{1mm} 36.6 & \sub{23.8} \hspace{1mm} 94.0 & \sub{31.7} \hspace{1mm} 52.7 \\
 {\textit{Baseline, Multi-task}} & $F_b$ &
-  60.7 \hspace{1mm} 60.7 & 41.4 \hspace{1mm} 41.4 & 49.2 \hspace{1mm} 49.2 &
-  36.7 \hspace{1mm} 36.6 & 40.5 \hspace{1mm} 94.0 & 38.5 \hspace{1mm} 52.7 \\
+  \sub{60.7} \hspace{1mm} 60.7 & \sub{41.4} \hspace{1mm} 41.4 & \sub{49.2} \hspace{1mm} 49.2 &
+  \sub{36.7} \hspace{1mm} 36.6 & \sub{40.5} \hspace{1mm} 94.0 & \sub{38.5} \hspace{1mm} 52.7 \\
 {\textit{Embedding, Single}} & $F_b+F_e^c$ & 
-  54.7 \hspace{1mm} 54.7 & 52.1 \hspace{1mm} 51.8 & 53.4 \hspace{1mm} 53.2 &
-  44.9 \hspace{1mm} 38.3 & 37.6 \hspace{1mm} 85.5 & 40.9 \hspace{1mm} 52.9 \\
+  \sub{54.7} \hspace{1mm} 54.7 & \sub{52.1} \hspace{1mm} 51.8 & \sub{53.4} \hspace{1mm} 53.2 &
+  \sub{44.9} \hspace{1mm} 38.3 & \sub{37.6} \hspace{1mm} 85.5 & \sub{40.9} \hspace{1mm} 52.9 \\
 {\textit{Embedding, POS}} & $F_b+F_e^p$ & 
-  53.9 \hspace{1mm} 49.9 & 46.4 \hspace{1mm} 53.1 & 49.8 \hspace{1mm} 51.4 &
-  44.0 \hspace{1mm} 36.6 & 32.9 \hspace{1mm} 94.0 & 37.6 \hspace{1mm} 52.7 \\
+  \sub{53.9} \hspace{1mm} 49.9 & \sub{46.4} \hspace{1mm} 53.1 & \sub{49.8} \hspace{1mm} 51.4 &
+  \sub{44.0} \hspace{1mm} 36.6 & \sub{32.9} \hspace{1mm} 94.0 & \sub{37.6} \hspace{1mm} 52.7 \\
 {\textit{Staleness only}} & $F_b+F_e^p+F_t$ & 
-  57.3 \hspace{1mm} 57.3 & 48.3 \hspace{1mm} 48.3 & 52.4 \hspace{1mm} 52.4 &
-  47.5 \hspace{1mm} 39.1 & 33.8 \hspace{1mm} 85.8 & 39.5 \hspace{1mm} 53.7 \\
+  \sub{57.3} \hspace{1mm} 57.3 & \sub{48.3} \hspace{1mm} 48.3 & \sub{52.4} \hspace{1mm} 52.4 &
+  \sub{47.5} \hspace{1mm} 39.1 & \sub{33.8} \hspace{1mm} 85.8 & \sub{39.5} \hspace{1mm} 53.7 \\
 {\textit{Clustering only}} & $F_b+F_e^p+F_c$ & 
-	57.0 \hspace{1mm} 57.0 & 49.0 \hspace{1mm} 48.9 & 52.7 \hspace{1mm} 52.6 &
-	46.4 \hspace{1mm} 38.7 & 34.2 \hspace{1mm} 85.0 & 39.4 \hspace{1mm} 53.2 \\
+  \sub{57.0} \hspace{1mm} 57.0 & \sub{49.0} \hspace{1mm} 48.9 & \sub{52.7} \hspace{1mm} 52.6 &
+  \sub{46.4} \hspace{1mm} 38.7 & \sub{34.2} \hspace{1mm} 85.0 & \sub{39.4} \hspace{1mm} 53.2 \\
 {\textit{Combined}} & $F_b+F_e^p+F_c+F_t$ &
-  56.2 \hspace{1mm} 56.2 & 48.1 \hspace{1mm} 48.1 & 51.8 \hspace{1mm} 51.8 &
-	46.1 \hspace{1mm} 36.6 & 32.6 \hspace{1mm} 94.0 & 38.2 \hspace{1mm} 52.7 \\
+  \sub{56.2} \hspace{1mm} 56.2 & \sub{48.1} \hspace{1mm} 48.1 & \sub{51.8} \hspace{1mm} 51.8 &
+  \sub{46.1} \hspace{1mm} 36.6 & \sub{32.6} \hspace{1mm} 94.0 & \sub{38.2} \hspace{1mm} 52.7 \\
  
 \bottomrule
 \end{tabular}
 \end{center}
 }
-\caption{Vital Filtering performance using the submitted and revised measure for TREC KBA 2014}
+\caption{Vital Filtering performance using the \sub{submitted} and revised measure for TREC KBA 2014}
 \label{officialRes}
 \end{table*}
 
