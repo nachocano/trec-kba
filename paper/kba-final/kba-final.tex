@@ -15,12 +15,13 @@
 \usepackage{hyperref}
 \usepackage{booktabs}
 \usepackage{enumitem}
-
+\usepackage[normalem]{ulem}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
 
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
 \newcommand{\todo}[1]{\noindent{\textcolor{red}{\{{\bf TODO:}  #1\}}}}
 
-\newcommand{\sub}[1]{\textit{#1}}
+\newcommand{\sub}[1]{\textcolor{darkgray}{\sl #1}}
 
 \usepackage{subcaption}
 
@@ -159,9 +160,11 @@ v_{d_i} = v_{W_i} = g(W_i)
 With this, we intend to capture the context where the entity $e$ is mentioned in a document, i.e. the topic, and represent it with a dense, low-dimensional vector.
 
 Further, it may be useful to separately capture the context in terms of different parts of speech.
-Let $W_{i_n}$ denote the set of all nouns in $W_i$, where $W_{i_n} \subseteq W_i$, and $W_{i_v}$ to the set of all verbs in $W_i$, where $W_{i_v} \subseteq W_i$. We compute the embedding vector of all the nouns and verbs that appear in the context of entity $e$ using function $g$, as: % shown below:
+Let $W_{i_n}$ denote the set of all common nouns in $W_i$, $W_{i_N}$ the set of the proper nouns, and $W_{i_v}$ the set of all verbs in $W_i$, where $W_{i_n}\cup W_{i_N}\cup W_{i_v} = W_i$. We compute the embedding vectors of all the common nouns, proper nouns, and verbs that appear in the context of entity $e$ using function $g$, as: % shown below:
 \begin{eqnarray}
 v_{d_{i_n}} = v_{W_{i_n}} = g(W_{i_n})\label{nouns}
+\\
+v_{d_{i_N}} = v_{W_{i_N}} = g(W_{i_N})\label{pnouns}
 \\
 v_{d_{i_v}} = v_{W_{i_v}} = g(W_{i_v})\label{verbs}
 \end{eqnarray}
@@ -440,7 +443,7 @@ A summary of the features we use is presented in Table \ref{features}.
 
 \comment{
 There are a total of 25 Basic features, where 10 of them correspond to the source of the document using one-hot encoding. 
-There are 301 $F_e^c$ features, the word embeddings are 300-dimensional real-valued vectors, and there is a binary feature that indicates if the embedding is 0. In case $F_e^p$ features are used, there are $F_e^c \times 3$ features, as we use separate embeddings for nouns, proper nouns and verbs (we just indicate nouns and verbs in Table \ref{features} for simplicity).
+There are 301 $F_e^c$ features, the word embeddings are 300-dimensional real-valued vectors, and there is a binary feature that indicates if the embedding is 0. In case $F_e^p$ features are used, there are $F_e^c \times 3$ features, as we use separate embeddings for common nouns, proper nouns, and verbs.
 There are also 2 real-valued Clustering features, which become 6 if we use the $F_e^p$ features.
 As for Temporal features, there are 2 real-valued features, which become 4 if we use the $F_e^p$ features (there is always a unique staleness per entity, regardless the $F_e$ features used).
 In summary, there are 330 or 938 features depending if we use $F_e^c$ or $F_e^p$ features.
@@ -480,9 +483,11 @@ $\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length 
   $v_d$ & mean word embedding representation of $d$ \\
   $\text{zero}(v_d)$& $\mathbbm{1}_{v_d=0}$, set to 1 if $v_d$ is $0$ \\
 \multicolumn{2}{l}{\emph{Based on POS embeddings, $F_e^p$}} \\ %\hline 
-  $v_{d_n}$ & mean word embedding representation of nouns\\ % in $d$ \\
+  $v_{d_n}$ & mean word embedding for common nouns\\ % in $d$ \\
   $\text{zero}(v_{d_n})$& $\mathbbm{1}_{v_{d_n}=0}$, set to 1 if $v_{d_n}$ is $0$ \\
-  $v_{d_v}$ & mean word embedding representation of verbs \\ %in $d$ \\
+  $v_{d_N}$ & mean word embedding for proper nouns\\ % in $d$ \\
+  $\text{zero}(v_{d_N})$& $\mathbbm{1}_{v_{d_N}=0}$, set to 1 if $v_{d_N}$ is $0$ \\
+  $v_{d_v}$ & mean word embedding for verbs \\ %in $d$ \\
   $\text{zero}(v_{d_v})$& $\mathbbm{1}_{v_{d_v}=0}$, set to 1 if $v_{d_v}$ is $0$ \\
   %$v_{d_{pn}}$ & mean word embedding representation of proper nouns in $d$ \\
   %$\text{zero}(v_{d_{pn}})$& $\mathbbm{1}_{v_{d_{pn}}=0}$, set to 1 if $v_{d_{pn}}$ is $0$ \\
