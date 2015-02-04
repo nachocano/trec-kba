@@ -436,13 +436,15 @@ Our approach extends the classifier introduced by \citet{jingang13}.
 We construct a basic set of features based on the document and the entity of interest.
 Using our representation, we include additional features for the embedding, clustering, and staleness.
 A summary of the features we use is presented in Table \ref{features}. 
+The table also lists the number of features of each type, resulting in a maximum of $938$ features for the model that contain all the features and uses multiple word embeddings.
 
+\comment{
 There are a total of 25 Basic features, where 10 of them correspond to the source of the document using one-hot encoding. 
 There are 301 $F_e^c$ features, the word embeddings are 300-dimensional real-valued vectors, and there is a binary feature that indicates if the embedding is 0. In case $F_e^p$ features are used, there are $F_e^c \times 3$ features, as we use separate embeddings for nouns, proper nouns and verbs (we just indicate nouns and verbs in Table \ref{features} for simplicity).
 There are also 2 real-valued Clustering features, which become 6 if we use the $F_e^p$ features.
 As for Temporal features, there are 2 real-valued features, which become 4 if we use the $F_e^p$ features (there is always a unique staleness per entity, regardless the $F_e$ features used).
 In summary, there are 330 or 938 features depending if we use $F_e^c$ or $F_e^p$ features.
-
+}
 %\comment{
 
 \begin{table}[tb]
@@ -451,7 +453,7 @@ In summary, there are 330 or 938 features depending if we use $F_e^c$ or $F_e^p$
 \begin{tabular}{p{0.2\columnwidth}p{0.73\columnwidth}}
 \toprule
 %\textbf{FEATURE} & \textbf{DESCRIPTION} \\ 
-\multicolumn{2}{c}{\textbf{Basic Features, $F_b$}} \\ %\hline
+\multicolumn{2}{c}{\textbf{Basic Features, $F_b$}, $25$ features} \\ %\hline
 \midrule
 \multicolumn{2}{l}{\emph{Based on document $d$}} \\ %\hline
 $\log(len(d))$ & log of the length of $d$ \\ %\hline
@@ -472,9 +474,9 @@ $\text{spread}_n(d,e)$ & $\text{spread}(d,e)$ normalized by document length \\
 $\text{spread}(d,e^p)$ & $\text{lpos}(d,e^p)\mathord{-}\text{fpos}(d,e^p)$ \\
 $\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length \\ 
 \midrule
-\multicolumn{2}{c}{\textbf{Embedding Features, $F_e$}} \\ %\hline
+\multicolumn{2}{c}{\textbf{Embedding Features, $F_e$, $301$ features}} \\ %\hline
 \midrule
-\multicolumn{2}{l}{\emph{Based on combined embedding, $F_e^c$}} \\ %\hline
+\multicolumn{2}{l}{\emph{Based on a single, combined embedding, $F_e^c$}} \\ %\hline
   $v_d$ & mean word embedding representation of $d$ \\
   $\text{zero}(v_d)$& $\mathbbm{1}_{v_d=0}$, set to 1 if $v_d$ is $0$ \\
 \multicolumn{2}{l}{\emph{Based on POS embeddings, $F_e^p$}} \\ %\hline 
@@ -485,12 +487,12 @@ $\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length 
   %$v_{d_{pn}}$ & mean word embedding representation of proper nouns in $d$ \\
   %$\text{zero}(v_{d_{pn}})$& $\mathbbm{1}_{v_{d_{pn}}=0}$, set to 1 if $v_{d_{pn}}$ is $0$ \\
 \midrule
-\multicolumn{2}{c}{\textbf{Clustering Features, $F_c$}} \\ %\hline
+\multicolumn{2}{c}{\textbf{Clustering Features, $F_c$}, $2$ features} \\ %\hline
 \midrule
   $\min_c(v_d,v_c)$& minimum distance of $v_d$ to topic clusters of $e$ \\
   $\text{avg}_c(v_d,v_c)$& average distance of $v_d$ to topic clusters of $e$ \\
 \midrule
-\multicolumn{2}{c}{\textbf{Temporal Features, $F_t$}} \\ %\hline
+\multicolumn{2}{c}{\textbf{Temporal Features, $F_t$}, $2$ features} \\ %\hline
 \midrule
   $\lambda(e)$& current staleness of entity $e$ \\
   $\lambda(e,c)$& current staleness of topic $c$ of target entity $e$ \\
