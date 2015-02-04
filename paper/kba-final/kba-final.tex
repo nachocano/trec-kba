@@ -51,8 +51,8 @@ To efficiently filter such large text corpora in a streaming manner, we need to 
 Existing approaches to modeling contexts, such as bag of words, latent semantic indexing, and topic models, are limited in several respects: they are unable to handle streaming data, do not model the underlying topic of each document, suffer from lexical sparsity, and/or do not accurately estimate temporal vitalness. 
 In this paper, we introduce a word embedding-based nonparametric representation of entities that addresses the above limitations. 
 The word embeddings provide accurate and compact summaries of observed entity contexts, further described by topic clusters that are estimated in a nonparametric manner. %low-dimensional vector
-Additionally, we dynamically estimating the temporal relevance of each entity and topic cluster. 
-This approach of using word embeddings, nonparametric clustering, and \emph{staleness} provides an efficient yet appropriate representation of entity contexts for the streaming setting, enabling accurate vital filtering. 
+Additionally, we dynamically estimate the temporal relevance of each entity and topic cluster. 
+This approach of using word embeddings, nonparametric clustering, and staleness provides an efficient yet appropriate representation of entity contexts for the streaming setting, enabling accurate vital filtering. 
 % Experiments on the TREC KBA vital filtering task over a large streaming corpus demonstrate that our contributions provide significant gains over existing approaches.
 \end{abstract} 
 
@@ -817,7 +817,7 @@ We evaluate the following approaches.
 
 \section{Results and Discussion}
 
-Table \ref{officialRes} shows the official and revised precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA scorer tool, using the 2014-07-11 truth data. The models that include the $F_c$ features use $\alpha=0.8$, whereas the models that include the $F_t$ features use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
+Table \ref{officialRes} shows the submitted and revised precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA scorer tool, using the 2014-07-11 truth data. The models that include the $F_c$ features use $\alpha=0.8$, whereas the models that include the $F_t$ features use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
 
 The {\textbf{Official Baseline}} provided by TREC KBA organizers assigns a `vital' rating to every document that matches a surface form name of an entity, assigning a confidence score based on the number of matches of tokens in the name. The values reported by the organizers are: macro-P=0.316, macro-R=0.520, macro-F1=0.393, SU=0.3334 \cite{frank14:overview}.
 
