@@ -44,12 +44,14 @@
 ]
 
 \begin{abstract} 
-
-To efficiently explore large corpora of text documents, we need to identify references to entities of interest as well as studying their topics evolution over time. Existing approaches are limited; they are unable to handle streaming data, do not partition entities' references according to topics, and do not accurately estimate temporal vitalness.
-In this paper we introduce a distributed, non-parametric representation of documents that addresses the above limitations. To efficiently handle lexical sparsity, we propose using word embedding representation of the contexts. Each entity context is described by topic clusters that are estimated in a non-parametric manner. Further, we associate a staleness measure to each entity and topic cluster, dynamically estimating their temporal relevance. % based on document frequencies.
-This approach of using distributed word embeddings, non-parametric clustering, and staleness, provides an efficient yet appropriate representation of entities' contexts for streaming settings, facilitating accurate vital filtering.
-
-
+Identifying documents that contain timely and vital information for an entity of interest, a task known as \emph{vital filtering}, has become increasingly important with the availability of large document collections. 
+To efficiently filter such large text corpora in a streaming manner, we need to compactly represent previously observed entity contexts, and quickly estimate whether a new document contains novel information. % about the entity. 
+Existing approaches to modeling contexts, such as bag of words, latent semantic indexing, and topic models, are limited in several respects: they are unable to handle streaming data, do not model the underlying topic of each document, suffer from lexical sparsity, and/or do not accurately estimate temporal vitalness. 
+In this paper, we introduce a word embedding-based nonparametric representation of entities that addresses the above limitations. 
+The word embeddings provide accurate and compact summaries of observed entity contexts, further described by topic clusters that are estimated in a nonparametric manner. %low-dimensional vector
+Additionally, we dynamically estimating the temporal relevance of each entity and topic cluster. 
+This approach of using word embeddings, nonparametric clustering, and \emph{staleness} provides an efficient yet appropriate representation of entity contexts for the streaming setting, enabling accurate vital filtering. 
+% Experiments on the TREC KBA vital filtering task over a large streaming corpus demonstrate that our contributions provide significant gains over existing approaches.
 \end{abstract} 
 
 \section{Introduction}
@@ -309,6 +311,13 @@ The staleness for the entity/cluster is now $\lambda_i$, which is used when the 
 \label{stalenesslow}
 \end{figure}
 
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.7\columnwidth]{fig/staleness2.png}
+\caption{Staleness of Entity with Fluctuating Popularity}
+\label{stalenessmedium}
+\end{figure}
+
 %Figures \ref{stalenesslow} and \ref{stalenessmedium} illustrate some toy examples to further understand the intuition behind staleness.
 Figure \ref{stalenesslow} illustrates an example of an entity with a decreasing staleness. 
 There are almost no documents referring to the entity. 
@@ -318,13 +327,6 @@ Given the fact that there's not much information about the entity, every new doc
 Figure \ref{stalenessmedium} aims to represent staleness of an entity with fluctuating activity levels in the stream of documents. At time $t\mathord{=}10$, a main event involving the entity starts and continues for a long period of time, showing a growing trend in popularity. 
 At the beginning, those documents can be considered vital, but as time goes by and documents continue commenting on the same event, the information starts staling, clearly indicating non-vitalness.
 Near $t\mathord{=}40$, the event can be considered over, a steep decrease in popularity is shown. At a later time, $t=50$, a new event occurs, which denotes vitalness.
-
-\begin{figure}[tb]
-\centering
-\includegraphics[width=0.7\columnwidth]{fig/staleness2.png}
-\caption{Staleness of Entity with Fluctuating Popularity}
-\label{stalenessmedium}
-\end{figure}
 
 \section{Visualization for Accelerate and Create}
 
@@ -466,9 +468,9 @@ $\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length 
   $v_d$ & mean word embedding representation of $d$ \\
   $\text{zero}(v_d)$& $\mathbbm{1}_{v_d=0}$, set to 1 if $v_d$ is $0$ \\
 \multicolumn{2}{l}{\emph{Based on POS embeddings, $F_e^p$}} \\ %\hline 
-  $v_{d_n}$ & mean word embedding representation of nouns in $d$ \\
+  $v_{d_n}$ & mean word embedding representation of nouns\\ % in $d$ \\
   $\text{zero}(v_{d_n})$& $\mathbbm{1}_{v_{d_n}=0}$, set to 1 if $v_{d_n}$ is $0$ \\
-  $v_{d_v}$ & mean word embedding representation of verbs in $d$ \\
+  $v_{d_v}$ & mean word embedding representation of verbs \\ %in $d$ \\
   $\text{zero}(v_{d_v})$& $\mathbbm{1}_{v_{d_v}=0}$, set to 1 if $v_{d_v}$ is $0$ \\
   %$v_{d_{pn}}$ & mean word embedding representation of proper nouns in $d$ \\
   %$\text{zero}(v_{d_{pn}})$& $\mathbbm{1}_{v_{d_{pn}}=0}$, set to 1 if $v_{d_{pn}}$ is $0$ \\
@@ -520,15 +522,25 @@ We use randomized tree ensembles classifiers \cite{GEW06a} for both \emph{rnr} a
 All the experiments use the same \emph{rnr} model trained with the basic features listed in section \ref{feat}.
 The different methods differ on the features used to train and test the \emph{vnv} classifier.
 
-\begin{itemize}
-  \item {\textit{Baseline Single}}: baseline method that uses $F_b$ features. \citet{jingang13, bellogin13} have a similar method, though they train their models with more features.
-  \item {\textit{Baseline Multi-task}}: baseline method similar to {\textit{Baseline Single}} but includes multi-task learning \cite{Caruana93multitasklearning}.
-  \item {\textit{Embedding Combined}}: similar to {\textit{Baseline Multi-task}} but includes $F_e^c$ features. The word embeddings are computed using the Google News dataset. Each document has a single combined embedding, which is calculated from the nouns and verbs found in the linguistic context of the entities' mentions, as described in section \ref{docwordemb}.
-  \item {\textit{Embedding POS}}: similar to {\textit{Embedding Combined}} but uses $F_e^p$ features. Instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns and verbs. %It uses the part of speech annotations in the documents to easily extract the different word types.
-  \item {\textit{Mean Dynamic}}: similar to the {\textit{Embedding POS}} method but it includes the $F_t$ features.
-  \item {\textit{Clustering Static}}: similar to the {\textit{Embedding POS}} method but it includes the $F_c$ features.
-  \item {\textit{Clustering Dynamic}}: similar to the {\textit{Embedding POS}} method but it includes $F_t$ and $F_c$ features.
-\end{itemize}
+We evaluate the following approaches.
+%\begin{itemize}
+  %\item 
+  To compare against existing baselines, we use just the $F_b$ features ({\textbf{Baseline}}); \citet{jingang13, bellogin13} have a similar method, though they train their models with more features.
+  %\item 
+  We also include an additional baseline that uses multi-task learning \cite{Caruana93multitasklearning} to learn separate parameters for each entity, called {\textbf{Baseline, Multi-task}}.
+  %\item 
+  To evaluate the effect of adding word embeddings, we introduce two extensions to the baselines that use the embedding features: {\textbf{Embedding, Single}} that uses a single embedding for every document ($F_e^c$ features), and {\textbf{Embedding, POS}} that maintains different embeddings for nouns and verbs ($F_e^p$ features).
+  %The word embeddings are computed using the Google News dataset. 
+  See Section \ref{docwordemb} for details.
+  %\item 
+  %{\textbf{Embedding POS}}: similar to {\textit{Embedding Combined}} but uses $F_e^p$ features. Instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns and verbs. %It uses the part of speech annotations in the documents to easily extract the different word types.
+  %\item 
+  We separately evaluate the utility of modeling temporal via staleness by introducing the {\textbf{Staleness only}} method that includes the $F_t$ features.
+  %\item 
+  Similarly, we propose the method that uses only the embedding clustering ($F_c$ features), but not the temporal dynamics, called {\textit{Clustering only}}.
+  %\item 
+  Finally, the approach that combines all contributions, {\textbf{Combined}}, includes all the $F_e^p$, $F_t$, and $F_c$ features.
+%\end{itemize}
 
 
 %Official
@@ -548,25 +560,25 @@ The different methods differ on the features used to train and test the \emph{vn
   \textbf{P} & \textbf{R} & \textbf{F1} & 
   \textbf{P} & \textbf{R} & \textbf{F1} \\ 
 \midrule
-{\textit{Baseline Single}} & $F_b$ &
+{\textit{Baseline}} & $F_b$ &
 	53.9  \hspace{1mm} 26.6 & 26.5 \hspace{1mm} 63.4 & 35.5 \hspace{1mm} 37.5 &
   47.5  \hspace{1mm} 36.6 & 23.8 \hspace{1mm} 94.0 & 31.7 \hspace{1mm} 52.7 \\
-{\textit{Baseline Multi-task}} & $F_b$ &
+{\textit{Baseline, Multi-task}} & $F_b$ &
   60.7 \hspace{1mm} 60.7 & 41.4 \hspace{1mm} 41.4 & 49.2 \hspace{1mm} 49.2 &
   36.7 \hspace{1mm} 36.6 & 40.5 \hspace{1mm} 94.0 & 38.5 \hspace{1mm} 52.7 \\
-{\textit{Embedding Combined}} & $F_b+F_e^c$ & 
+{\textit{Embedding, Single}} & $F_b+F_e^c$ & 
   54.7 \hspace{1mm} 54.7 & 52.1 \hspace{1mm} 51.8 & 53.4 \hspace{1mm} 53.2 &
   44.9 \hspace{1mm} 38.3 & 37.6 \hspace{1mm} 85.5 & 40.9 \hspace{1mm} 52.9 \\
-{\textit{Embedding POS}} & $F_b+F_e^p$ & 
+{\textit{Embedding, POS}} & $F_b+F_e^p$ & 
   53.9 \hspace{1mm} 49.9 & 46.4 \hspace{1mm} 53.1 & 49.8 \hspace{1mm} 51.4 &
   44.0 \hspace{1mm} 36.6 & 32.9 \hspace{1mm} 94.0 & 37.6 \hspace{1mm} 52.7 \\
-{\textit{Mean Dynamic}} & $F_b+F_e^p+F_t$ & 
+{\textit{Staleness only}} & $F_b+F_e^p+F_t$ & 
   57.3 \hspace{1mm} 57.3 & 48.3 \hspace{1mm} 48.3 & 52.4 \hspace{1mm} 52.4 &
   47.5 \hspace{1mm} 39.1 & 33.8 \hspace{1mm} 85.8 & 39.5 \hspace{1mm} 53.7 \\
-{\textit{Clustering Static}} & $F_b+F_e^p+F_c$ & 
+{\textit{Clustering only}} & $F_b+F_e^p+F_c$ & 
 	57.0 \hspace{1mm} 57.0 & 49.0 \hspace{1mm} 48.9 & 52.7 \hspace{1mm} 52.6 &
 	46.4 \hspace{1mm} 38.7 & 34.2 \hspace{1mm} 85.0 & 39.4 \hspace{1mm} 53.2 \\
-{\textit{Clustering Dynamic}} & $F_b+F_e^p+F_c+F_t$ &
+{\textit{Combined}} & $F_b+F_e^p+F_c+F_t$ &
   56.2 \hspace{1mm} 56.2 & 48.1 \hspace{1mm} 48.1 & 51.8 \hspace{1mm} 51.8 &
 	46.1 \hspace{1mm} 36.6 & 32.6 \hspace{1mm} 94.0 & 38.2 \hspace{1mm} 52.7 \\
  
@@ -574,7 +586,7 @@ The different methods differ on the features used to train and test the \emph{vn
 \end{tabular}
 \end{center}
 }
-\caption{UW Vital Filtering official and revised percentage results for TREC KBA 2014}
+\caption{Vital Filtering performance using the submitted and revised measure for TREC KBA 2014}
 \label{officialRes}
 \end{table*}
 
@@ -708,19 +720,6 @@ The different methods differ on the features used to train and test the \emph{vn
 %\label{unofficial}
 %\end{table*}
 
-\section{Results and Discussion}
-
-Table \ref{officialRes} shows the official and revised precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA scorer tool, using the 2014-07-11 truth data. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
-
-The official baseline provided by TREC KBA organizers assigns a `vital' rating to every document that matches a surface form name of an entity, assigning a confidence score based on the number of matches of tokens in the name. The values reported by the organizers are: macro-P=0.316, macro-R=0.520, macro-F1=0.393, SU=0.3334 \cite{frank14:overview}.
-
-According to the official results, our system achieved the $2^{nd}$ best precision in the competition, but performed poorly in the overall macro F1 ($8^{th}$ position). Revisiting our submission files, we found that we misinterpreted the concept of confidence. Figure \ref{official:submission} shows that we only make vital predictions with confidence greater than or equal to 500, i.e. the right part of the curve is just constant. We should have also predicted vital with low confidence, i.e. flip our high confidence non-vital predictions to be vital with low confidence. That minor change boosts our recall (in most cases), while the precision slightly suffers, as shown in Figure \ref{official:revised}, leaving our system in the $2^{nd}$ overall position.
-
-{\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models.
-On the other hand, {\textit{Baseline Multi-task}} performs far better that {\textit{Baseline Single} in the official results, which evidences that multi-task learning does work.
-Most of the more advanced models perform better than {\textit{Baseline Multi-task}}, both on the official and revised results. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
-The staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method on the official results. Nevertheless, they illustrate the importance of these new features as they use separate embeddings for the different word types, and they all improve the performance of the simple {\textit{Embedding POS}} model. In the revised versions, {\textit{Mean Dynamic}} scores the best F1, followed closely by {\textit{Clustering Static}}, which further evidences the importance of $F_t$ and $F_c$ features.
-
 \def \officialRunWidth {0.23\textwidth}
 \begin{figure}[tb]
   \centering
@@ -813,6 +812,19 @@ The staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\tex
 \caption{Micro Precision-Recall}
 \label{microPrecRecall}
 \end{figure}
+
+\section{Results and Discussion}
+
+Table \ref{officialRes} shows the official and revised precision, recall and F1 results of the methods explained in \ref{expe}, computed using KBA scorer tool, using the 2014-07-11 truth data. The \textit{Clustering} models use $\alpha=0.8$. Also, the \textit{Dynamic} methods use $\gamma_{dec}=1$ and $\gamma_{inc}=0.1$.
+
+The official baseline provided by TREC KBA organizers assigns a `vital' rating to every document that matches a surface form name of an entity, assigning a confidence score based on the number of matches of tokens in the name. The values reported by the organizers are: macro-P=0.316, macro-R=0.520, macro-F1=0.393, SU=0.3334 \cite{frank14:overview}.
+
+According to the official results, our system achieved the $2^{nd}$ best precision in the competition, but performed poorly in the overall macro F1 ($8^{th}$ position). Revisiting our submission files, we found that we misinterpreted the concept of confidence. Figure \ref{official:submission} shows that we only make vital predictions with confidence greater than or equal to 500, i.e. the right part of the curve is just constant. We should have also predicted vital with low confidence, i.e. flip our high confidence non-vital predictions to be vital with low confidence. That minor change boosts our recall (in most cases), while the precision slightly suffers, as shown in Figure \ref{official:revised}, leaving our system in the $2^{nd}$ overall position.
+
+{\textit{Baseline Single} performs as expected, i.e. has lower F1 than the other models.
+On the other hand, {\textit{Baseline Multi-task}} performs far better that {\textit{Baseline Single} in the official results, which evidences that multi-task learning does work.
+Most of the more advanced models perform better than {\textit{Baseline Multi-task}}, both on the official and revised results. Using a combined embedding ({\textit{Embedding Combined}}) outperforms using individual embeddings representations for the different type of words ({\textit{Embedding POS}}).
+The staleness and non-parametric clustering runs ({\textit{Mean Dynamic}}, {\textit{Clustering Static}}, {\textit{Clustering Dynamic}}) perform slightly worse than the simple {\textit{Embedding Combined}} method on the official results. Nevertheless, they illustrate the importance of these new features as they use separate embeddings for the different word types, and they all improve the performance of the simple {\textit{Embedding POS}} model. In the revised versions, {\textit{Mean Dynamic}} scores the best F1, followed closely by {\textit{Clustering Static}}, which further evidences the importance of $F_t$ and $F_c$ features.
 
 Figures \ref{macroRuns} and \ref{microRuns} complement the revised results in Table \ref{officialRes} for different confidence cutoffs. Figures \ref{official:macroprec} and \ref{official:macrorecall} show that the macro recalls have a huge increase on the low confidence half of the plot, while most precisions stay nearly the same; this is a strong indicator of why the F1 boosts in the revised macro scenario.
 In the micro case, the precisions and recalls (shown in Figures \ref{official:microprec} and \ref{official:microrecall}) increase and decrease in similar proportions, which explain why the micro revised F1s are almost the same as the micro official ones. 
