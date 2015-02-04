@@ -20,7 +20,7 @@
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
 \newcommand{\todo}[1]{\noindent{\textcolor{red}{\{{\bf TODO:}  #1\}}}}
 
-\newcommand{\sub}[1]{\textcolor{red}{#1}}
+\newcommand{\sub}[1]{\textit{#1}}
 
 \usepackage{subcaption}
 
@@ -51,10 +51,10 @@
 Identifying documents that contain timely and vital information for an entity of interest, a task known as \emph{vital filtering}, has become increasingly important with the availability of large document collections. 
 To efficiently filter such large text corpora in a streaming manner, we need to compactly represent previously observed entity contexts, and quickly estimate whether a new document contains novel information. % about the entity. 
 Existing approaches to modeling contexts, such as bag of words, latent semantic indexing, and topic models, are limited in several respects: they are unable to handle streaming data, do not model the underlying topic of each document, suffer from lexical sparsity, and/or do not accurately estimate temporal vitalness. 
-In this paper, we introduce a word embedding-based nonparametric representation of entities that addresses the above limitations. 
-The word embeddings provide accurate and compact summaries of observed entity contexts, further described by topic clusters that are estimated in a nonparametric manner. %low-dimensional vector
-Additionally, we dynamically estimate the temporal relevance of each entity and topic cluster. 
-This approach of using word embeddings, nonparametric clustering, and staleness provides an efficient yet appropriate representation of entity contexts for the streaming setting, enabling accurate vital filtering. 
+In this paper, we introduce a word embedding-based non-parametric representation of entities that addresses the above limitations. 
+The word embeddings provide accurate and compact summaries of observed entity contexts, further described by topic clusters that are estimated in a non-parametric manner. %low-dimensional vector
+Additionally, we associate a staleness measure with each entity and topic cluster, dynamically estimating their temporal relevance.
+This approach of using word embeddings, non-parametric clustering, and staleness provides an efficient yet appropriate representation of entity contexts for the streaming setting, enabling accurate vital filtering. 
 % Experiments on the TREC KBA vital filtering task over a large streaming corpus demonstrate that our contributions provide significant gains over existing approaches.
 \end{abstract} 
 
@@ -63,28 +63,28 @@ This approach of using word embeddings, nonparametric clustering, and staleness 
 
 % general problem,  \cite{RaoMD10,singh11:acl},  \cite{blei12}
 To build up to date entity profiles from streaming text corpora, we need to find references to entities of interest, and study the information trends over time. 
-This is, unfortunately, an incredibly difficult task to perform efficiently on streams, and thus a large number of pertinent articles are seldom retrieved by automated approaches.
+Unfortunately, this is an incredibly difficult task to perform efficiently on streams, and thus a large number of pertinent articles are seldom retrieved by automated approaches.
 For example, \citet{frank12} observe a considerable lag between the publication date of articles and the date of their citations in Wikipedia.
 The median time is over a year, and the distribution has a long and heavy tail. 
 This gap can be drastically reduced if automated systems can accurately and efficiently suggest relevant documents for entities of interest to editors as soon as they are published.
 
 % existing solutions
-The Knowledge Base Acceleration (KBA) track at TREC aims to address this problem.
-However, submissions to TREC KBA~\cite{xitong13, bouvier13, efron13, zhang13, bellogin13} focus on solving the above problems with supervised methods, using mainly document, document-entity, and temporal level features.
+The Knowledge Base Acceleration (KBA) track at TREC addresses this task.
+Recent submissions to KBA ~\cite{xitong13, bouvier13, efron13, zhang13, bellogin13} focus on solving the aforementioned problems with supervised methods, using mainly document, document-entity, and temporal level features.
 % what is wrong with them
 They are, however, somewhat limited: they depend heavily on labeled data, do not handle lexical sparsity in contexts appropriately, and further, do not identify the topics in the references. %, and do not estimate temporal relevance.
 % \citet{Turian10wordrepresentations} show that by using unlabeled examples to reduce data sparsity in the labeled training data, semi-supervised approaches can improve the generalization accuracy of those supervised systems.
 
 
 % what we're proposing
-In this submission, we introduce a semi-supervised approach suitable for streaming settings that uses word embedding clusters and temporal relevance to represent entities' contexts. %We also include a staleness measure that approximates the relevance of the topic clusters. % according to document frequencies. 
+In this submission, we introduce a semi-supervised approach suitable for streaming settings that uses word embedding clusters and temporal relevance to represent entity contexts. %We also include a staleness measure that approximates the relevance of the topic clusters. % according to document frequencies. 
 In particular, the word embeddings provide low-dimensional yet accurate summaries of previously observed entity contexts, and our algorithm updates the topic clusters, number of topics, and the entities and topics temporal relevance in an online fashion, observing only a single document at a time.
-To utilize labeled data, we introduce features based on our representation of unlabeled documents to a supervised classifier.
+To utilize labeled data, we introduce features based on our representation of unlabeled documents to train a supervised classifier.
 %
 % how it solves it
-This combination of word embeddings, non-parametric clustering, and \emph{staleness} provides an efficient yet accurate representation of entities' contexts that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
+This combination of word embeddings, non-parametric clustering, and temporal relevance (staleness) provides an efficient yet accurate representation of entity contexts that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
 % experiments
-We present experimental results that demonstrate the benefits of our method and present our performance on the UW TREC KBA 2014 Vital Filtering task.
+We present experimental results that demonstrate the benefits of our method and show our performance on the TREC KBA 2014 Vital Filtering task.
 As part of the Accelerate and Create task, we also describe an exploratory tool for efficient and intuitive visualization of large streams.
 
 \section{Vital Filtering Task}
@@ -97,7 +97,7 @@ We assume a set of $m$ target entities $E = \left\{ {e_1, ..., e_m}\right\}$. We
  
 Each document is a sequence of sentences composed by collections of words, annotated with NLP tools.
 Further, we assume w.l.o.g. that every document in $D$ refers to a single entity $e \in E$. %For illustrative purposes we let $e\mathord{=}Barack\hspace{1mm}Obama$.
-Since our focus here is to distinguish vital and non-vital references, we use a naive classifier based resolution to identify the documents relevant to each entity (details in Section~\ref{expe}), although in practice this is a challenging task and more sophisticated techniques are required~\citep{RaoMD10,singh11:acl}.
+Since our focus here is to distinguish vital and non-vital references, we use a naive classifier based resolution to identify the documents relevant (or referent) to each entity (details in Section~\ref{expe}), although in practice this is a challenging task and more sophisticated techniques are required~\citep{RaoMD10,singh11:acl}.
 %We further assume \emph{coreferent} references within a document is provided.
 
 A mention to $e$ in a document $d_i \in D$ is identified by a string matching algorithm that searches for exact matches of canonical and surface form names of the entity $e$.
@@ -106,7 +106,7 @@ Finally, we assume an online setting, i.e. the algorithm should provide predicti
 
 Given this setup, the vital filtering task requires classification of each document $d$ relevant to an entity $e$ as follows:
 \begin{itemize}[nosep]
-    \item \emph{Vital} if the document contains information that, at the time it enters the stream, would cause an update to the entity $e$ with timely, new information about the entity's current state, actions or situation, e.g. ``Barack Obama has been elected President''.
+    \item \emph{Vital} if the document contains information that, at the time it enters the stream, would cause an update to the entity $e$ with timely, new information about the entity current state, actions or situation, e.g. ``Barack Obama has been elected President''.
     \item \emph{Non-Vital} if the document is relevant, but contains information that is not timely, i.e. it may contain information relevant when building an initial profile of the entity $e$, but does not contain information that an accurate, updated profile would not have, e.g. ``Barack Obama was born on August 4th, 1961''.
 \end{itemize}
 
@@ -114,11 +114,11 @@ Given this setup, the vital filtering task requires classification of each docum
 \label{approach}
 
 Given a stream of documents $D$ that refer to entity $e$, the task at hand is to predict whether each document is \emph{vital} or \emph{non-vital} to $e$. 
-To detect whether a document contains novel information, one needs to provide an accurate and generalizable representation of historical contexts, at the same time capturing the temporal dynamics of the references.
+To detect whether a document contains novel information, one needs to provide an accurate and generalizable representation of historical contexts, while also capturing the temporal dynamics of the references.
 
 To this end, we propose a three-pronged solution:
 (1) represent documents with low-dimensional embeddings that address sparsity and generalization~(Section~\ref{docwordemb}), 
-(2) represent the entity's context using non-parametric topic clustering~(Section~\ref{non}), and 
+(2) represent the entity context using non-parametric topic clustering~(Section~\ref{non}), and 
 (3) estimate the novelty of the document information using a staleness measure~(Section~\ref{staleness}).
 
 %In section \ref{docwordemb} we describe the way to determine the word embedding representation of a document given the set of words located close to mentions of entity $e$. In section \ref{non}, we introduce the non-parametric representation of the entity's context. Finally, in section \ref{staleness} we present the staleness measure, which is a good indicator of the novelty of the information contained in a document with respect to $e$.
@@ -127,7 +127,7 @@ To this end, we propose a three-pronged solution:
 \label{docwordemb}
 
 % problem
-To identify whether an entity's context in a document contains novel information, or even if it is relevant for the entity, we need a structured representation of the context. % We need to represent the unstructured entity's contexts in documents as features for our classifier. 
+To identify whether an entity context in a document contains novel information, or even if it is relevant for the entity, we need a structured representation of the context. % We need to represent the unstructured entity's contexts in documents as features for our classifier. 
 % solution
 A common solution to this problem is to use vector space models, often the Bag of Words (BOW) models, where a document is represented as the bag of its words, disregarding grammar and even word order. 
 % why aren't they enough
@@ -139,14 +139,14 @@ Further, the size of BOW representations grows over time when the vocabulary is 
 % what is our solution
 In order to address these concerns, we propose to represent contexts of entities in documents using word embeddings.
 A word embedding is a dense, low-dimensional, and real-valued vector associated with every word in a vocabulary such that they capture useful syntactic and semantic properties of the contexts that the word appears in.
-The low-dimensionality of the embeddings as compared to vector space models (hundreds as compared to millions) make them an elegant solution to address lexical sparsity in settings with very few labels~\cite{Turian10wordrepresentations}, and further, they can be efficiently trained on massive corpora.
+The low-dimensionality of the embeddings as compared to vector space models (hundreds instead of millions) make them an elegant solution to address lexical sparsity in settings with very few labels~\cite{Turian10wordrepresentations}, and further, they can be efficiently trained on massive corpora.
 % The learned vectors computed using neural networks are quite attractive because they explicitly encode many linguistic regularities and patterns. 
 Many of the syntactic patterns can be represented with simple algebraic operations. For example, the result of $v_{paris} - v_{france} + v_{germany}$ is closer to $v_{berlin}$ than to any other word vector \cite{mikolovChen,mikolovYih}.
 
 %Given the recent fast estimation of embedding representations at very large scale, there is rising interest in vector-space word embeddings and their use in NLP \cite{Arvind14}.
 
-We define a function $f : w \rightarrow v_w \in \mathbf{R^d}$ that defines the pre-computed word embedding representation of the word type $w$. 
-To define embedding for a set of words $W$, we define $g : W \rightarrow v_W \in \mathbf{R^d}$ that computes embeddings as: % defined in Equation \ref{wordembedding}.
+We introduce a function $f : w \rightarrow v_w \in \mathbf{R^d}$ that defines the pre-computed word embedding representation of the word type $w$. 
+To define the embedding for a set of words $W$, we define $g : W \rightarrow v_W \in \mathbf{R^d}$ that computes embedding as: % defined in Equation \ref{wordembedding}.
 \begin{equation}
 \label{wordembedding}
 g(W) = v_W = \frac{1}{|W|} \sum_{w \in W}{f(w)}
@@ -165,14 +165,14 @@ v_{d_{i_n}} = v_{W_{i_n}} = g(W_{i_n})\label{nouns}
 \\
 v_{d_{i_v}} = v_{W_{i_v}} = g(W_{i_v})\label{verbs}
 \end{eqnarray}
-Computing separate embeddings for different word types is a flexibility our method provides that may better encapsulate the underlying information content of the document.
+Computing separate embeddings for different word types is a flexibility our method provides that may better encapsulate the underlying content of the document.
 
 \subsection{Non-parametric Clustering}
 \label{non}
 
 % problem
 Although word embeddings capture the context around a single topic quite accurately, they are unable to represent the variety of topics that an entity may be mentioned in.
-For example, the context around Obama during \emph{elections} is quite different from Obama's context for \emph{presidential speech} or \emph{international visit}.
+For example, the context around Obama during \emph{elections} is quite different from the context for \emph{presidential speech} or \emph{international visit}.
 Using a single word embedding to represent multiple such topics may result in embeddings that conflate them, being inaccurate for all of them.
 
 % solution
@@ -188,9 +188,9 @@ Finally, it is difficult to learn per entity topic distributions, especially if 
 %This type of models represent documents as admixtures over topics. 
 %More specifically, each topic is modeled as a distribution over words, and each document is a mixture of such topics \cite{InouyeRD14}. 
 
-Instead of representing the context using only a single embedding, we propose to use a number of embeddings that capture the different \emph{topic clusters} of the entity, thus retaining the advantages of using word embedding while still having a precise context representation.
+Instead of representing the context using only a single embedding, we propose to use a number of embeddings that capture the different \emph{topic clusters} of the entity, retaining the advantages of using embeddings while still having a precise context representation.
 %To address these limitations, we propose to represent the context of entity $e$ by topic clusters. 
-We assume that the context in a single document belongs to a single topic, though we dynamically estimate the number of clusters in a non-parametric manner.
+We assume that the context in a single document belongs to a single topic, though we dynamically estimate the number of topic clusters in a non-parametric manner.
 As we are concerned with a streaming setting, topic clusters evolve over time, i.e. identities, members and number of clusters change over time. 
 
 We represent each topic cluster by the mean embedding vector of the documents assigned to that cluster at a certain timestamp.
@@ -201,11 +201,11 @@ v_{c^j_i} = \frac{1}{|D^j_i|} \sum_{d \in D^j_i}{v_d}
 \end{equation}
 where $D^j_i$ is the subset of all the documents that belong to cluster $j$ at timestamp $t_i$, and $\forall\hspace{1mm}d_q \in D^j_i, t_q \leq t_i$.
 
-The number of topic clusters for the context of entity $e$ is unknown beforehand. Initially, we let the entity's context to have zero topic clusters. 
-We create the first topic cluster for the entity's context when the first relevant document is observed. 
+The number of topic clusters for the context of entity $e$ is unknown beforehand. Initially, we let the entity context to have zero topic clusters. 
+We create the first topic cluster for the entity context when the first relevant document is observed. 
 For any following relevant document $d$, the topic clusters are updated as follows.
-We first compute a distance of $v_d$ with every existing topic embedding.
-If the minimum distance to any topic cluster is greater than or equal to $\alpha$ ($0 \leq \alpha \leq 1$), we create a new topic cluster just containing document $d$, otherwise we merge document $d$ into the closest cluster to $v_d$, and update the cluster's vector representation.
+We first compute a distance of $v_d$ with every existing topic cluster.
+If the minimum distance to any topic cluster is greater than or equal to $\alpha$ ($0 \leq \alpha \leq 1$), we create a new topic cluster just containing document $d$, otherwise we merge document $d$ into the closest cluster to $v_d$, and update the cluster vector representation.
 Our approach is closely related to the online non-parametric clustering procedure described in \citet{Arvind14}.
 
 %After creating the first cluster for the context, a new topic cluster is created when the cosine distance between of the entity is , where $\alpha$ is an hyperparameter of the model, and . 
@@ -269,7 +269,7 @@ The distance is less than $\alpha$, hence it adds $d_3$ to the $president$ clust
 
 % problem
 We have been concerned with detecting whether a document $d$ contains a novel context in terms of the documents seen so far.
-By representing the context of an entity as a set of topic clusters, each with an embedding vector, we are able to accurately summarize the entity's context information. We expect that documents that are not close to existing clusters contain novel information.
+By representing the context of an entity as a set of topic clusters, each with an embedding vector, we are able to accurately summarize the entity context information. We expect that documents that are not close to existing clusters contain novel information.
 Unfortunately, this representation ignores the timeliness of the information, and it is quite possible that a document that is similar to existing clusters contains novel information.
 For example, when a document describes Obama victory in an election, it may be assigned to an existing cluster describing a previous election he won, nonetheless it actually contains new information.
 
@@ -300,7 +300,7 @@ This staleness can be used to estimate the novelty of the information in $d_i$, 
 Thereafter, since we have just observed a relevant document for the entity/cluster, we need to increase its staleness. 
 %In case we use staleness as an entity's measure, $\lambda^{inc}_{i-1}$ alludes to the staleness of the previous document in the stream that refers to the same entity as document $i$.
 %If we use staleness as a topic cluster's measure, $\lambda^{inc}_{i-1}$ refers to the staleness of the previous document that belongs to the same topic cluster as document $i$.
-We use a simple interpolation to increase it, using $\gamma_{inc}$ to control the change as follows:
+We use a simple interpolation to increase it:%, using $\gamma_{inc}$ to control the change as follows:
 \begin{equation}
 \lambda_i = 1 - \gamma_{inc}(1 - \lambda_{t_i})
 \end{equation}
@@ -327,7 +327,7 @@ The staleness for the entity/cluster is now $\lambda_i$, which is used when the 
 Figure \ref{stalenesslow} illustrates an example of an entity with a decreasing staleness. 
 There are almost no documents referring to the entity. 
 As soon as some activity is detected, i.e. a document mentioning the entity appears ($t=10$), the staleness increases slightly. 
-Given the fact that there's not much information about the entity, every new document would drive an update to the entity's profile, strongly suggesting vitalness.
+Given the fact that there is not much information about the entity, every new document would drive an update to the entity profile, strongly suggesting vitalness.
 
 Figure \ref{stalenessmedium} represents staleness of an entity with fluctuating activity levels in the stream of documents. An important event involving the entity starts at time $t\mathord{=}10$ and continues for a substantial period, showing a growing trend in popularity. 
 At the beginning, those documents can be considered vital, but as documents continue commenting on the same event over time, the information starts getting stale, clearly indicating non-vitalness.
@@ -338,7 +338,7 @@ Near $t\mathord{=}40$ when the event is over, a steep decrease in popularity is 
 %There is an urgent need for efficient analysis of constantly increasing text collections.
 Intuitive and effective visualization techniques can provide valuable tools in assisting editors to populate entity profiles and to perform exploratory analysis of large collections of documents. 
 In this section, we describe the requirements of such visualization tools for streaming documents.
-Then, we present our prototype visualization software for the Accelerate and Create task that enables users to enlarge parts of the visual space while simultaneously shrinking the context, a technique called focus-plus-context~\cite{Artur2010}.
+Then, we present our visualization prototype for the Accelerate and Create task that enables users to enlarge parts of the visual space while simultaneously shrinking the context, a technique called focus-plus-context~\cite{Artur2010}.
 
 \subsection{Goals and Challenges}
 
@@ -388,7 +388,7 @@ This view primarily plots the staleness of a cluster over time, indicating when 
 The user can also study the topics in finer detail, clicking on any point in the timeline brings up a word cloud representation of the topic at that time.
 Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity \emph{Mike Kluse}. 
 %The user can select any point in the line to further inspect the topic cluster. 
-Figure \ref{wordcloud} is the result of a user's click on the point highlighted in Figure \ref{stalenessEvol}. 
+Figure \ref{wordcloud} is the result of a user click on the point highlighted in Figure \ref{stalenessEvol}. 
 It shows the closest words to the topic cluster C1 at that time.
 
 Both views consist of a timeline over the whole stream, allowing users to quickly navigate them over different time frames.
@@ -407,12 +407,12 @@ One key difference is that we do not exploit any external resources to construct
 
 Representing words as continuous vectors has been studied for a number of years~\cite{Hinton87, Elman90findingstructure}. 
 The progress in machine learning techniques in recent years has enabled training more complex models on much larger data sets \cite{mikolovChen}. 
-One popular approach to improving accuracy by exploiting large datasets is to use unsupervised methods to create word features, or to download word features that have already been produced \cite{Turian10wordrepresentations}. In our method, we do the latter, using an already induced word embedding features in order to improve our system's accuracy. To the best of our knowledge, no other technique has proposed the use of word embeddings representations for the vital filtering task.
+One popular approach to improving accuracy by exploiting large datasets is to use unsupervised methods to create word features, or to download word features that have already been produced \cite{Turian10wordrepresentations}. In our method, we do the latter, using already induced word embedding features in order to improve our system accuracy. To the best of our knowledge, no other technique has proposed the use of word embeddings representations for the vital filtering task.
 
-One of the pioneering work on detecting novel documents was introduced by \citet{Zhang2002}. They explicitly model relevance and redundancy as separate concepts. They propose different redundancy measures and empirically show that the cosine similarity metric is effective in identifying redundant documents; one limitation is that they just keep only the 10 most recent documents for a profile. In our method, we summarize the complete history of documents for a given entity, which allows a more accurate estimate of the query document's redundancy.
-\citet{gamon} address the problem of staleness detection by building an association graph that connects sentences and sentence fragments, and uses graph-based features as indicators of lack of novelty. Though the task is somewhat similar, it is more limited in the sense that they do not need to model the transition from new to background information. % where, in principle, all documents are citation worthy.
+One of the pioneering work on detecting novel documents was introduced by \citet{Zhang2002}. They explicitly model relevance and redundancy as separate concepts. They propose different redundancy measures and empirically show that the cosine similarity metric is effective in identifying redundant documents; one limitation is that they just keep only the 10 most recent documents for a profile. In our method, we summarize the complete history of documents for a given entity, which allows a more accurate estimate of the query document redundancy.
+\citet{gamon} addresses the problem of staleness detection by building an association graph that connects sentences and sentence fragments, and uses graph-based features as indicators of lack of novelty. Though the task is somewhat similar, it is more limited in the sense that they do not need to model the transition from new to background information. % where, in principle, all documents are citation worthy.
 
-Many of the recent approaches have focused on scaling novel detection algorithms, also known as First Story Detection, in the streaming setting, by either using LSH \cite{Petrovic2010} or just employing simple heuristics \cite{Luo2007}. While this work mainly focuses on efficiency at the cost of accuracy, our work aims to achieve accrate representations without comprimising efficiency. 
+Many of the recent approaches have focused on scaling novel detection algorithms, also known as First Story Detection, in the streaming setting, by either using LSH \cite{Petrovic2010} or just employing simple heuristics \cite{Luo2007}. While their work mainly focuses on efficiency at the cost of accuracy, our work aims to achieve accurate representations without compromising efficiency. 
 
 Streaming document filtering is also related to several other fields, including but not limited to, entity linking \cite{KBP11}, text categorization \cite{HLTCOE12}, news surveillance \cite{Steinberger14}, and cross-document coreference~\cite{RaoMD10,singh11:acl}.
 
@@ -436,7 +436,7 @@ Our approach extends the classifier introduced by \citet{jingang13}.
 We construct a basic set of features based on the document and the entity of interest.
 Using our representation, we include additional features for the embedding, clustering, and staleness.
 A summary of the features we use is presented in Table \ref{features}. 
-The table also lists the number of features of each type, resulting in a maximum of $938$ features for the model that contain all the features and uses multiple word embeddings.
+There are a maximum of $938$ features for the model that contain all the features and uses multiple word embeddings.
 
 \comment{
 There are a total of 25 Basic features, where 10 of them correspond to the source of the document using one-hot encoding. 
@@ -453,7 +453,7 @@ In summary, there are 330 or 938 features depending if we use $F_e^c$ or $F_e^p$
 \begin{tabular}{p{0.2\columnwidth}p{0.73\columnwidth}}
 \toprule
 %\textbf{FEATURE} & \textbf{DESCRIPTION} \\ 
-\multicolumn{2}{c}{\textbf{Basic Features, $F_b$}, $25$ features} \\ %\hline
+\multicolumn{2}{c}{\textbf{Basic Features, $F_b$}} \\ %\hline
 \midrule
 \multicolumn{2}{l}{\emph{Based on document $d$}} \\ %\hline
 $\log(len(d))$ & log of the length of $d$ \\ %\hline
@@ -474,7 +474,7 @@ $\text{spread}_n(d,e)$ & $\text{spread}(d,e)$ normalized by document length \\
 $\text{spread}(d,e^p)$ & $\text{lpos}(d,e^p)\mathord{-}\text{fpos}(d,e^p)$ \\
 $\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length \\ 
 \midrule
-\multicolumn{2}{c}{\textbf{Embedding Features, $F_e$, $301$ features}} \\ %\hline
+\multicolumn{2}{c}{\textbf{Embedding Features, $F_e$}} \\ %\hline
 \midrule
 \multicolumn{2}{l}{\emph{Based on a single, combined embedding, $F_e^c$}} \\ %\hline
   $v_d$ & mean word embedding representation of $d$ \\
@@ -487,12 +487,12 @@ $\text{spread}_n(d,e^p)$ & $\text{spread}(d,e^p)$ normalized by document length 
   %$v_{d_{pn}}$ & mean word embedding representation of proper nouns in $d$ \\
   %$\text{zero}(v_{d_{pn}})$& $\mathbbm{1}_{v_{d_{pn}}=0}$, set to 1 if $v_{d_{pn}}$ is $0$ \\
 \midrule
-\multicolumn{2}{c}{\textbf{Clustering Features, $F_c$}, $2$ features} \\ %\hline
+\multicolumn{2}{c}{\textbf{Clustering Features, $F_c$}} \\ %\hline
 \midrule
   $\min_c(v_d,v_c)$& minimum distance of $v_d$ to topic clusters of $e$ \\
   $\text{avg}_c(v_d,v_c)$& average distance of $v_d$ to topic clusters of $e$ \\
 \midrule
-\multicolumn{2}{c}{\textbf{Temporal Features, $F_t$}, $2$ features} \\ %\hline
+\multicolumn{2}{c}{\textbf{Temporal Features, $F_t$}} \\ %\hline
 \midrule
   $\lambda(e)$& current staleness of entity $e$ \\
   $\lambda(e,c)$& current staleness of topic $c$ of target entity $e$ \\
@@ -548,9 +548,9 @@ We evaluate the following approaches in our experiments.
   %\item 
   %{\textbf{Embedding POS}}: similar to {\textit{Embedding Combined}} but uses $F_e^p$ features. Instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns and verbs. %It uses the part of speech annotations in the documents to easily extract the different word types.
   %\item 
-  We separately evaluate the utility of temporal modeling via staleness by introducing the {\textbf{Staleness only}} method that includes the $F_t$ features.
+  We separately evaluate the utility of temporal dynamics via staleness by introducing the {\textbf{Staleness only}} method that includes the $F_t$ features.
   %\item 
-  Similarly, we propose the method that uses only clustering ($F_c$ features), but not the temporal dynamics, called {\textbf{Clustering only}}.
+  Similarly, we propose the method that uses only clustering ($F_c$ features), but not the temporal ones, called {\textbf{Clustering only}}.
   %\item 
   Finally, the approach that combines all contributions, {\textbf{Combined}}, includes all the $F_b$, $F_e^p$, $F_t$, and $F_c$ features.
 %\end{itemize}
@@ -832,20 +832,20 @@ Table \ref{officialRes} shows the submitted and revised precision, recall and F1
 
 According to the official results, our submissions achieved the $2^{nd}$ best precision in the competition, but performed poorly in the overall macro F1 ($8^{th}$ position). Revisiting our submission files, we found that we misinterpreted the concept of confidence. Figure \ref{official:submission} shows that we only make vital predictions with confidence greater than or equal to 500, i.e. the right part of the curve is just constant. We should have also predicted vital with low confidence, i.e. flip our high confidence non-vital predictions to be vital with low confidence. That minor change boosts our recall (in most cases), while the precision slightly suffers, as shown in Figure \ref{official:revised}, leaving our system in the $2^{nd}$ overall position.
 
-The baseline provided by TREC KBA organizers (not to be confused by our \emph{Baseline} model) assigns a `vital' rating to every document that matches a surface form name of an entity, assigning a confidence score based on the number of matches of tokens in the name. The values reported by the organizers are: macro-P=0.316, macro-R=0.520, macro-F1=0.393, SU=0.3334 \cite{frank14:overview}.
+The baseline provided by TREC KBA organizers (not to be confused by our \emph{Baseline} model) assigns a vital rating to every document that matches a surface form name of an entity, assigning a confidence score based on the number of matches of tokens in the name. The values reported by the organizers are: macro-P=0.316, macro-R=0.520, macro-F1=0.393, SU=0.3334 \cite{frank14:overview}.
 
 {\textit{Baseline}} performs as expected, i.e. has lower F1 than the other models.
-On the other hand, {\textit{Baseline, Multi-task}} performs far better than {\textit{Baseline}}, which suggests the entity context vary sufficiently across entities to benefit from separate parameterization.
+On the other hand, {\textit{Baseline, Multi-task}} performs far better than {\textit{Baseline}}, which suggests the entity context varies sufficiently across entities to benefit from separate parameterization.
 Our proposed models further improve upon the {\textit{Baseline, Multi-task}}. 
 Further, using a single embedding ({\textit{Embedding, Single}}) outperforms multiple embeddings representations ({\textit{Embedding, POS}}), indicating word embeddings implicitly capture the various parts of speech in their representation.
 The proposed staleness and non-parametric clustering ({\textit{Staleness only}}, {\textit{Clustering only}}, {\textit{Combined}}) perform slightly worse than the simple {\textit{Embedding, Single}} method on the submission results. 
 %Nevertheless, they illustrate the importance of these new features as they use separate embeddings for the different word types, and they all improve the performance over the simple {\textit{Embedding, POS}} model. 
 However, in the revised versions, {\textit{Staleness only}} scores the best F1, followed closely by {\textit{Clustering only}}, which further demonstrates the importance of $F_t$ and $F_c$ features.
 
-Figures \ref{macroRuns} and \ref{microRuns} complement the revised results in Table \ref{officialRes} for different confidence cutoffs. Figures \ref{official:macroprec} and \ref{official:macrorecall} show that the macro recall has a substantial increase in the lower confidence half of the plot, while retaining most of the precision; this results in a boost to F1 scores in the revised macro scenario.
-For micro-averaging, the precisions and recalls (shown in Figures \ref{official:microprec} and \ref{official:microrecall}) follow similar trends as each other, causing the micro revised F1s to be almost the same as the micro submission ones. 
+Figures \ref{macroRuns} and \ref{microRuns} complement the revised results in Table \ref{officialRes} for different confidence cutoffs. Figures \ref{official:macroprec} and \ref{official:macrorecall} show that the macro recall has a substantial increase in the lower confidence half of the plot, while retaining most of the precision; this results in a boost of F1 scores in the revised macro scenario.
+For micro-averaging, the precisions and recalls (shown in Figures \ref{official:microprec} and \ref{official:microrecall}) follow similar trends, causing the micro revised F1s to be almost the same as the micro submission ones. 
 
-Figures \ref{macroPrecRecall} and \ref{microPrecRecall} further illustrate the precision-recall for the different methods. For macro averaging, all methods perform almost the same. The micro metrics in Figure \ref{microPrecRecall} are much more interesting. At lower recall, the micro precision of the different models meets our expectations: the more complex methods, including non-parametric clustering and staleness, outperform our baselines. Nevertheless, at higher recall, {\textit{Embedding, Single}} takes the lead.
+Figures \ref{macroPrecRecall} and \ref{microPrecRecall} further illustrate the precision-recall for the different methods. For macro averaging, all methods perform almost the same. The micro metrics in Figure \ref{microPrecRecall} are much more interesting. At lower recall, the micro precisions of the different models meet our expectations: the more complex methods, including non-parametric clustering and staleness, outperform our baselines. Nevertheless, at higher recall, {\textit{Embedding, Single}} takes the lead.
 
 %Table \ref{varyinggamma} shows the results for a variant of {\textit{Clustering Dynamic}}. As opposed to the {\textit{Clustering Dynamic}} in Table \ref{res}, this new version uses a single embedding representation instead of embeddings per word type. We show outputs using a low, medium and high $\gamma_i$, for $\alpha=0.$. We further perform a scan on a long range of $\gamma_d$ to see its impact on the overall result. 
 
@@ -885,7 +885,7 @@ Figures \ref{macroPrecRecall} and \ref{microPrecRecall} further illustrate the p
 
 Filtering streaming documents in order to fill gaps plays a crucial role in the maintenance and timely updates of knowledge bases.
 With the exponential increase of information on the web, it becomes critical to detect relevant documents and incorporate their information to entities in a timely manner. % \cite{jingang13}.
-In this paper we introduced a semi-supervised learning model for document filtering tasks. We proposed a word embeddings based non-parametric representation of documents that groups entity references into topic clusters, and is suitable for the streaming setting. Further, we present a notion of staleness at a per entity and per topic cluster level that dynamically estimates the temporal relevance of the entity contexts.
+In this paper we introduced a semi-supervised learning model for document filtering tasks. We proposed a word embeddings based non-parametric representation of documents that groups entity references into topic clusters, and is suitable for streaming settings. Further, we present a notion of staleness at a per entity and per topic cluster level that dynamically estimates the temporal relevance of the entity contexts.
 The combination of these three core contributions (distributed word embedding representations, non-parametric clustering, and staleness) results in an accurate representation of entity contexts, while simultaneously addressing the filtering requirements of large corpora of streaming text documents.
 
 A number of avenues exist for further work. A possible line of future research would be exploring hierarchical clustering algorithms to better represent topic clusters. It would also be interesting to assess the effect of learning the hyperparameters of the model instead of just manual tuning them for the specific datasets.
