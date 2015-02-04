@@ -10,19 +10,19 @@ from collections import defaultdict
 
 def mapping(filename):
     if 'emb_comb' in filename:
-        return 'embedding combined'
+        return 'embedding, single'
     elif 'emb_pos' in filename:
-        return 'embedding pos'
+        return 'embedding, pos'
     elif 'basic_single' in filename:
-        return 'baseline single'
+        return 'baseline'
     elif 'basic_multi' in filename:
-        return 'baseline multi-task'
+        return 'baseline, multi-task'
     elif 'clust_dyn' in filename:
-        return 'clustering dynamic'
+        return 'combined'
     elif 'clust_stat' in filename:
-        return 'clustering static'
+        return 'clustering only'
     elif 'mean_dyn' in filename:
-        return 'mean dynamic'
+        return 'staleness only'
     elif 'mean_stat' in filename:
         pass
     else:    
