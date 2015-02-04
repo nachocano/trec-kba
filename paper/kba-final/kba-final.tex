@@ -63,7 +63,7 @@ This approach of using word embeddings, non-parametric clustering, and staleness
 
 % general problem,  \cite{RaoMD10,singh11:acl},  \cite{blei12}
 To build up to date entity profiles from streaming text corpora, we need to find references to entities of interest, and study the information trends over time. 
-Unfortunately, this is an incredibly difficult task to perform efficiently on streams, and thus a large number of pertinent articles are seldom retrieved by automated approaches.
+Unfortunately, this is an incredibly difficult task to perform efficiently on streams, and thus, a large number of pertinent articles are seldom retrieved by automated approaches.
 For example, \citet{frank12} observe a considerable lag between the publication date of articles and the date of their citations in Wikipedia.
 The median time is over a year, and the distribution has a long and heavy tail. 
 This gap can be drastically reduced if automated systems can accurately and efficiently suggest relevant documents for entities of interest to editors as soon as they are published.
@@ -79,7 +79,7 @@ They are, however, somewhat limited: they depend heavily on labeled data, do not
 % what we're proposing
 In this submission, we introduce a semi-supervised approach suitable for streaming settings that uses word embedding clusters and temporal relevance to represent entity contexts. %We also include a staleness measure that approximates the relevance of the topic clusters. % according to document frequencies. 
 In particular, the word embeddings provide low-dimensional yet accurate summaries of previously observed entity contexts, and our algorithm updates the topic clusters, number of topics, and the entities and topics temporal relevance in an online fashion, observing only a single document at a time.
-To utilize labeled data, we introduce features based on our representation of unlabeled documents to train a supervised classifier.
+To utilize labeled data, we introduce features based on our representation of unlabeled documents to a supervised classifier.
 %
 % how it solves it
 This combination of word embeddings, non-parametric clustering, and temporal relevance (staleness) provides an efficient yet accurate representation of entity contexts that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
@@ -173,7 +173,7 @@ Computing separate embeddings for different word types is a flexibility our meth
 % problem
 Although word embeddings capture the context around a single topic quite accurately, they are unable to represent the variety of topics that an entity may be mentioned in.
 For example, the context around Obama during \emph{elections} is quite different from the context for \emph{presidential speech} or \emph{international visit}.
-Using a single word embedding to represent multiple such topics may result in embeddings that conflate them, being inaccurate for all of them.
+Using a single word embedding to represent multiple such topics may result in embeddings that conflate them, making the topics inaccurate.
 
 % solution
 One typical approach to tackle this problem is using topic models~\cite{blei12}.
@@ -250,7 +250,7 @@ Note that the cluster center is updated in constant time by incrementally mainta
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=0.7\columnwidth]{fig/obamaExample.pdf}
+\includegraphics[width=0.7\columnwidth]{fig/obamaExample.png}
 \caption{Example of Non-parametric Clustering}
 \label{obama}
 \end{figure}
@@ -436,7 +436,7 @@ Our approach extends the classifier introduced by \citet{jingang13}.
 We construct a basic set of features based on the document and the entity of interest.
 Using our representation, we include additional features for the embedding, clustering, and staleness.
 A summary of the features we use is presented in Table \ref{features}. 
-There are a maximum of $938$ features for the model that contain all the features and uses multiple word embeddings.
+%There are a maximum of $938$ features for the model that contains all the features and uses multiple word embeddings.
 
 \comment{
 There are a total of 25 Basic features, where 10 of them correspond to the source of the document using one-hot encoding. 
@@ -832,7 +832,7 @@ Table \ref{officialRes} shows the submitted and revised precision, recall and F1
 
 According to the official results, our submissions achieved the $2^{nd}$ best precision in the competition, but performed poorly in the overall macro F1 ($8^{th}$ position). Revisiting our submission files, we found that we misinterpreted the concept of confidence. Figure \ref{official:submission} shows that we only make vital predictions with confidence greater than or equal to 500, i.e. the right part of the curve is just constant. We should have also predicted vital with low confidence, i.e. flip our high confidence non-vital predictions to be vital with low confidence. That minor change boosts our recall (in most cases), while the precision slightly suffers, as shown in Figure \ref{official:revised}, leaving our system in the $2^{nd}$ overall position.
 
-The baseline provided by TREC KBA organizers (not to be confused by our \emph{Baseline} model) assigns a vital rating to every document that matches a surface form name of an entity, assigning a confidence score based on the number of matches of tokens in the name. The values reported by the organizers are: macro-P=0.316, macro-R=0.520, macro-F1=0.393, SU=0.3334 \cite{frank14:overview}.
+The baseline provided by TREC KBA organizers (not to be confused with our \emph{Baseline} model) assigns a vital rating to every document that matches a surface form name of an entity, assigning a confidence score based on the number of matches of tokens in the name. The values reported by the organizers are: macro-P=0.316, macro-R=0.520, macro-F1=0.393, SU=0.3334 \cite{frank14:overview}.
 
 {\textit{Baseline}} performs as expected, i.e. has lower F1 than the other models.
 On the other hand, {\textit{Baseline, Multi-task}} performs far better than {\textit{Baseline}}, which suggests the entity context varies sufficiently across entities to benefit from separate parameterization.
