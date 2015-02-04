@@ -60,26 +60,27 @@ This approach of using word embeddings, nonparametric clustering, and staleness 
 \label{intro}
 
 % general problem,  \cite{RaoMD10,singh11:acl},  \cite{blei12}
-To extract relevant information from streaming text corpora, we often need to find references to entities of interest, and study their topic trends over time. 
-This is, unfortunately, an incredibly difficult task, and thus a large number of pertinent articles are seldom retrieved by automated approaches.
-As a consequence, \citet{frank12} observe a considerable lag between the publication date of articles and the date of their citations in Wikipedia.
+To build up to date entity profiles from streaming text corpora, we need to find references to entities of interest, and study the information trends over time. 
+This is, unfortunately, an incredibly difficult task to perform efficiently on streams, and thus a large number of pertinent articles are seldom retrieved by automated approaches.
+For example, \citet{frank12} observe a considerable lag between the publication date of articles and the date of their citations in Wikipedia.
 The median time is over a year, and the distribution has a long and heavy tail. 
-This gap can be drastically reduced if automated systems can accurately and efficiently suggest relevant documents to editors as soon as they are published.
+This gap can be drastically reduced if automated systems can accurately and efficiently suggest relevant documents for entities of interest to editors as soon as they are published.
 
 % existing solutions
-Recent submissions to TREC KBA~\cite{xitong13, bouvier13, efron13, zhang13, bellogin13} center their attention on solving the above problems with supervised methods, using mainly document, document-entity and temporal level features.
+The Knowledge Base Acceleration (KBA) track at TREC aims to address this problem.
+However, submissions to TREC KBA~\cite{xitong13, bouvier13, efron13, zhang13, bellogin13} focus on solving the above problems with supervised methods, using mainly document, document-entity, and temporal level features.
 % what is wrong with them
-They are, however, somewhat limited; they depend heavily on labeled data, do not handle context sparsity appropriately, and do not identify the topics in the references. %, and do not estimate temporal relevance.
+They are, however, somewhat limited: they depend heavily on labeled data, do not handle lexical sparsity in contexts appropriately, and further, do not identify the topics in the references. %, and do not estimate temporal relevance.
 % \citet{Turian10wordrepresentations} show that by using unlabeled examples to reduce data sparsity in the labeled training data, semi-supervised approaches can improve the generalization accuracy of those supervised systems.
 
 
 % what we're proposing
-In this submission, we introduce a semi-supervised approach suitable for streaming settings that uses low-dimensional vectors and non-parametric topic clusters to represent entities' contexts. We also include a staleness measure that approximates the relevance of the topic clusters. % according to document frequencies. 
-Further, we update the topic identities, number of topics, and the entities and topics staleness in an online fashion, observing only a single document at a time.
-To utilize labeled data, we add features based on our representation of unlabeled documents to a supervised classifier.
-
+In this submission, we introduce a semi-supervised approach suitable for streaming settings that uses word embedding clusters and temporal relevance to represent entities' contexts. %We also include a staleness measure that approximates the relevance of the topic clusters. % according to document frequencies. 
+In particular, the word embeddings provide low-dimensional yet accurate summaries of previously observed entity contexts, and our algorithm updates the topic clusters, number of topics, and the entities and topics temporal relevance in an online fashion, observing only a single document at a time.
+To utilize labeled data, we introduce features based on our representation of unlabeled documents to a supervised classifier.
+%
 % how it solves it
-This combination of distributed word embeddings, non-parametric clustering, and staleness measure provides an efficient yet accurate representation of entities' contexts that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
+This combination of word embeddings, non-parametric clustering, and \emph{staleness} provides an efficient yet accurate representation of entities' contexts that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
 % experiments
 We present experimental results that demonstrate the benefits of our method and present our performance on the UW TREC KBA 2014 Vital Filtering task.
 As part of the Accelerate and Create task, we also describe an exploratory tool for efficient and intuitive visualization of large streams.
@@ -726,13 +727,13 @@ We evaluate the following approaches.
 \begin{figure}[tb]
   \centering
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/clust_dyn_wrong.png}
+            \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/clust_dyn_wrong.png}
       \caption{Submission example}
       \label{official:submission}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/clust_dyn_right.png}
+            \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/clust_dyn_right.png}
       \caption{Revised example}
       \label{official:revised}
     \end{subfigure}
@@ -745,25 +746,25 @@ We evaluate the following approaches.
 \begin{figure}[tb]
   \centering
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/macroPrecision}
+            \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/macroPrecision}
 			\caption{Precision}
 			\label{official:macroprec}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/macroRecall}
+            \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/macroRecall}
 			\caption{Recall}
 			\label{official:macrorecall}
     \end{subfigure}
-    ~
+    \\
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/macroF1}
+            \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/macroF1}
 			\caption{F1}
 			\label{official:macrof1}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/macroSU}
+            \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/macroSU}
 			\caption{Scaled Utility}
 			\label{official:macrosu}
     \end{subfigure}
@@ -775,25 +776,25 @@ We evaluate the following approaches.
 \begin{figure}[tb]
   \centering
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/microPrecision}
+            \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/microPrecision}
       \caption{Precision}
       \label{official:microprec}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/microRecall}
+            \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/microRecall}
       \caption{Recall}
       \label{official:microrecall}
     \end{subfigure}
-    ~
+    \\
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/microF1}
+            \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/microF1}
       \caption{F1}
       \label{official:microf1}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
-            \includegraphics[width=\textwidth]{fig/microSU}
+            \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/microSU}
       \caption{Scaled Utility}
       \label{official:microsu}
     \end{subfigure}
@@ -803,14 +804,14 @@ We evaluate the following approaches.
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=.5\textwidth]{fig/macroPrecisionRecall.png}
+\includegraphics[width=.45\textwidth,clip=true,trim=10mm 0mm 15mm 8mm]{fig/macroPrecisionRecall.png}
 \caption{Macro Precision-Recall}
 \label{macroPrecRecall}
 \end{figure}
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=.5\textwidth]{fig/microPrecisionRecall.png}
+\includegraphics[width=.45\textwidth,clip=true,trim=10mm 0mm 15mm 8mm]{fig/microPrecisionRecall.png}
 \caption{Micro Precision-Recall}
 \label{microPrecRecall}
 \end{figure}
