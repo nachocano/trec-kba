@@ -73,14 +73,14 @@ This gap can be drastically reduced if automated systems can accurately and effi
 The Knowledge Base Acceleration (KBA) track at TREC addresses this task.
 Recent submissions to KBA ~\cite{xitong13, bouvier13, efron13, zhang13, bellogin13} focus on solving the aforementioned problems with supervised methods, using mainly document, document-entity, and temporal level features.
 % what is wrong with them
-They are, however, somewhat limited: they depend heavily on labeled data, do not handle lexical sparsity in contexts appropriately, and further, do not identify the topics in the references. %, and do not estimate temporal relevance.
+They are, however, somewhat limited: they depend heavily on labeled data, do not handle lexical sparsity in contexts appropriately, and further, do not model the various semantic topics in the references. %, and do not estimate temporal relevance.
 % \citet{Turian10wordrepresentations} show that by using unlabeled examples to reduce data sparsity in the labeled training data, semi-supervised approaches can improve the generalization accuracy of those supervised systems.
 
 
 % what we're proposing
 In this submission, we introduce a semi-supervised approach suitable for streaming settings that uses word embedding clusters and temporal relevance to represent entity contexts. %We also include a staleness measure that approximates the relevance of the topic clusters. % according to document frequencies. 
 In particular, the word embeddings provide low-dimensional yet accurate summaries of previously observed entity contexts, and our algorithm updates the topic clusters, number of topics, and the entities and topics temporal relevance in an online fashion, observing only a single document at a time.
-To utilize labeled data, we introduce features based on our representation of unlabeled documents to a supervised classifier.
+We use this representation of unlabeled documents as features in a supervised classifier to utilize labeled data.
 %
 % how it solves it
 This combination of word embeddings, non-parametric clustering, and temporal relevance (staleness) provides an efficient yet accurate representation of entity contexts that can be updated in a streaming manner, thus addressing the document filtering requirements on large streams of text.
@@ -146,7 +146,7 @@ Many of the syntactic patterns can be represented with simple algebraic operatio
 
 %Given the recent fast estimation of embedding representations at very large scale, there is rising interest in vector-space word embeddings and their use in NLP \cite{Arvind14}.
 
-We introduce a function $f : w \rightarrow v_w \in \mathbf{R^d}$ that defines the pre-computed word embedding representation of the word type $w$. 
+We introduce a function $f : w \rightarrow v_w \in \mathbf{R^d}$ that defines the pre-computed word embedding representation of the word type $w$\footnote{We use the 300-dimensional word embeddings trained on the Google News Corpus, available at \url{https://code.google.com/p/word2vec/}.}. 
 To define the embedding for a set of words $W$, we define $g : W \rightarrow v_W \in \mathbf{R^d}$ that computes embedding as: % defined in Equation \ref{wordembedding}.
 \begin{equation}
 \label{wordembedding}
@@ -176,7 +176,7 @@ Computing separate embeddings for different word types is a flexibility our meth
 % problem
 Although word embeddings capture the context around a single topic quite accurately, they are unable to represent the variety of topics that an entity may be mentioned in.
 For example, the context around Obama during \emph{elections} is quite different from the context for \emph{presidential speech} or \emph{international visit}.
-Using a single word embedding to represent multiple such topics may result in embeddings that conflate them, making the topics inaccurate.
+Using a single word embedding to represent multiple such topics may result in embeddings that conflate them, being inaccurate for all of them.
 
 % solution
 One typical approach to tackle this problem is using topic models~\cite{blei12}.
@@ -388,8 +388,8 @@ Once the interesting time frames have been identified, this view also allows the
 
 The \emph{Topic} view shows the evolution of the topic clusters for the entity, illustrating the predicted proportion of topic clusters over time.
 This view primarily plots the staleness of a cluster over time, indicating when a cluster was started, mentioned in the documents, and fall into obsolescence. 
-The user can also study the topics in finer detail, clicking on any point in the timeline brings up a word cloud representation of the topic at that time.
-Figure \ref{stalenessEvol} shows the staleness evolution for the different topic clusters of entity \emph{Mike Kluse}. 
+The user can also study the topics in finer detail; clicking on any point in the timeline brings up a word cloud representation of the topic at that time.
+Figure \ref{stalenessEvol}, for example, shows the staleness evolution for the different topic clusters of entity \emph{Mike Kluse}. 
 %The user can select any point in the line to further inspect the topic cluster. 
 Figure \ref{wordcloud} is the result of a user click on the point highlighted in Figure \ref{stalenessEvol}. 
 It shows the closest words to the topic cluster C1 at that time.
@@ -553,7 +553,7 @@ We evaluate the following approaches in our experiments.
   %\item 
   %{\textbf{Embedding POS}}: similar to {\textit{Embedding Combined}} but uses $F_e^p$ features. Instead of a single combined embedding per document, it has one embedding per word type in each document, i.e. it computes separate embeddings for nouns and verbs. %It uses the part of speech annotations in the documents to easily extract the different word types.
   %\item 
-  We separately evaluate the utility of temporal dynamics via staleness by introducing the {\textbf{Staleness only}} method that includes the $F_t$ features.
+  We separately evaluate the utility of temporal modeling via staleness by introducing the {\textbf{Staleness only}} method that includes the $F_t$ features.
   %\item 
   Similarly, we propose the method that uses only clustering ($F_c$ features), but not the temporal ones, called {\textbf{Clustering only}}.
   %\item 
@@ -743,16 +743,16 @@ We evaluate the following approaches in our experiments.
   \centering
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/clust_dyn_wrong.png}
-      \caption{Submission example}
+      \caption{Example Submission Curve}
       \label{official:submission}
     \end{subfigure}
     ~
     \begin{subfigure}[b]{\officialRunWidth}
             \includegraphics[width=\textwidth,clip=true,trim=15mm 0mm 15mm 5mm]{fig/clust_dyn_right.png}
-      \caption{Revised example}
+      \caption{Example Revised Curve}
       \label{official:revised}
     \end{subfigure}
-\caption{P-R-F1 over confidence cutoffs}
+\caption{Examples of P-R-F1 over confidence cutoffs}
 \label{submissionAndRevised}
 \end{figure}
 
@@ -819,14 +819,14 @@ We evaluate the following approaches in our experiments.
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=.45\textwidth,clip=true,trim=10mm 0mm 15mm 8mm]{fig/macroPrecisionRecall.png}
+\includegraphics[width=.44\textwidth,clip=true,trim=10mm 0mm 15mm 8mm]{fig/macroPrecisionRecall.png}
 \caption{Macro Precision-Recall}
 \label{macroPrecRecall}
 \end{figure}
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=.45\textwidth,clip=true,trim=10mm 0mm 15mm 8mm]{fig/microPrecisionRecall.png}
+\includegraphics[width=.44\textwidth,clip=true,trim=10mm 0mm 15mm 8mm]{fig/microPrecisionRecall.png}
 \caption{Micro Precision-Recall}
 \label{microPrecRecall}
 \end{figure}
@@ -840,15 +840,15 @@ According to the official results, our submissions achieved the $2^{nd}$ best pr
 The baseline provided by TREC KBA organizers (not to be confused with our \emph{Baseline} model) assigns a vital rating to every document that matches a surface form name of an entity, assigning a confidence score based on the number of matches of tokens in the name. The values reported by the organizers are: macro-P=0.316, macro-R=0.520, macro-F1=0.393, SU=0.3334 \cite{frank14:overview}.
 
 {\textit{Baseline}} performs as expected, i.e. has lower F1 than the other models.
-On the other hand, {\textit{Baseline, Multi-task}} performs far better than {\textit{Baseline}}, which suggests the entity context varies sufficiently across entities to benefit from separate parameterization.
+On the other hand, {\textit{Baseline, Multi-task}} performs far better than {\textit{Baseline}}, which suggests the contexts vary sufficiently across entities to benefit from separate parameterization.
 Our proposed models further improve upon the {\textit{Baseline, Multi-task}}. 
 Further, using a single embedding ({\textit{Embedding, Single}}) outperforms multiple embeddings representations ({\textit{Embedding, POS}}), indicating word embeddings implicitly capture the various parts of speech in their representation.
 The proposed staleness and non-parametric clustering ({\textit{Staleness only}}, {\textit{Clustering only}}, {\textit{Combined}}) perform slightly worse than the simple {\textit{Embedding, Single}} method on the submission results. 
 %Nevertheless, they illustrate the importance of these new features as they use separate embeddings for the different word types, and they all improve the performance over the simple {\textit{Embedding, POS}} model. 
 However, in the revised versions, {\textit{Staleness only}} scores the best F1, followed closely by {\textit{Clustering only}}, which further demonstrates the importance of $F_t$ and $F_c$ features.
 
-Figures \ref{macroRuns} and \ref{microRuns} complement the revised results in Table \ref{officialRes} for different confidence cutoffs. Figures \ref{official:macroprec} and \ref{official:macrorecall} show that the macro recall has a substantial increase in the lower confidence half of the plot, while retaining most of the precision; this results in a boost of F1 scores in the revised macro scenario.
-For micro-averaging, the precisions and recalls (shown in Figures \ref{official:microprec} and \ref{official:microrecall}) follow similar trends, causing the micro revised F1s to be almost the same as the micro submission ones. 
+Figures \ref{macroRuns} and \ref{microRuns} complement the revised results in Table \ref{officialRes} for different confidence cutoffs. Figures \ref{official:macroprec} and \ref{official:macrorecall} show that the macro recall has a substantial increase in the lower confidence half of the plot, while retaining most of the precision; this results in a boost to F1 scores in the revised macro scenario.
+For micro-averaging on the other hand, the precisions and recalls (shown in Figures \ref{official:microprec} and \ref{official:microrecall}) follow opposite trends, causing the micro revised F1s to be almost the same as the micro submission ones. 
 
 Figures \ref{macroPrecRecall} and \ref{microPrecRecall} further illustrate the precision-recall for the different methods. For macro averaging, all methods perform almost the same. The micro metrics in Figure \ref{microPrecRecall} are much more interesting. At lower recall, the micro precisions of the different models meet our expectations: the more complex methods, including non-parametric clustering and staleness, outperform our baselines. Nevertheless, at higher recall, {\textit{Embedding, Single}} takes the lead.
 
@@ -889,8 +889,8 @@ Figures \ref{macroPrecRecall} and \ref{microPrecRecall} further illustrate the p
 \label{conclusion}
 
 Filtering streaming documents in order to fill gaps plays a crucial role in the maintenance and timely updates of knowledge bases.
-With the exponential increase of information on the web, it becomes critical to detect relevant documents and incorporate their information to entities in a timely manner. % \cite{jingang13}.
-In this paper we introduced a semi-supervised learning model for document filtering tasks. We proposed a word embeddings based non-parametric representation of documents that groups entity references into topic clusters, and is suitable for streaming settings. Further, we present a notion of staleness at a per entity and per topic cluster level that dynamically estimates the temporal relevance of the entity contexts.
+With the exponential increase of information on the web, it becomes critical to detect relevant documents and incorporate their information in a timely manner. % \cite{jingang13}.
+In this paper we introduced a semi-supervised learning model for document filtering tasks. We proposed a word embeddings based non-parametric representation of documents that groups entity references into topic clusters, and is suitable for streaming data. Further, we present a notion of staleness for entities and topics that dynamically estimates the temporal relevance of the entity contexts.
 The combination of these three core contributions (distributed word embedding representations, non-parametric clustering, and staleness) results in an accurate representation of entity contexts, while simultaneously addressing the filtering requirements of large corpora of streaming text documents.
 
 A number of avenues exist for further work. A possible line of future research would be exploring hierarchical clustering algorithms to better represent topic clusters. It would also be interesting to assess the effect of learning the hyperparameters of the model instead of just manual tuning them for the specific datasets.
@@ -899,7 +899,7 @@ It would also be worthwhile to assess the effects of using different pre-trained
 
 \section*{Acknowledgments} 
  
-This work was supported in part by the Argentine Ministry of Science, Technology and Productive Innovation with the program BEC.AR, and the TerraSwarm Research Center, supported by the STARnet phase of the Focus Center Research Program (FCRP). Any opinions, findings and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect those of the sponsors.
+This work was supported in part by the Argentine Ministry of Science, Technology and Productive Innovation with the program BEC.AR, and in part by TerraSwarm, one of six centers of STARnet, a Semiconductor Research Corporation program sponsored by MARCO and DARPA. Any opinions, findings and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect those of the sponsors.
 
 \newpage
 \small
